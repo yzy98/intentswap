@@ -1,0 +1,32 @@
+{
+  "name": "intentswap",
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm --filter @packages/hardhat build",
+    "test": "pnpm --filter @packages/hardhat test",
+    "node": "pnpm --filter @packages/hardhat node",
+    "deploy:localhost": "pnpm --filter @packages/hardhat deploy:localhost",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "ultracite": "6.5.0"
+  },
+  "keywords": [],
+  "author": "yzy98",
+  "license": "MIT",
+  "description": "",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
+      "pnpm fix"
+    ]
+  }
+}
