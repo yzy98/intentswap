@@ -10,6 +10,7 @@
     "test": "pnpm --filter @packages/hardhat test",
     "node": "pnpm --filter @packages/hardhat node",
     "deploy:localhost": "pnpm --filter @packages/hardhat deploy:localhost",
+    "deploy:sepolia": "pnpm --filter @packages/hardhat deploy:sepolia",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
