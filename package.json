@@ -11,6 +11,7 @@
     "node": "pnpm --filter @packages/hardhat node",
     "deploy:localhost": "pnpm --filter @packages/hardhat deploy:localhost",
     "deploy:sepolia": "pnpm --filter @packages/hardhat deploy:sepolia",
+    "dev": "pnpm --filter @packages/web dev",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
