@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "./theme-provider";
+import { WalletProvider } from "./wallet-provider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -10,7 +11,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
       enableSystem
     >
-      {children}
+      <WalletProvider>{children}</WalletProvider>
     </ThemeProvider>
   );
 }
