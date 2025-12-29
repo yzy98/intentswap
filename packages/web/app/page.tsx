@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { OracleCard } from "@/components/oracle-card";
 
 export default function Page() {
-  return <Button>Toast</Button>;
+  return <OracleCard />;
 }

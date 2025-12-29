@@ -29,7 +29,7 @@ contract Oracle is Ownable {
    * @param _feed The ChainLink Aggregator address
    */
   function setFeed(address _tokenA, address _tokenB, address _feed) external onlyOwner {
-    if (_tokenA == address(0) || _tokenB == address(0) || _tokenA == _tokenB || _feed == address(0)) {
+    if (_tokenA == _tokenB || _feed == address(0)) {
       revert Oracle__InvalidAddress();
     }
 
@@ -44,7 +44,7 @@ contract Oracle is Ownable {
    * @return The price
    */
   function getPrice(address _tokenA, address _tokenB) external view returns (uint256) {
-    if (_tokenA == address(0) || _tokenB == address(0) || _tokenA == _tokenB) {
+    if (_tokenA == _tokenB) {
       revert Oracle__InvalidAddress();
     }
 
@@ -71,7 +71,7 @@ contract Oracle is Ownable {
    * @return The decimals
    */
   function getDecimals(address _tokenA, address _tokenB) external view returns (uint8) {
-    if (_tokenA == address(0) || _tokenB == address(0) || _tokenA == _tokenB) {
+    if (_tokenA == _tokenB) {
       revert Oracle__InvalidAddress();
     }
 
