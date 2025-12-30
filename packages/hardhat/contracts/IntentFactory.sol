@@ -87,7 +87,7 @@ contract IntentFactory is Ownable {
     uint256 _priceThreshold,
     uint256 _expiration
   ) external returns (uint256) {
-    if (_tokenFrom == address(0) || _tokenTo == address(0) || _tokenFrom == _tokenTo) {
+    if (_tokenFrom == _tokenTo) {
       revert IntentFactory__InvalidAddress();
     }
     if (_amount == 0) {

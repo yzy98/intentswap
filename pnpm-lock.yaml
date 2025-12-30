@@ -38,6 +38,27 @@ importers:
       '@openzeppelin/contracts':
         specifier: ^5.4.0
         version: 5.4.0
+      '@uniswap/universal-router':
+        specifier: ^2.1.0
+        version: 2.1.0
+      '@uniswap/v2-core':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@uniswap/v3-core':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@uniswap/v3-periphery':
+        specifier: ^1.4.4
+        version: 1.4.4
+      '@uniswap/v4-core':
+        specifier: ^1.0.2
+        version: 1.0.2
+      '@uniswap/v4-periphery':
+        specifier: ^1.0.3
+        version: 1.0.3
+      solmate:
+        specifier: ^6.8.0
+        version: 6.8.0
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: ^3.0.6
@@ -1304,6 +1325,9 @@ packages:
   '@openzeppelin/contracts-upgradeable@4.9.6':
     resolution: {integrity: sha512-m4iHazOsOCv1DgM7eD7GupTJ+NFVujRZt1wzddDPSVGpWdKq1SKkla5htKG7+IS4d2XOCtzkUNwRZ7Vq5aEUMA==}
 
+  '@openzeppelin/contracts@3.4.2-solc-0.7':
+    resolution: {integrity: sha512-W6QmqgkADuFcTLzHL8vVoNBtkwjvQRpYIAom7KiUNoLKghyx3FgH0GBjt8NRvigV1ZmMOBllvE1By1C+bi8WpA==}
+
   '@openzeppelin/contracts@4.7.3':
     resolution: {integrity: sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==}
 
@@ -2203,6 +2227,36 @@ packages:
   '@types/statuses@2.0.6':
     resolution: {integrity: sha512-xMAgYwceFhRA2zY+XbEA7mxYbA093wdiW8Vu6gZPGWy9cmOyU9XesH1tNcEWsKFd5Vzrqx5T3D38PWx1FIIXkA==}
 
+  '@uniswap/lib@4.0.1-alpha':
+    resolution: {integrity: sha512-f6UIliwBbRsgVLxIaBANF6w09tYqc6Y/qXdsrbEmXHyFA7ILiKrIwRFXe1yOg8M3cksgVsO9N7yuL2DdCGQKBA==}
+    engines: {node: '>=10'}
+
+  '@uniswap/universal-router@2.1.0':
+    resolution: {integrity: sha512-rt18RUsZd9xDfyVfIONJo+TEQ8w+olOYxu9+A1g4Thil1R7IMa+8mnyVQjdLPK2REhejScDwjYbOGpeaAce0hg==}
+    engines: {node: '>=14'}
+
+  '@uniswap/v2-core@1.0.1':
+    resolution: {integrity: sha512-MtybtkUPSyysqLY2U210NBDeCHX+ltHt3oADGdjqoThZaFRDKwM6k1Nb3F0A3hk5hwuQvytFWhrWHOEq6nVJ8Q==}
+    engines: {node: '>=10'}
+
+  '@uniswap/v3-core@1.0.0':
+    resolution: {integrity: sha512-kSC4djMGKMHj7sLMYVnn61k9nu+lHjMIxgg9CDQT+s2QYLoA56GbSK9Oxr+qJXzzygbkrmuY6cwgP6cW2JXPFA==}
+    engines: {node: '>=10'}
+
+  '@uniswap/v3-core@1.0.1':
+    resolution: {integrity: sha512-7pVk4hEm00j9tc71Y9+ssYpO6ytkeI0y7WE9P6UcmNzhxPePwyAxImuhVsTqWK9YFvzgtvzJHi64pBl4jUzKMQ==}
+    engines: {node: '>=10'}
+
+  '@uniswap/v3-periphery@1.4.4':
+    resolution: {integrity: sha512-S4+m+wh8HbWSO3DKk4LwUCPZJTpCugIsHrWR86m/OrUyvSqGDTXKFfc2sMuGXCZrD1ZqO3rhQsKgdWg3Hbb2Kw==}
+    engines: {node: '>=10'}
+
+  '@uniswap/v4-core@1.0.2':
+    resolution: {integrity: sha512-X15Tm2wWd+USAzEExMbo+g9naA6QN6mPgWm0MzDwRNlOfaNlepfUpSyt9RSrUfEODspwbyWbcLg6t5nwc/e7lg==}
+
+  '@uniswap/v4-periphery@1.0.3':
+    resolution: {integrity: sha512-JxLL0Djv9XcMvI2PatEnWrCrxuEaYNVhHxstndBOP+aJfh1XLg5ec8SDZ0xyoVfg2ElJTvuKpBgnu90bNValsg==}
+
   '@vanilla-extract/css@1.17.3':
     resolution: {integrity: sha512-jHivr1UPoJTX5Uel4AZSOwrCf4mO42LcdmnhJtUxZaRWhW4FviFbIfs0moAWWld7GOT+2XnuVZjjA/K32uUnMQ==}
 
@@ -2379,6 +2433,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  base64-sol@1.0.1:
+    resolution: {integrity: sha512-ld3cCNMeXt4uJXmLZBHFGMvVpK9KsLVEhPpFRXnvSVAqABKbuNZg/+dsq3NuM+wxFLb/UrVkz7m1ciWmkMfTbg==}
 
   baseline-browser-mapping@2.9.11:
     resolution: {integrity: sha512-Sg0xJUNDU1sJNGdfGWhVHX0kkZ+HWcvmVymJbj6NSgZZmW/8S9Y2HQ5euytnIgakgxN6papOAWiwDo1ctFDcoQ==}
@@ -4197,6 +4254,9 @@ packages:
 
   solady@0.0.182:
     resolution: {integrity: sha512-FW6xo1akJoYpkXMzu58/56FcNU3HYYNamEbnFO3iSibXk0nSHo0DV2Gu/zI3FPg3So5CCX6IYli1TT1IWATnvg==}
+
+  solmate@6.8.0:
+    resolution: {integrity: sha512-/oI8kgEvSxGG1mrFv3FmCEZd0F8Z9VzRmoYMIhzmmzt6mjtPwfdCm3oh8yOL7bMHJBSfXJuMpnMPrM0uyaKsKg==}
 
   sonner@2.0.7:
     resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
@@ -6200,6 +6260,8 @@ snapshots:
 
   '@openzeppelin/contracts-upgradeable@4.9.6': {}
 
+  '@openzeppelin/contracts@3.4.2-solc-0.7': {}
+
   '@openzeppelin/contracts@4.7.3': {}
 
   '@openzeppelin/contracts@4.8.3': {}
@@ -7140,6 +7202,32 @@ snapshots:
 
   '@types/statuses@2.0.6': {}
 
+  '@uniswap/lib@4.0.1-alpha': {}
+
+  '@uniswap/universal-router@2.1.0':
+    dependencies:
+      '@openzeppelin/contracts': 5.0.2
+      '@uniswap/v2-core': 1.0.1
+      '@uniswap/v3-core': 1.0.0
+
+  '@uniswap/v2-core@1.0.1': {}
+
+  '@uniswap/v3-core@1.0.0': {}
+
+  '@uniswap/v3-core@1.0.1': {}
+
+  '@uniswap/v3-periphery@1.4.4':
+    dependencies:
+      '@openzeppelin/contracts': 3.4.2-solc-0.7
+      '@uniswap/lib': 4.0.1-alpha
+      '@uniswap/v2-core': 1.0.1
+      '@uniswap/v3-core': 1.0.1
+      base64-sol: 1.0.1
+
+  '@uniswap/v4-core@1.0.2': {}
+
+  '@uniswap/v4-periphery@1.0.3': {}
+
   '@vanilla-extract/css@1.17.3':
     dependencies:
       '@emotion/hash': 0.9.2
@@ -7277,6 +7365,8 @@ snapshots:
       possible-typed-array-names: 1.1.0
 
   balanced-match@1.0.2: {}
+
+  base64-sol@1.0.1: {}
 
   baseline-browser-mapping@2.9.11: {}
 
@@ -9182,6 +9272,8 @@ snapshots:
       - supports-color
 
   solady@0.0.182: {}
+
+  solmate@6.8.0: {}
 
   sonner@2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:

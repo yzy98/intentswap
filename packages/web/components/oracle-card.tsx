@@ -66,6 +66,8 @@ export function OracleCard() {
       }),
     ]);
 
+    console.log(Number(price), decimals);
+
     setFeedPrice(Number(price) / 10 ** decimals);
   };
 
