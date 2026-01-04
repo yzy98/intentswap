@@ -12,7 +12,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/ui/responsive-dialog";
-import { SEPOLIA_CONTRACT_ORACLE_ADDRESS } from "@/lib/constants";
+import { SEPOLIA_CONTRACT_ORACLE_ADDRESS } from "@/lib/addresses";
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";

@@ -33,6 +33,7 @@ contract IntentExecutor is Ownable {
   error IntentExecutor__IntentExpired();
   error IntentExecutor__PriceThresholdNotMet();
   error IntentExecutor__PaymentFailed();
+  error IntentExecutor__PoolKeyAlreadySet();
   error IntentExecutor__PoolKeyNotSet();
 
   constructor(address _intentFactory, address _oracle, address _swapper) Ownable(msg.sender) {
@@ -55,6 +56,10 @@ contract IntentExecutor is Ownable {
   ) external onlyOwner {
     (address x, address y) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
     bytes32 id = _pairId(x, y);
+    
+    if (poolKeysSet[id]) {
+      revert IntentExecutor__PoolKeyAlreadySet();
+    }
 
     poolKeys[id] = PoolKey({
       currency0: Currency.wrap(x),

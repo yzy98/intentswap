@@ -6,7 +6,7 @@ import { useWriteContract } from "wagmi";
 import { intentFactoryAbi } from "@/abis/intentFactory";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SEPOLIA_CONTRACT_INTENT_FACTORY_ADDRESS } from "@/lib/constants";
+import { SEPOLIA_CONTRACT_INTENT_FACTORY_ADDRESS } from "@/lib/addresses";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 

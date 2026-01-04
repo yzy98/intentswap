@@ -42,6 +42,11 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
+    name: "IntentExecutor__PoolKeyAlreadySet",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "IntentExecutor__PoolKeyNotSet",
     type: "error",
   },

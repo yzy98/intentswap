@@ -25,7 +25,8 @@ import {
   SEPOLIA_CONTRACT_ORACLE_ADDRESS,
   SEPOLIA_ETH_TOKEN_ADDRESS,
   SEPOLIA_LINK_TOKEN_ADDRESS,
-} from "@/lib/constants";
+} from "@/lib/addresses";
+import { oracleContractSepolia } from "@/lib/contracts";
 import { SetFeedDialog } from "./set-feed-dialog";
 import { Button } from "./ui/button";
 
@@ -38,8 +39,7 @@ export function OracleCard() {
   const config = useConfig();
 
   const { data: ownerAddress } = useReadContract({
-    abi: oracleAbi,
-    address: SEPOLIA_CONTRACT_ORACLE_ADDRESS,
+    ...oracleContractSepolia,
     functionName: "owner",
   });
 
