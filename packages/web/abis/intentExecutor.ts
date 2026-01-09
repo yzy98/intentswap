@@ -136,6 +136,62 @@ export const intentExecutorAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenB",
+        type: "address",
+      },
+    ],
+    name: "getPoolKey",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "Currency",
+            name: "currency0",
+            type: "address",
+          },
+          {
+            internalType: "Currency",
+            name: "currency1",
+            type: "address",
+          },
+          {
+            internalType: "uint24",
+            name: "fee",
+            type: "uint24",
+          },
+          {
+            internalType: "int24",
+            name: "tickSpacing",
+            type: "int24",
+          },
+          {
+            internalType: "contract IHooks",
+            name: "hooks",
+            type: "address",
+          },
+        ],
+        internalType: "struct PoolKey",
+        name: "key",
+        type: "tuple",
+      },
+      {
+        internalType: "bool",
+        name: "isSet",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "intentFactory",
     outputs: [

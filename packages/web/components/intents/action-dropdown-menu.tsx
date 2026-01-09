@@ -17,14 +17,11 @@ import {
 } from "@/lib/contracts";
 import { getIntentStatusEnumFromString } from "@/lib/utils";
 import { Button } from "../ui/button";
-import type { Intent } from "./table-row";
+import { useTableRow } from "./table-row-provider";
 
-interface Props {
-  intent: Intent;
-  intentId: bigint;
-}
+export const IntentActionDropdownMenu = () => {
+  const { intent, intentId, isPoolKeySet } = useTableRow();
 
-export const IntentActionDropdownMenu = ({ intent, intentId }: Props) => {
   const { mutateAsync, isPending, error } = useWriteContract();
 
   const isIntentActive =
@@ -47,6 +44,11 @@ export const IntentActionDropdownMenu = ({ intent, intentId }: Props) => {
 
   // [FIXME] Execute intent always fails
   const handleExecuteIntent = () => {
+    if (!isPoolKeySet) {
+      toast.error("Must set pool key before executing intent");
+      return;
+    }
+
     toast.promise(
       mutateAsync({
         ...intentExecutorContractSepolia,
@@ -91,16 +93,17 @@ export const IntentActionDropdownMenu = ({ intent, intentId }: Props) => {
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem disabled={isPending} onSelect={handleSetPoolKey}>
-            Set Pool Key
-          </DropdownMenuItem>
+          {!isPoolKeySet && (
+            <DropdownMenuItem disabled={isPending} onSelect={handleSetPoolKey}>
+              Set pool key
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             disabled={!isIntentActive || isPending}
             onSelect={handleExecuteIntent}
           >
             Execute
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>Update</DropdownMenuItem>
           <DropdownMenuItem
             disabled={!isIntentActive || isPending}
             onSelect={handleCancelIntent}

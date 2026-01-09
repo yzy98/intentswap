@@ -152,4 +152,20 @@ contract IntentExecutor is Ownable {
     executionFee = _newFee;
     emit ExecutionFeeUpdated(_newFee);
   }
+
+  /**
+   * @notice Get the pool key and whether it is set for a token pair
+   * @param tokenA The token address
+   * @param tokenB The token address
+   * @return key The pool key
+   * @return isSet Whether the pool key is set
+   */
+  function getPoolKey(
+    address tokenA,
+    address tokenB
+  ) external view returns (PoolKey memory key, bool isSet) {
+    bytes32 id = _pairId(tokenA, tokenB);
+    isSet = poolKeysSet[id];
+    key = poolKeys[id];
+  }
 }
