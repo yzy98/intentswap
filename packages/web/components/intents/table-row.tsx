@@ -1,7 +1,8 @@
-import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
-import { useMemo } from "react";
-import { formatEther } from "viem";
-import { useReadContract } from "wagmi";
+import { CheckIcon, Loader2Icon, PencilIcon, XIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { formatEther, parseEther } from "viem";
+import { useReadContract, useWriteContract } from "wagmi";
 import {
   InputGroup,
   InputGroupAddon,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
@@ -26,13 +28,13 @@ interface IntentsTableRowProps {
 }
 
 export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
-  const { data: intent } = useReadContract({
+  const { data: intent, refetch: refetchIntent } = useReadContract({
     ...intentFactoryContractSepolia,
     functionName: "getIntent",
     args: [intentId],
   });
 
-  const { data: poolKeyData } = useReadContract({
+  const { data: poolKeyData, refetch: refetchPoolKey } = useReadContract({
     ...intentExecutorContractSepolia,
     functionName: "getPoolKey",
     args: [intent?.tokenFrom as Address, intent?.tokenTo as Address],
@@ -53,6 +55,8 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
       intent={intent}
       intentId={intentId}
       isPoolKeySet={poolKeyData[1]}
+      refetchIntent={refetchIntent}
+      refetchPoolKey={refetchPoolKey}
     >
       <IntentsTableRowDetails />
     </TableRowProvider>
@@ -60,13 +64,27 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
 };
 
 const IntentsTableRowDetails = () => {
-  const { intent, isPoolKeySet, isEditing, setIsEditing } = useTableRow();
+  const { mutateAsync } = useWriteContract();
+  const {
+    intent,
+    intentId,
+    isPoolKeySet,
+    isEditing,
+    setIsEditing,
+    refetchIntent,
+  } = useTableRow();
+
+  const [newPriceThreshold, setNewPriceThreshold] = useState(
+    formatEther(intent.priceThreshold)
+  );
 
   const intentStatus = getIntentStatusFromEnum(
     intent.status as IntentStatusNumber
   );
 
   const isIntentActive = intentStatus === "Active";
+  const isPriceThresholdChanged =
+    newPriceThreshold !== formatEther(intent.priceThreshold);
 
   const intentStatusVariant = useMemo(() => {
     if (intentStatus === "Active") {
@@ -78,13 +96,32 @@ const IntentsTableRowDetails = () => {
     return "secondary";
   }, [intentStatus]);
 
-  const handleSaveEditing = () => {
-    // [TODO] Call contract function to save editing
-    setIsEditing(false);
-  };
+  const { execute: handleSaveEditing, isPending: isUpdatingPriceThreshold } =
+    useMyWriteContract({
+      mutateAsyncFn: () =>
+        mutateAsync({
+          ...intentFactoryContractSepolia,
+          functionName: "updateIntentCondition",
+          args: [intentId, parseEther(newPriceThreshold)],
+        }),
+      refetch: refetchIntent,
+      messages: {
+        sending: "Sending transaction...",
+        waiting: "Waiting for transaction to be confirmed...",
+        refetching: "Transaction confirmed, refetching intent data...",
+        success: "Intent data updated successfully",
+      },
+      onFinally: () => {
+        setNewPriceThreshold(formatEther(intent.priceThreshold));
+        setIsEditing(false);
+      },
+    });
 
   const handleCancelEditing = () => {
-    // [TODO] Render dialog to confirm cancellation
+    if (isPriceThresholdChanged) {
+      toast.info("New price threshold has not been saved");
+      setNewPriceThreshold(formatEther(intent.priceThreshold));
+    }
     setIsEditing(false);
   };
 
@@ -98,19 +135,25 @@ const IntentsTableRowDetails = () => {
           <InputGroup>
             <InputGroupInput
               autoFocus
-              defaultValue={formatEther(intent.priceThreshold)}
-              onBlur={handleCancelEditing}
+              onChange={(e) => setNewPriceThreshold(e.target.value)}
               size={4}
+              value={newPriceThreshold}
             />
             <InputGroupAddon align="inline-end" className="gap-0">
               <InputGroupButton
+                disabled={isUpdatingPriceThreshold}
                 onClick={handleSaveEditing}
                 size="icon-xs"
                 variant="default"
               >
-                <CheckIcon />
+                {isUpdatingPriceThreshold ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : (
+                  <CheckIcon />
+                )}
               </InputGroupButton>
               <InputGroupButton
+                disabled={isUpdatingPriceThreshold}
                 onClick={handleCancelEditing}
                 size="icon-xs"
                 variant="secondary"

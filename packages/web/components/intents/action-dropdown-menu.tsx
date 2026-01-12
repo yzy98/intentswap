@@ -1,7 +1,7 @@
 import { MoreVerticalIcon } from "lucide-react";
-import { toast } from "sonner";
 import { zeroAddress } from "viem";
 import { useWriteContract } from "wagmi";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,71 +12,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  type UseMyWriteContractOptions,
+  useMyWriteContract,
+} from "@/hooks/use-my-write-contract";
+import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
 } from "@/lib/contracts";
 import { getIntentStatusEnumFromString } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { useTableRow } from "./table-row-provider";
 
 export const IntentActionDropdownMenu = () => {
-  const { intent, intentId, isPoolKeySet } = useTableRow();
-
-  const { mutateAsync, isPending, error } = useWriteContract();
+  const { mutateAsync } = useWriteContract();
+  const { intent, intentId, refetchIntent, isPoolKeySet, refetchPoolKey } =
+    useTableRow();
 
   const isIntentActive =
     intent.status === getIntentStatusEnumFromString("Active");
-
-  const handleSetPoolKey = () => {
-    toast.promise(
-      mutateAsync({
-        ...intentExecutorContractSepolia,
-        functionName: "setPoolKey",
-        args: [intent.tokenFrom, intent.tokenTo, 3000, 60, zeroAddress],
-      }),
-      {
-        loading: "Setting pool key...",
-        success: "Pool key set successfully",
-        error: error?.message || "Failed to set pool key",
-      }
-    );
-  };
-
-  // [FIXME] Execute intent always fails
-  const handleExecuteIntent = () => {
-    if (!isPoolKeySet) {
-      toast.error("Must set pool key before executing intent");
-      return;
-    }
-
-    toast.promise(
-      mutateAsync({
-        ...intentExecutorContractSepolia,
-        functionName: "executeIntent",
-        args: [intentId],
-      }),
-      {
-        loading: "Executing intent...",
-        success: `Intent ${intentId} executed successfully`,
-        error: error?.message || "Failed to execute intent",
-      }
-    );
-  };
-
-  const handleCancelIntent = () => {
-    toast.promise(
-      mutateAsync({
-        ...intentFactoryContractSepolia,
-        functionName: "cancelIntent",
-        args: [intentId],
-      }),
-      {
-        loading: "Cancelling intent...",
-        success: () => `Intent ${intentId} cancelled successfully`,
-        error: error?.message || "Failed to cancel intent",
-      }
-    );
-  };
 
   return (
     <DropdownMenu modal={false}>
@@ -94,24 +46,88 @@ export const IntentActionDropdownMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {!isPoolKeySet && (
-            <DropdownMenuItem disabled={isPending} onSelect={handleSetPoolKey}>
-              Set pool key
-            </DropdownMenuItem>
+            <WrappedDropdownMenuItem
+              messages={{
+                refetching: "Transaction confirmed, refetching pool key...",
+                success: "Pool key set successfully",
+              }}
+              mutateAsyncFn={() =>
+                mutateAsync({
+                  ...intentExecutorContractSepolia,
+                  functionName: "setPoolKey",
+                  args: [
+                    intent.tokenFrom,
+                    intent.tokenTo,
+                    3000,
+                    60,
+                    zeroAddress,
+                  ],
+                })
+              }
+              refetch={refetchPoolKey}
+              text="Set pool key"
+            />
           )}
-          <DropdownMenuItem
-            disabled={!isIntentActive || isPending}
-            onSelect={handleExecuteIntent}
-          >
-            Execute
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!isIntentActive || isPending}
-            onSelect={handleCancelIntent}
-          >
-            Cancel
-          </DropdownMenuItem>
+          <WrappedDropdownMenuItem
+            isDisabled={!(isIntentActive && isPoolKeySet)}
+            messages={{
+              refetching: "Transaction confirmed, refetching intent data...",
+              success: `Intent ${intentId} executed successfully`,
+            }}
+            mutateAsyncFn={() =>
+              mutateAsync({
+                ...intentExecutorContractSepolia,
+                functionName: "executeIntent",
+                args: [intentId],
+              })
+            }
+            refetch={refetchIntent}
+            text="Execute"
+          />
+          <WrappedDropdownMenuItem
+            isDisabled={!isIntentActive}
+            messages={{
+              refetching: "Transaction confirmed, refetching intent data...",
+              success: `Intent ${intentId} cancelled successfully`,
+            }}
+            mutateAsyncFn={() =>
+              mutateAsync({
+                ...intentFactoryContractSepolia,
+                functionName: "cancelIntent",
+                args: [intentId],
+              })
+            }
+            refetch={refetchIntent}
+            text="Cancel"
+          />
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const WrappedDropdownMenuItem = ({
+  text,
+  isDisabled,
+  mutateAsyncFn,
+  refetch,
+  messages,
+  onSuccess,
+  onError,
+  onFinally,
+}: { text: string; isDisabled?: boolean } & UseMyWriteContractOptions) => {
+  const { execute, isPending } = useMyWriteContract({
+    mutateAsyncFn,
+    refetch,
+    messages,
+    onSuccess,
+    onError,
+    onFinally,
+  });
+
+  return (
+    <DropdownMenuItem disabled={isDisabled || isPending} onSelect={execute}>
+      {text}
+    </DropdownMenuItem>
   );
 };
