@@ -125,6 +125,8 @@ const WrappedDropdownMenuItem = ({
     onFinally,
   });
 
+  // [FIXME] Execute intent ❌, something wrong in the contract
+
   return (
     <DropdownMenuItem disabled={isDisabled || isPending} onSelect={execute}>
       {text}

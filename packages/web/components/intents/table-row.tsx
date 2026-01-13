@@ -119,7 +119,7 @@ const IntentsTableRowDetails = () => {
 
   const handleCancelEditing = () => {
     if (isPriceThresholdChanged) {
-      toast.info("New price threshold has not been saved");
+      toast.info("Editing cancelled, price threshold not saved");
       setNewPriceThreshold(formatEther(intent.priceThreshold));
     }
     setIsEditing(false);
@@ -135,6 +135,7 @@ const IntentsTableRowDetails = () => {
           <InputGroup>
             <InputGroupInput
               autoFocus
+              disabled={isUpdatingPriceThreshold}
               onChange={(e) => setNewPriceThreshold(e.target.value)}
               size={4}
               value={newPriceThreshold}

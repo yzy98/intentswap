@@ -1,5 +1,6 @@
 "use client";
 
+import { IntentIdsProvider } from "./intent-ids-provider";
 import { ThemeProvider } from "./theme-provider";
 import { WalletProvider } from "./wallet-provider";
 
@@ -11,7 +12,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
       enableSystem
     >
-      <WalletProvider>{children}</WalletProvider>
+      <WalletProvider>
+        <IntentIdsProvider>{children}</IntentIdsProvider>
+      </WalletProvider>
     </ThemeProvider>
   );
 }
