@@ -2,7 +2,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
+import { useRef } from "react";
 import { isAddress, parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 import { z } from "zod";
@@ -69,24 +69,23 @@ const createIntentFormSchema = z.object({
 type CreateIntentFormValues = z.infer<typeof createIntentFormSchema>;
 
 export function CreateIntentCard() {
-  const [formValues, setFormValues] = useState<
-    CreateIntentFormValues | undefined
-  >();
+  const formValuesRef = useRef<CreateIntentFormValues | undefined>(undefined);
   const { mutateAsync } = useWriteContract();
   const { refetchIntentIds } = useIntentIds();
 
   const { execute, isPending } = useMyWriteContract({
     mutateAsyncFn: () => {
-      if (!formValues) {
+      if (!formValuesRef.current) {
         throw new Error("Form values not set");
       }
 
-      const tokenFrom = formValues.tokenFrom;
-      const tokenTo = formValues.tokenTo;
-      const amount = parseEther(formValues.amount);
-      const priceThreshold = parseEther(formValues.priceThreshold);
+      const currentValues = formValuesRef.current;
+      const tokenFrom = currentValues.tokenFrom;
+      const tokenTo = currentValues.tokenTo;
+      const amount = parseEther(currentValues.amount);
+      const priceThreshold = parseEther(currentValues.priceThreshold);
       const expiration = BigInt(
-        Math.floor(new Date(formValues.expiration).getTime() / 1000)
+        Math.floor(new Date(currentValues.expiration).getTime() / 1000)
       );
 
       return mutateAsync({
@@ -100,14 +99,14 @@ export function CreateIntentCard() {
       sending: "Creating intent...",
       waiting: "Waiting for transaction to be confirmed...",
       refetching: "Transaction confirmed, refetching intents data...",
-      success: formValues
-        ? `Intent created successfully for token pair: ${formValues.tokenFrom}/${formValues.tokenTo}`
+      success: formValuesRef.current
+        ? `Intent created successfully for token pair: ${formValuesRef.current.tokenFrom}/${formValuesRef.current.tokenTo}`
         : "Intent created successfully",
     },
     refetch: refetchIntentIds,
     onSuccess: () => {
       form.reset();
-      setFormValues(undefined);
+      formValuesRef.current = undefined;
     },
   });
 
@@ -123,7 +122,8 @@ export function CreateIntentCard() {
       onSubmit: createIntentFormSchema,
     },
     onSubmit: async ({ value }) => {
-      setFormValues(value as CreateIntentFormValues);
+      const formValue = value as CreateIntentFormValues;
+      formValuesRef.current = formValue;
       await execute();
     },
   });
