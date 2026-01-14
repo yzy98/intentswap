@@ -8,6 +8,7 @@ import {
   type LucideIcon,
   TrendingUpDownIcon,
 } from "lucide-react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -20,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DataTablePagination, type PaginationState } from "./table-pagination";
 import { IntentsTableRow } from "./table-row";
 
 interface Props {
@@ -27,33 +29,58 @@ interface Props {
 }
 
 export function IntentsTable({ intentIds }: Props) {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <IntentsTableHead description="Token from" icon={CircleArrowUpIcon} />
-          <IntentsTableHead description="Token to" icon={CircleArrowDownIcon} />
-          <IntentsTableHead description="Amount" icon={CoinsIcon} />
-          <IntentsTableHead
-            description="Price threshold"
-            icon={TrendingUpDownIcon}
-          />
-          <IntentsTableHead description="Status" icon={CircleDot} />
-          <IntentsTableHead
-            className="text-right"
-            description="Expiration"
-            icon={CalendarClockIcon}
-          />
-          <IntentsTableHead description="Pool key" icon={KeyIcon} />
-          <IntentsTableHead className="w-12" description="Actions" />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {intentIds.map((intentId) => (
-          <IntentsTableRow intentId={intentId} key={intentId} />
-        ))}
-      </TableBody>
-    </Table>
+    <div>
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <IntentsTableHead
+                description="Token from"
+                icon={CircleArrowUpIcon}
+              />
+              <IntentsTableHead
+                description="Token to"
+                icon={CircleArrowDownIcon}
+              />
+              <IntentsTableHead description="Amount" icon={CoinsIcon} />
+              <IntentsTableHead
+                description="Price threshold"
+                icon={TrendingUpDownIcon}
+              />
+              <IntentsTableHead description="Status" icon={CircleDot} />
+              <IntentsTableHead
+                className="text-right"
+                description="Expiration"
+                icon={CalendarClockIcon}
+              />
+              <IntentsTableHead description="Pool key" icon={KeyIcon} />
+              <IntentsTableHead className="w-12" description="Actions" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {intentIds
+              .slice(
+                pagination.pageIndex * pagination.pageSize,
+                (pagination.pageIndex + 1) * pagination.pageSize
+              )
+              .map((intentId) => (
+                <IntentsTableRow intentId={intentId} key={intentId} />
+              ))}
+          </TableBody>
+        </Table>
+      </div>
+      <DataTablePagination
+        pagination={pagination}
+        rowCount={intentIds.length}
+        setPagination={setPagination}
+      />
+    </div>
   );
 }
 
