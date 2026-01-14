@@ -129,7 +129,7 @@ export function CreateIntentCard() {
   });
 
   return (
-    <Card className="w-2xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Create Intent</CardTitle>
       </CardHeader>

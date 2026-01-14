@@ -5,13 +5,7 @@ import { toast } from "sonner";
 import { useConfig, useConnection, useReadContract } from "wagmi";
 import { readContract } from "wagmi/actions";
 import { oracleAbi } from "@/abis/oracle";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -72,11 +66,11 @@ export function OracleCard() {
   };
 
   return (
-    <Card className="w-2xl">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Card Title</CardTitle>
+        <CardTitle>Price Oracle</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-4">
         {isOwner && <SetFeedDialog />}
         <div className="flex items-center gap-2">
           <Select
@@ -111,9 +105,6 @@ export function OracleCard() {
           <p>Price: {feedPrice?.toFixed(4)}</p>
         </div>
       </CardContent>
-      <CardFooter>
-        <p>Card Footer</p>
-      </CardFooter>
     </Card>
   );
 }

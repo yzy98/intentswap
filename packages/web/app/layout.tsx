@@ -38,9 +38,7 @@ export default function RootLayout({
         <Providers>
           <div className="grid h-svh grid-rows-[auto_1fr]">
             <Header />
-            <main className="container mx-auto max-w-7xl px-4 py-2">
-              {children}
-            </main>
+            <main className="container mx-auto max-w-7xl p-4">{children}</main>
             <Toaster />
           </div>
         </Providers>

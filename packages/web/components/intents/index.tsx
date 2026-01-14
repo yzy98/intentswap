@@ -8,18 +8,18 @@ export function Intents() {
   const { intentIds } = useIntentIds();
 
   return (
-    <Card className="w-2xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>My Intents</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="flex flex-col gap-4">
-          {intentIds && intentIds.length > 0 ? (
-            <IntentsTable intentIds={intentIds} />
-          ) : (
-            <div className="text-center">No intents found</div>
-          )}
-        </div>
+      <CardContent>
+        {intentIds && intentIds.length > 0 ? (
+          <IntentsTable intentIds={intentIds} />
+        ) : (
+          <div className="py-8 text-center text-muted-foreground">
+            No intents found. Create your first intent above.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
