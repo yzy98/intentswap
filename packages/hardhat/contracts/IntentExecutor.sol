@@ -116,15 +116,16 @@ contract IntentExecutor is Ownable {
     // Compute swap direction
     bool zeroForOne = intent.tokenFrom == Currency.unwrap(key.currency0);
 
-    // Approve tokens for the permit2
+    // Step 1: Transfer input tokens from user to swapper contract
+    // Note: User must have approved IntentExecutor contract beforehand
+    IERC20(intent.tokenFrom).transferFrom(intent.user, address(swapper), intent.amount);
+
+    // Step 2: Swapper approves permit2 (now swapper has the tokens)
     swapper.approveTokenWithPermit2(
       intent.tokenFrom,
       uint160(intent.amount),
       uint48(intent.expiration)
     );
-
-    // Transfer input tokens to the swapper contract
-    IERC20(intent.tokenFrom).transferFrom(intent.user, address(swapper), intent.amount);
 
     // [TODO] Calculate minimum output amount
     uint128 minAmountOut = 0;
