@@ -1,6 +1,6 @@
 export type Address = `0x${string}`;
 
-export type TokenSymbol = "BTC" | "ETH" | "LINK";
+export type TokenSymbol = "BTC" | "ETH" | "LINK" | "WETH";
 
 export interface TokenInfo {
   symbol: TokenSymbol;

@@ -29,22 +29,15 @@ async function main() {
     `export const oracleAbi = ${JSON.stringify(oracle.abi, null, 2)} as const;`
   );
 
-  // Uniswap Universal V4 Contract Addresses in Sepolia (11155111)
-  // PoolManager 0xE03A1074c86CFeDd5C142C4F04F1a1536e203543
-  // Universal Router 0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b
-  // Permit2 0x000000000022D473030F116dDEE9F6B43aC78BA3
+  // Uniswap V3 Contract Address in Sepolia (11155111)
+  // SwapRouter02: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
 
-  // Deploy UniversalRouterV4Swapper contract
-  console.log("Deploying UniversalRouterV4Swapper contract...");
-  const swapper = await viem.deployContract("UniversalRouterV4Swapper", [
-    "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
-    "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
-    "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  // Deploy UniswapV3Swapper contract
+  console.log("Deploying UniswapV3Swapper contract...");
+  const swapper = await viem.deployContract("UniswapV3Swapper", [
+    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
   ]);
-  console.log(
-    "UniversalRouterV4Swapper contract deployed to: ",
-    swapper.address
-  );
+  console.log("UniswapV3Swapper contract deployed to: ", swapper.address);
   // Generate TypeScript file with as const for type inference
   fs.writeFileSync(
     path.join(abiDir, "swapper.ts"),

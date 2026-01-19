@@ -1,5 +1,4 @@
 import { MoreVerticalIcon } from "lucide-react";
-import { zeroAddress } from "viem";
 import { useWriteContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +23,7 @@ import { useTableRow } from "./table-row-provider";
 
 export const IntentActionDropdownMenu = () => {
   const { mutateAsync } = useWriteContract();
-  const { intent, intentId, refetchIntent, isPoolKeySet, refetchPoolKey } =
-    useTableRow();
+  const { intent, intentId, refetchIntent } = useTableRow();
 
   const isIntentActive =
     intent.status === getIntentStatusEnumFromString("Active");
@@ -45,31 +43,8 @@ export const IntentActionDropdownMenu = () => {
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {!isPoolKeySet && (
-            <WrappedDropdownMenuItem
-              messages={{
-                refetching: "Transaction confirmed, refetching pool key...",
-                success: "Pool key set successfully",
-              }}
-              mutateAsyncFn={() =>
-                mutateAsync({
-                  ...intentExecutorContractSepolia,
-                  functionName: "setPoolKey",
-                  args: [
-                    intent.tokenFrom,
-                    intent.tokenTo,
-                    3000,
-                    60,
-                    zeroAddress,
-                  ],
-                })
-              }
-              refetch={refetchPoolKey}
-              text="Set pool key"
-            />
-          )}
           <WrappedDropdownMenuItem
-            isDisabled={!(isIntentActive && isPoolKeySet)}
+            isDisabled={!isIntentActive}
             messages={{
               refetching: "Transaction confirmed, refetching intent data...",
               success: `Intent ${intentId} executed successfully`,

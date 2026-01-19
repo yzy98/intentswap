@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
-import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IntentFactory} from "./IntentFactory.sol";
-import {UniversalRouterV4Swapper} from "./UniversalRouterV4Swapper.sol";
 import {Oracle} from "./Oracle.sol";
+import {UniswapV3Swapper} from "./UniswapV3Swapper.sol";
 
 /**
  * @title IntentExecutor
@@ -17,14 +15,15 @@ import {Oracle} from "./Oracle.sol";
  * 
  */
 contract IntentExecutor is Ownable {
+  using SafeERC20 for IERC20;
+
   IntentFactory public intentFactory;
   Oracle public oracle;
-  UniversalRouterV4Swapper public swapper;
-
-  mapping (bytes32 => PoolKey) public poolKeys;
-  mapping (bytes32 => bool) public poolKeysSet;
+  UniswapV3Swapper public swapper;
 
   uint256 public executionFee = 0.001 ether; // Service fee / Rewards for executing intents
+  uint24 public constant poolFee = 3000; // 0.3% fee
+  uint256 public constant amountOutMinimum = 0; // Minimum amount of tokens to receive
 
   event ExecutionFeeUpdated(uint256 newFee);
 
@@ -33,42 +32,11 @@ contract IntentExecutor is Ownable {
   error IntentExecutor__IntentExpired();
   error IntentExecutor__PriceThresholdNotMet();
   error IntentExecutor__PaymentFailed();
-  error IntentExecutor__PoolKeyAlreadySet();
-  error IntentExecutor__PoolKeyNotSet();
 
   constructor(address _intentFactory, address _oracle, address _swapper) Ownable(msg.sender) {
     intentFactory = IntentFactory(_intentFactory);
     oracle = Oracle(_oracle);
-    swapper = UniversalRouterV4Swapper(_swapper);
-  }
-
-  function _pairId(address a, address b) internal pure returns (bytes32) {
-    (address x, address y) = a < b ? (a, b) : (b, a);
-    return keccak256(abi.encodePacked(x, y));
-  }
-
-  function setPoolKey(
-    address tokenA,
-    address tokenB,
-    uint24 fee,
-    int24 tickSpacing,
-    address hooks
-  ) external onlyOwner {
-    (address x, address y) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-    bytes32 id = _pairId(x, y);
-    
-    if (poolKeysSet[id]) {
-      revert IntentExecutor__PoolKeyAlreadySet();
-    }
-
-    poolKeys[id] = PoolKey({
-      currency0: Currency.wrap(x),
-      currency1: Currency.wrap(y),
-      fee: fee,
-      tickSpacing: tickSpacing,
-      hooks: IHooks(hooks)
-    });
-    poolKeysSet[id] = true;
+    swapper = UniswapV3Swapper(_swapper);
   }
 
   /**
@@ -105,37 +73,18 @@ contract IntentExecutor is Ownable {
       revert IntentExecutor__PriceThresholdNotMet();
     }
 
-    // Using Universal Router V4 https://docs.uniswap.org/contracts/v4/quickstart/swap#step-3-implementing-a-swapfunction
-    // Load pool key
-    bytes32 id = _pairId(intent.tokenFrom, intent.tokenTo);
-    if (!poolKeysSet[id]) {
-      revert IntentExecutor__PoolKeyNotSet();
-    }
-    PoolKey memory key = poolKeys[id];
-
-    // Compute swap direction
-    bool zeroForOne = intent.tokenFrom == Currency.unwrap(key.currency0);
-
+    // Using Universal V3
     // Step 1: Transfer input tokens from user to swapper contract
     // Note: User must have approved IntentExecutor contract beforehand
-    IERC20(intent.tokenFrom).transferFrom(intent.user, address(swapper), intent.amount);
-
-    // Step 2: Swapper approves permit2 (now swapper has the tokens)
-    swapper.approveTokenWithPermit2(
-      intent.tokenFrom,
-      uint160(intent.amount),
-      uint48(intent.expiration)
-    );
-
-    // [TODO] Calculate minimum output amount
-    uint128 minAmountOut = 0;
+    IERC20(intent.tokenFrom).safeTransferFrom(intent.user, address(swapper), intent.amount);
 
     // Call swapper
     swapper.swapExactInputSingle(
-      key,
-      zeroForOne,
-      uint128(intent.amount),
-      minAmountOut,
+      intent.tokenFrom,
+      intent.tokenTo,
+      poolFee,
+      intent.amount,
+      amountOutMinimum,
       intent.user
     );
 
@@ -152,21 +101,5 @@ contract IntentExecutor is Ownable {
   function updateExecutionFee(uint256 _newFee) external onlyOwner {
     executionFee = _newFee;
     emit ExecutionFeeUpdated(_newFee);
-  }
-
-  /**
-   * @notice Get the pool key and whether it is set for a token pair
-   * @param tokenA The token address
-   * @param tokenB The token address
-   * @return key The pool key
-   * @return isSet Whether the pool key is set
-   */
-  function getPoolKey(
-    address tokenA,
-    address tokenB
-  ) external view returns (PoolKey memory key, bool isSet) {
-    bytes32 id = _pairId(tokenA, tokenB);
-    isSet = poolKeysSet[id];
-    key = poolKeys[id];
   }
 }

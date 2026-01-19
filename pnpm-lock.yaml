@@ -38,27 +38,12 @@ importers:
       '@openzeppelin/contracts':
         specifier: ^5.4.0
         version: 5.4.0
-      '@uniswap/universal-router':
-        specifier: ^2.1.0
-        version: 2.1.0
-      '@uniswap/v2-core':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@uniswap/v3-core':
         specifier: ^1.0.1
         version: 1.0.1
       '@uniswap/v3-periphery':
         specifier: ^1.4.4
         version: 1.4.4
-      '@uniswap/v4-core':
-        specifier: ^1.0.2
-        version: 1.0.2
-      '@uniswap/v4-periphery':
-        specifier: ^1.0.3
-        version: 1.0.3
-      solmate:
-        specifier: ^6.8.0
-        version: 6.8.0
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: ^3.0.6
@@ -2269,16 +2254,8 @@ packages:
     resolution: {integrity: sha512-f6UIliwBbRsgVLxIaBANF6w09tYqc6Y/qXdsrbEmXHyFA7ILiKrIwRFXe1yOg8M3cksgVsO9N7yuL2DdCGQKBA==}
     engines: {node: '>=10'}
 
-  '@uniswap/universal-router@2.1.0':
-    resolution: {integrity: sha512-rt18RUsZd9xDfyVfIONJo+TEQ8w+olOYxu9+A1g4Thil1R7IMa+8mnyVQjdLPK2REhejScDwjYbOGpeaAce0hg==}
-    engines: {node: '>=14'}
-
   '@uniswap/v2-core@1.0.1':
     resolution: {integrity: sha512-MtybtkUPSyysqLY2U210NBDeCHX+ltHt3oADGdjqoThZaFRDKwM6k1Nb3F0A3hk5hwuQvytFWhrWHOEq6nVJ8Q==}
-    engines: {node: '>=10'}
-
-  '@uniswap/v3-core@1.0.0':
-    resolution: {integrity: sha512-kSC4djMGKMHj7sLMYVnn61k9nu+lHjMIxgg9CDQT+s2QYLoA56GbSK9Oxr+qJXzzygbkrmuY6cwgP6cW2JXPFA==}
     engines: {node: '>=10'}
 
   '@uniswap/v3-core@1.0.1':
@@ -2288,12 +2265,6 @@ packages:
   '@uniswap/v3-periphery@1.4.4':
     resolution: {integrity: sha512-S4+m+wh8HbWSO3DKk4LwUCPZJTpCugIsHrWR86m/OrUyvSqGDTXKFfc2sMuGXCZrD1ZqO3rhQsKgdWg3Hbb2Kw==}
     engines: {node: '>=10'}
-
-  '@uniswap/v4-core@1.0.2':
-    resolution: {integrity: sha512-X15Tm2wWd+USAzEExMbo+g9naA6QN6mPgWm0MzDwRNlOfaNlepfUpSyt9RSrUfEODspwbyWbcLg6t5nwc/e7lg==}
-
-  '@uniswap/v4-periphery@1.0.3':
-    resolution: {integrity: sha512-JxLL0Djv9XcMvI2PatEnWrCrxuEaYNVhHxstndBOP+aJfh1XLg5ec8SDZ0xyoVfg2ElJTvuKpBgnu90bNValsg==}
 
   '@vanilla-extract/css@1.17.3':
     resolution: {integrity: sha512-jHivr1UPoJTX5Uel4AZSOwrCf4mO42LcdmnhJtUxZaRWhW4FviFbIfs0moAWWld7GOT+2XnuVZjjA/K32uUnMQ==}
@@ -4292,9 +4263,6 @@ packages:
 
   solady@0.0.182:
     resolution: {integrity: sha512-FW6xo1akJoYpkXMzu58/56FcNU3HYYNamEbnFO3iSibXk0nSHo0DV2Gu/zI3FPg3So5CCX6IYli1TT1IWATnvg==}
-
-  solmate@6.8.0:
-    resolution: {integrity: sha512-/oI8kgEvSxGG1mrFv3FmCEZd0F8Z9VzRmoYMIhzmmzt6mjtPwfdCm3oh8yOL7bMHJBSfXJuMpnMPrM0uyaKsKg==}
 
   sonner@2.0.7:
     resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
@@ -7274,15 +7242,7 @@ snapshots:
 
   '@uniswap/lib@4.0.1-alpha': {}
 
-  '@uniswap/universal-router@2.1.0':
-    dependencies:
-      '@openzeppelin/contracts': 5.0.2
-      '@uniswap/v2-core': 1.0.1
-      '@uniswap/v3-core': 1.0.0
-
   '@uniswap/v2-core@1.0.1': {}
-
-  '@uniswap/v3-core@1.0.0': {}
 
   '@uniswap/v3-core@1.0.1': {}
 
@@ -7293,10 +7253,6 @@ snapshots:
       '@uniswap/v2-core': 1.0.1
       '@uniswap/v3-core': 1.0.1
       base64-sol: 1.0.1
-
-  '@uniswap/v4-core@1.0.2': {}
-
-  '@uniswap/v4-periphery@1.0.3': {}
 
   '@vanilla-extract/css@1.17.3':
     dependencies:
@@ -9362,8 +9318,6 @@ snapshots:
       - supports-color
 
   solady@0.0.182: {}
-
-  solmate@6.8.0: {}
 
   sonner@2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:

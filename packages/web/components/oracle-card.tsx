@@ -14,13 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  SEPOLIA_BTC_TOKEN_ADDRESS,
-  SEPOLIA_CONTRACT_ORACLE_ADDRESS,
-  SEPOLIA_ETH_TOKEN_ADDRESS,
-  SEPOLIA_LINK_TOKEN_ADDRESS,
-} from "@/lib/addresses";
+import { SEPOLIA_CONTRACT_ORACLE_ADDRESS } from "@/lib/addresses";
 import { oracleContractSepolia } from "@/lib/contracts";
+import { bySymbol } from "@/lib/token-map";
 import { SetFeedDialog } from "./set-feed-dialog";
 import { Button } from "./ui/button";
 
@@ -82,8 +78,11 @@ export function OracleCard() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={SEPOLIA_LINK_TOKEN_ADDRESS}>LINK</SelectItem>
-                <SelectItem value={SEPOLIA_BTC_TOKEN_ADDRESS}>BTC</SelectItem>
+                {Object.values(bySymbol).map((token) => (
+                  <SelectItem key={token.address} value={token.address}>
+                    {token.symbol}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -97,7 +96,11 @@ export function OracleCard() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={SEPOLIA_ETH_TOKEN_ADDRESS}>ETH</SelectItem>
+                {Object.values(bySymbol).map((token) => (
+                  <SelectItem key={token.address} value={token.address}>
+                    {token.symbol}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>

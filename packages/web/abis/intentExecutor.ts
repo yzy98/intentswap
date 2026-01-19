@@ -42,16 +42,6 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "IntentExecutor__PoolKeyAlreadySet",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IntentExecutor__PoolKeyNotSet",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "IntentExecutor__PriceThresholdNotMet",
     type: "error",
   },
@@ -75,6 +65,17 @@ export const intentExecutorAbi = [
       },
     ],
     name: "OwnableUnauthorizedAccount",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "SafeERC20FailedOperation",
     type: "error",
   },
   {
@@ -110,6 +111,19 @@ export const intentExecutorAbi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "amountOutMinimum",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -130,62 +144,6 @@ export const intentExecutorAbi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "tokenA",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenB",
-        type: "address",
-      },
-    ],
-    name: "getPoolKey",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "Currency",
-            name: "currency0",
-            type: "address",
-          },
-          {
-            internalType: "Currency",
-            name: "currency1",
-            type: "address",
-          },
-          {
-            internalType: "uint24",
-            name: "fee",
-            type: "uint24",
-          },
-          {
-            internalType: "int24",
-            name: "tickSpacing",
-            type: "int24",
-          },
-          {
-            internalType: "contract IHooks",
-            name: "hooks",
-            type: "address",
-          },
-        ],
-        internalType: "struct PoolKey",
-        name: "key",
-        type: "tuple",
-      },
-      {
-        internalType: "bool",
-        name: "isSet",
-        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -231,58 +189,13 @@ export const intentExecutorAbi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    name: "poolKeys",
+    inputs: [],
+    name: "poolFee",
     outputs: [
-      {
-        internalType: "Currency",
-        name: "currency0",
-        type: "address",
-      },
-      {
-        internalType: "Currency",
-        name: "currency1",
-        type: "address",
-      },
       {
         internalType: "uint24",
-        name: "fee",
+        name: "",
         type: "uint24",
-      },
-      {
-        internalType: "int24",
-        name: "tickSpacing",
-        type: "int24",
-      },
-      {
-        internalType: "contract IHooks",
-        name: "hooks",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    name: "poolKeysSet",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -296,44 +209,11 @@ export const intentExecutorAbi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "tokenA",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenB",
-        type: "address",
-      },
-      {
-        internalType: "uint24",
-        name: "fee",
-        type: "uint24",
-      },
-      {
-        internalType: "int24",
-        name: "tickSpacing",
-        type: "int24",
-      },
-      {
-        internalType: "address",
-        name: "hooks",
-        type: "address",
-      },
-    ],
-    name: "setPoolKey",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "swapper",
     outputs: [
       {
-        internalType: "contract UniversalRouterV4Swapper",
+        internalType: "contract UniswapV3Swapper",
         name: "",
         type: "address",
       },

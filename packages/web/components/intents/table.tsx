@@ -4,7 +4,6 @@ import {
   CircleArrowUpIcon,
   CircleDot,
   CoinsIcon,
-  KeyIcon,
   type LucideIcon,
   TrendingUpDownIcon,
 } from "lucide-react";
@@ -59,7 +58,6 @@ export function IntentsTable({ intentIds }: Props) {
                 description="Expiration"
                 icon={CalendarClockIcon}
               />
-              <IntentsTableHead description="Pool key" icon={KeyIcon} />
               <IntentsTableHead className="w-12" description="Actions" />
             </TableRow>
           </TableHeader>
