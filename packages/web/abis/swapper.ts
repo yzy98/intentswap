@@ -3,17 +3,7 @@ export const swapperAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "_router",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_poolManager",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_permit2",
+        name: "_swapRouter",
         type: "address",
       },
     ],
@@ -27,109 +17,36 @@ export const swapperAbi = [
         name: "token",
         type: "address",
       },
-      {
-        internalType: "uint160",
-        name: "amount",
-        type: "uint160",
-      },
-      {
-        internalType: "uint48",
-        name: "expiration",
-        type: "uint48",
-      },
     ],
-    name: "approveTokenWithPermit2",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "permit2",
-    outputs: [
-      {
-        internalType: "contract IPermit2",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "poolManager",
-    outputs: [
-      {
-        internalType: "contract IPoolManager",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "router",
-    outputs: [
-      {
-        internalType: "contract IUniversalRouter",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
+    name: "SafeERC20FailedOperation",
+    type: "error",
   },
   {
     inputs: [
       {
-        components: [
-          {
-            internalType: "Currency",
-            name: "currency0",
-            type: "address",
-          },
-          {
-            internalType: "Currency",
-            name: "currency1",
-            type: "address",
-          },
-          {
-            internalType: "uint24",
-            name: "fee",
-            type: "uint24",
-          },
-          {
-            internalType: "int24",
-            name: "tickSpacing",
-            type: "int24",
-          },
-          {
-            internalType: "contract IHooks",
-            name: "hooks",
-            type: "address",
-          },
-        ],
-        internalType: "struct PoolKey",
-        name: "key",
-        type: "tuple",
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
       },
       {
-        internalType: "bool",
-        name: "zeroForOne",
-        type: "bool",
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
       },
       {
-        internalType: "uint128",
+        internalType: "uint24",
+        name: "fee",
+        type: "uint24",
+      },
+      {
+        internalType: "uint256",
         name: "amountIn",
-        type: "uint128",
+        type: "uint256",
       },
       {
-        internalType: "uint128",
-        name: "minAmountOut",
-        type: "uint128",
+        internalType: "uint256",
+        name: "amountOutMinimum",
+        type: "uint256",
       },
       {
         internalType: "address",
@@ -146,6 +63,19 @@ export const swapperAbi = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "swapRouter",
+    outputs: [
+      {
+        internalType: "contract IUniswapV3SwapRouter",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
 ] as const;

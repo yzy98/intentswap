@@ -13,13 +13,9 @@ export type Intent = ReadContractReturnType<
 interface TableRowContextType {
   intent: Intent;
   intentId: bigint;
-  isPoolKeySet: boolean;
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
   refetchIntent: (
-    options?: RefetchOptions
-  ) => Promise<UseQueryResult<ReadContractReturnType, ReadContractErrorType>>;
-  refetchPoolKey: (
     options?: RefetchOptions
   ) => Promise<UseQueryResult<ReadContractReturnType, ReadContractErrorType>>;
 }
@@ -32,15 +28,10 @@ export const TableRowProvider = ({
   children,
   intent,
   intentId,
-  isPoolKeySet,
   refetchIntent,
-  refetchPoolKey,
 }: {
   children: React.ReactNode;
-} & Pick<
-  TableRowContextType,
-  "intent" | "intentId" | "isPoolKeySet" | "refetchIntent" | "refetchPoolKey"
->) => {
+} & Pick<TableRowContextType, "intent" | "intentId" | "refetchIntent">) => {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -48,11 +39,9 @@ export const TableRowProvider = ({
       value={{
         intent,
         intentId,
-        isPoolKeySet,
         isEditing,
         setIsEditing,
         refetchIntent,
-        refetchPoolKey,
       }}
     >
       {children}

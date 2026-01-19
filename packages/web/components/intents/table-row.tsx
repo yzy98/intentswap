@@ -12,11 +12,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import {
-  intentExecutorContractSepolia,
-  intentFactoryContractSepolia,
-} from "@/lib/contracts";
-import type { Address, IntentStatusNumber } from "@/lib/types";
+import { intentFactoryContractSepolia } from "@/lib/contracts";
+import type { IntentStatusNumber } from "@/lib/types";
 import { getIntentStatusFromEnum, getTokenByAddress } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -34,13 +31,7 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
     args: [intentId],
   });
 
-  const { data: poolKeyData, refetch: refetchPoolKey } = useReadContract({
-    ...intentExecutorContractSepolia,
-    functionName: "getPoolKey",
-    args: [intent?.tokenFrom as Address, intent?.tokenTo as Address],
-  });
-
-  if (!(intent && poolKeyData)) {
+  if (!intent) {
     return (
       <TableRow>
         <TableCell colSpan={7}>
@@ -54,9 +45,7 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
     <TableRowProvider
       intent={intent}
       intentId={intentId}
-      isPoolKeySet={poolKeyData[1]}
       refetchIntent={refetchIntent}
-      refetchPoolKey={refetchPoolKey}
     >
       <IntentsTableRowDetails />
     </TableRowProvider>
@@ -65,14 +54,8 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
 
 const IntentsTableRowDetails = () => {
   const { mutateAsync } = useWriteContract();
-  const {
-    intent,
-    intentId,
-    isPoolKeySet,
-    isEditing,
-    setIsEditing,
-    refetchIntent,
-  } = useTableRow();
+  const { intent, intentId, isEditing, setIsEditing, refetchIntent } =
+    useTableRow();
 
   const [newPriceThreshold, setNewPriceThreshold] = useState(
     formatEther(intent.priceThreshold)
@@ -183,17 +166,6 @@ const IntentsTableRowDetails = () => {
       </TableCell>
       <TableCell className="text-right">
         {new Date(Number(intent.expiration) * 1000).toLocaleString()}
-      </TableCell>
-      <TableCell>
-        {isPoolKeySet ? (
-          <Badge className="size-5 rounded-full p-0" variant="active">
-            <CheckIcon />
-          </Badge>
-        ) : (
-          <Badge className="size-5 rounded-full p-0" variant="destructive">
-            <XIcon />
-          </Badge>
-        )}
       </TableCell>
       <TableCell>
         <IntentActionDropdownMenu />
