@@ -18,15 +18,11 @@ import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
 } from "@/lib/contracts";
-import { getIntentStatusEnumFromString } from "@/lib/utils";
 import { useTableRow } from "./table-row-provider";
 
-export const IntentActionDropdownMenu = () => {
+export const IntentActions = () => {
   const { mutateAsync } = useWriteContract();
-  const { intent, intentId, refetchIntent } = useTableRow();
-
-  const isIntentActive =
-    intent.status === getIntentStatusEnumFromString("Active");
+  const { intentId, refetchIntent, isActive, canExecute } = useTableRow();
 
   return (
     <DropdownMenu modal={false}>
@@ -44,7 +40,7 @@ export const IntentActionDropdownMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <WrappedDropdownMenuItem
-            isDisabled={!isIntentActive}
+            isDisabled={!canExecute}
             messages={{
               refetching: "Transaction confirmed, refetching intent data...",
               success: `Intent ${intentId} executed successfully`,
@@ -60,7 +56,7 @@ export const IntentActionDropdownMenu = () => {
             text="Execute"
           />
           <WrappedDropdownMenuItem
-            isDisabled={!isIntentActive}
+            isDisabled={!isActive}
             messages={{
               refetching: "Transaction confirmed, refetching intent data...",
               success: `Intent ${intentId} cancelled successfully`,
@@ -99,8 +95,6 @@ const WrappedDropdownMenuItem = ({
     onError,
     onFinally,
   });
-
-  // [FIXME] Execute intent ❌, something wrong in the contract
 
   return (
     <DropdownMenuItem disabled={isDisabled || isPending} onSelect={execute}>

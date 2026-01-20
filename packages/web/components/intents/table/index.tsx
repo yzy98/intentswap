@@ -20,7 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DataTablePagination, type PaginationState } from "./table-pagination";
+import { type PaginationState, TablePagination } from "./table-pagination";
 import { IntentsTableRow } from "./table-row";
 
 interface Props {
@@ -73,7 +73,7 @@ export function IntentsTable({ intentIds }: Props) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination
+      <TablePagination
         pagination={pagination}
         rowCount={intentIds.length}
         setPagination={setPagination}

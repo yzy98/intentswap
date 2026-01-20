@@ -15,9 +15,9 @@ import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import { intentFactoryContractSepolia } from "@/lib/contracts";
 import type { IntentStatusNumber } from "@/lib/types";
 import { getIntentStatusFromEnum, getTokenByAddress } from "@/lib/utils";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { IntentActionDropdownMenu } from "./action-dropdown-menu";
+import { Badge } from "../../ui/badge";
+import { Button } from "../../ui/button";
+import { IntentActions } from "./intent-actions";
 import { TableRowProvider, useTableRow } from "./table-row-provider";
 
 interface IntentsTableRowProps {
@@ -54,8 +54,15 @@ export const IntentsTableRow = ({ intentId }: IntentsTableRowProps) => {
 
 const IntentsTableRowDetails = () => {
   const { mutateAsync } = useWriteContract();
-  const { intent, intentId, isEditing, setIsEditing, refetchIntent } =
-    useTableRow();
+  const {
+    intent,
+    intentId,
+    isEditing,
+    setIsEditing,
+    refetchIntent,
+    isActive,
+    executionBlockReason,
+  } = useTableRow();
 
   const [newPriceThreshold, setNewPriceThreshold] = useState(
     formatEther(intent.priceThreshold)
@@ -65,7 +72,6 @@ const IntentsTableRowDetails = () => {
     intent.status as IntentStatusNumber
   );
 
-  const isIntentActive = intentStatus === "Active";
   const isPriceThresholdChanged =
     newPriceThreshold !== formatEther(intent.priceThreshold);
 
@@ -149,7 +155,7 @@ const IntentsTableRowDetails = () => {
         ) : (
           <div className="flex items-center gap-1">
             <span>{formatEther(intent.priceThreshold)}</span>
-            {isIntentActive && (
+            {isActive && (
               <Button
                 onClick={() => setIsEditing(true)}
                 size="icon-xs"
@@ -162,13 +168,18 @@ const IntentsTableRowDetails = () => {
         )}
       </TableCell>
       <TableCell>
-        <Badge variant={intentStatusVariant}>{intentStatus}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={intentStatusVariant}>{intentStatus}</Badge>
+          {executionBlockReason && (
+            <Badge variant="secondary">{executionBlockReason}</Badge>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-right">
         {new Date(Number(intent.expiration) * 1000).toLocaleString()}
       </TableCell>
       <TableCell>
-        <IntentActionDropdownMenu />
+        <IntentActions />
       </TableCell>
     </TableRow>
   );

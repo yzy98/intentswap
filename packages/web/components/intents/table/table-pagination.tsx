@@ -19,17 +19,17 @@ export interface PaginationState {
   pageSize: number;
 }
 
-interface DataTablePaginationProps {
+interface TablePaginationProps {
   pagination: PaginationState;
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   rowCount: number;
 }
 
-export const DataTablePagination = ({
+export const TablePagination = ({
   pagination,
   setPagination,
   rowCount,
-}: DataTablePaginationProps) => {
+}: TablePaginationProps) => {
   const pageCount = Math.ceil(rowCount / pagination.pageSize);
 
   const canPreviousPage = pagination.pageIndex > 0;

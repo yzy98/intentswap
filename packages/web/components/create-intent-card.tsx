@@ -3,8 +3,9 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
-import { isAddress, parseEther } from "viem";
-import { useWriteContract } from "wagmi";
+import { erc20Abi, isAddress, parseEther } from "viem";
+import { useConfig, useConnection, useWriteContract } from "wagmi";
+import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { z } from "zod";
 import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import { intentFactoryContractSepolia } from "@/lib/contracts";
+import {
+  intentExecutorContractSepolia,
+  intentFactoryContractSepolia,
+} from "@/lib/contracts";
 
 const createIntentFormSchema = z.object({
   tokenFrom: z
@@ -72,9 +76,11 @@ export function CreateIntentCard() {
   const formValuesRef = useRef<CreateIntentFormValues | undefined>(undefined);
   const { mutateAsync } = useWriteContract();
   const { refetchIntentIds } = useIntentIds();
+  const config = useConfig();
+  const { address } = useConnection();
 
   const { execute, isPending } = useMyWriteContract({
-    mutateAsyncFn: () => {
+    mutateAsyncFn: async () => {
       if (!formValuesRef.current) {
         throw new Error("Form values not set");
       }
@@ -87,6 +93,35 @@ export function CreateIntentCard() {
       const expiration = BigInt(
         Math.floor(new Date(currentValues.expiration).getTime() / 1000)
       );
+
+      if (!address) {
+        throw new Error("Wallet not connected");
+      }
+
+      // Check if IntentExecutor has enough allowance of tokenFrom
+      const allowance = await readContract(config, {
+        abi: erc20Abi,
+        address: tokenFrom,
+        functionName: "allowance",
+        args: [address, intentExecutorContractSepolia.address],
+      });
+
+      if (allowance < amount) {
+        const txHash = await mutateAsync({
+          abi: erc20Abi,
+          address: tokenFrom,
+          functionName: "approve",
+          args: [intentExecutorContractSepolia.address, amount],
+        });
+
+        const receipt = await waitForTransactionReceipt(config, {
+          hash: txHash,
+        });
+
+        if (receipt.status === "reverted") {
+          throw new Error("Failed to approve allowance");
+        }
+      }
 
       return mutateAsync({
         ...intentFactoryContractSepolia,
