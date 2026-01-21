@@ -48,3 +48,29 @@ export function getIntentStatusEnumFromString(
   }
   return 2;
 }
+
+export const getReadContractsResult = <T>(
+  entry: { status: "success"; result: T } | { status: "failure" } | undefined
+): T | undefined => (entry?.status === "success" ? entry.result : undefined);
+
+export const getExecutionBlockReason = (
+  isActive: boolean,
+  hasBalance: boolean,
+  hasAllowance: boolean,
+  balanceStatus?: "success" | "failure",
+  allowanceStatus?: "success" | "failure"
+) => {
+  if (!isActive) {
+    return undefined;
+  }
+  if (balanceStatus === "failure" || allowanceStatus === "failure") {
+    return "Unknown";
+  }
+  if (!hasBalance) {
+    return "Insufficient balance";
+  }
+  if (!hasAllowance) {
+    return "Not approved";
+  }
+  return undefined;
+};

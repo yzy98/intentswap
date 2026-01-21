@@ -1,113 +1,151 @@
+/** biome-ignore-all lint/style/noNestedTernary: Ignore */
+
+import type { PaginationState } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { erc20Abi } from "viem";
+import { useReadContracts } from "wagmi";
+import { DataTable } from "@/components/intents/table/data-table";
 import {
-  CalendarClockIcon,
-  CircleArrowDownIcon,
-  CircleArrowUpIcon,
-  CircleDot,
-  CoinsIcon,
-  type LucideIcon,
-  TrendingUpDownIcon,
-} from "lucide-react";
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { type PaginationState, TablePagination } from "./table-pagination";
-import { IntentsTableRow } from "./table-row";
+  intentExecutorContractSepolia,
+  intentFactoryContractSepolia,
+} from "@/lib/contracts";
+import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
+import { columns, type IntentRow } from "./columns";
 
 interface Props {
   intentIds: readonly bigint[];
+  isLoadingIntentIds: boolean;
 }
 
-export function IntentsTable({ intentIds }: Props) {
+export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
 
+  // Slice current page intent ids
+  const currentPageIntentIds = useMemo(() => {
+    return intentIds.slice(
+      pagination.pageIndex * pagination.pageSize,
+      (pagination.pageIndex + 1) * pagination.pageSize
+    );
+  }, [intentIds, pagination.pageIndex, pagination.pageSize]);
+
+  // Get current page all intents data
+  const {
+    data: currentPageIntents,
+    isLoading: isLoadingIntents,
+    refetch: refetchCurrentPageIntents,
+  } = useReadContracts({
+    contracts: currentPageIntentIds.map((intentId) => ({
+      ...intentFactoryContractSepolia,
+      functionName: "getIntent" as const,
+      args: [intentId] as const,
+    })),
+    allowFailure: false,
+  });
+
+  // Balances of tokenFrom of current page intents
+  const {
+    data: currentPageTokenFromBalances,
+    isLoading: isLoadingBalances,
+    refetch: refetchCurrentPageTokenFromBalances,
+  } = useReadContracts({
+    contracts:
+      currentPageIntents?.map((intent) => ({
+        abi: erc20Abi,
+        address: intent.tokenFrom,
+        functionName: "balanceOf" as const,
+        args: [intent.user] as const,
+      })) ?? [],
+    query: { enabled: !!currentPageIntents?.length },
+  });
+
+  // Allowances of tokenFrom of current page intents
+  const {
+    data: currentPageTokenFromAllowances,
+    isLoading: isLoadingAllowances,
+    refetch: refetchCurrentPageTokenFromAllowances,
+  } = useReadContracts({
+    contracts:
+      currentPageIntents?.map((intent) => ({
+        abi: erc20Abi,
+        address: intent.tokenFrom,
+        functionName: "allowance" as const,
+        args: [intent.user, intentExecutorContractSepolia.address] as const,
+      })) ?? [],
+    query: { enabled: !!currentPageIntents?.length },
+  });
+
+  const currentPageData: IntentRow[] = useMemo(() => {
+    if (
+      !(
+        currentPageIntents &&
+        currentPageTokenFromBalances &&
+        currentPageTokenFromAllowances
+      )
+    ) {
+      return [];
+    }
+
+    return currentPageIntentIds.map((intentId, i) => {
+      const intent = currentPageIntents[i];
+      const balanceEntry = currentPageTokenFromBalances[i];
+      const allowanceEntry = currentPageTokenFromAllowances[i];
+      const balance = getReadContractsResult(balanceEntry);
+      const allowance = getReadContractsResult(allowanceEntry);
+
+      const isActive = intent.status === 0;
+      const hasBalance = balance !== undefined && balance >= intent.amount;
+      const hasAllowance =
+        allowance !== undefined && allowance >= intent.amount;
+      const canExecute = isActive && hasBalance && hasAllowance;
+      const executionBlockReason = getExecutionBlockReason(
+        isActive,
+        hasBalance,
+        hasAllowance,
+        balanceEntry?.status,
+        allowanceEntry?.status
+      );
+
+      return {
+        intentId,
+        intent,
+        isActive,
+        hasBalance,
+        hasAllowance,
+        canExecute,
+        executionBlockReason,
+      };
+    });
+  }, [
+    currentPageIntentIds,
+    currentPageIntents,
+    currentPageTokenFromBalances,
+    currentPageTokenFromAllowances,
+  ]);
+
+  const refetchPage = () =>
+    Promise.all([
+      refetchCurrentPageIntents(),
+      refetchCurrentPageTokenFromBalances(),
+      refetchCurrentPageTokenFromAllowances(),
+    ]);
+
   return (
-    <div>
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <IntentsTableHead
-                description="Token from"
-                icon={CircleArrowUpIcon}
-              />
-              <IntentsTableHead
-                description="Token to"
-                icon={CircleArrowDownIcon}
-              />
-              <IntentsTableHead description="Amount" icon={CoinsIcon} />
-              <IntentsTableHead
-                description="Price threshold"
-                icon={TrendingUpDownIcon}
-              />
-              <IntentsTableHead description="Status" icon={CircleDot} />
-              <IntentsTableHead
-                className="text-right"
-                description="Expiration"
-                icon={CalendarClockIcon}
-              />
-              <IntentsTableHead className="w-12" description="Actions" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {intentIds
-              .slice(
-                pagination.pageIndex * pagination.pageSize,
-                (pagination.pageIndex + 1) * pagination.pageSize
-              )
-              .map((intentId) => (
-                <IntentsTableRow intentId={intentId} key={intentId} />
-              ))}
-          </TableBody>
-        </Table>
-      </div>
-      <TablePagination
-        pagination={pagination}
-        rowCount={intentIds.length}
-        setPagination={setPagination}
-      />
-    </div>
-  );
-}
-
-interface IntentsTableHeadProps {
-  className?: string;
-  icon?: LucideIcon;
-  description: string;
-}
-
-const IntentsTableHead = ({
-  icon,
-  description,
-  className,
-}: IntentsTableHeadProps) => {
-  const Icon = icon;
-
-  return (
-    <TableHead className={className}>
-      {Icon ? (
-        <Tooltip>
-          <TooltipTrigger>
-            <Icon size={18} />
-            <span className="sr-only">{description}</span>
-          </TooltipTrigger>
-          <TooltipContent>{description}</TooltipContent>
-        </Tooltip>
-      ) : (
-        <span className="sr-only">{description}</span>
-      )}
-    </TableHead>
+    <DataTable
+      columns={columns}
+      data={currentPageData}
+      isLoading={
+        isLoadingIntentIds ||
+        isLoadingIntents ||
+        isLoadingBalances ||
+        isLoadingAllowances
+      }
+      pagination={pagination}
+      refetchPage={refetchPage}
+      rowCount={intentIds.length}
+      setPagination={setPagination}
+    />
   );
 };
