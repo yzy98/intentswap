@@ -16,6 +16,7 @@ export type IntentIds =
 
 interface IntentIdsContextType {
   intentIds: IntentIds;
+  isLoadingIntentIds: boolean;
   refetchIntentIds: (
     options?: RefetchOptions
   ) => Promise<UseQueryResult<ReadContractReturnType, ReadContractErrorType>>;
@@ -32,10 +33,17 @@ export const IntentIdsProvider = ({
 }) => {
   const { address } = useConnection();
 
-  const { data: intentIds, refetch: refetchIntentIds } = useReadContract({
+  const {
+    data: intentIds,
+    refetch: refetchIntentIds,
+    isLoading: isLoadingIntentIds,
+  } = useReadContract({
     ...intentFactoryContractSepolia,
     functionName: "getUserIntentIds",
     args: [address as Address],
+    query: {
+      enabled: !!address,
+    },
   });
 
   return (
@@ -43,6 +51,7 @@ export const IntentIdsProvider = ({
       value={{
         intentIds,
         refetchIntentIds,
+        isLoadingIntentIds,
       }}
     >
       {children}

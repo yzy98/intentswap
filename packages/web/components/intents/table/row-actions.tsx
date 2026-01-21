@@ -18,11 +18,21 @@ import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
 } from "@/lib/contracts";
-import { useTableRow } from "./table-row-provider";
 
-export const IntentActions = () => {
+interface RowActionsProps {
+  intentId: bigint;
+  isActive: boolean;
+  canExecute: boolean;
+  refetch?: () => Promise<unknown>;
+}
+
+export const RowActions = ({
+  intentId,
+  isActive,
+  canExecute,
+  refetch,
+}: RowActionsProps) => {
   const { mutateAsync } = useWriteContract();
-  const { intentId, refetchIntent, isActive, canExecute } = useTableRow();
 
   return (
     <DropdownMenu modal={false}>
@@ -52,7 +62,7 @@ export const IntentActions = () => {
                 args: [intentId],
               })
             }
-            refetch={refetchIntent}
+            refetch={refetch}
             text="Execute"
           />
           <WrappedDropdownMenuItem
@@ -68,7 +78,7 @@ export const IntentActions = () => {
                 args: [intentId],
               })
             }
-            refetch={refetchIntent}
+            refetch={refetch}
             text="Cancel"
           />
         </DropdownMenuGroup>

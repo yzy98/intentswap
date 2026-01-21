@@ -1,10 +1,11 @@
+import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,42 +15,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export interface PaginationState {
-  pageIndex: number;
-  pageSize: number;
+interface DataTablePaginationProps<TData> {
+  table: Table<TData>;
 }
 
-interface TablePaginationProps {
-  pagination: PaginationState;
-  setPagination: Dispatch<SetStateAction<PaginationState>>;
-  rowCount: number;
-}
-
-export const TablePagination = ({
-  pagination,
-  setPagination,
-  rowCount,
-}: TablePaginationProps) => {
-  const pageCount = Math.ceil(rowCount / pagination.pageSize);
-
-  const canPreviousPage = pagination.pageIndex > 0;
-  const canNextPage = pagination.pageIndex < pageCount - 1;
-
+export function DataTablePagination<TData>({
+  table,
+}: DataTablePaginationProps<TData>) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex items-center gap-2">
         <p className="font-medium text-sm">Rows per page</p>
         <Select
           onValueChange={(value) => {
-            setPagination({
-              pageIndex: 0,
-              pageSize: Number(value),
-            });
+            table.setPageSize(Number(value));
           }}
-          value={`${pagination.pageSize}`}
+          value={`${table.getState().pagination.pageSize}`}
         >
           <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue placeholder={pagination.pageSize} />
+            <SelectValue placeholder={table.getState().pagination.pageSize} />
           </SelectTrigger>
           <SelectContent side="top">
             {[5, 10, 15, 20, 25].map((pageSize) => (
@@ -61,13 +45,14 @@ export const TablePagination = ({
         </Select>
       </div>
       <div className="flex w-[100px] items-center justify-center font-medium text-sm">
-        Page {pagination.pageIndex + 1} of {pageCount}
+        Page {table.getState().pagination.pageIndex + 1} of{" "}
+        {table.getPageCount()}
       </div>
       <div className="flex items-center gap-2">
         <Button
           className="hidden size-8 lg:flex"
-          disabled={!canPreviousPage}
-          onClick={() => setPagination({ ...pagination, pageIndex: 0 })}
+          disabled={!table.getCanPreviousPage()}
+          onClick={() => table.setPageIndex(0)}
           size="icon"
           variant="outline"
         >
@@ -76,13 +61,8 @@ export const TablePagination = ({
         </Button>
         <Button
           className="size-8"
-          disabled={!canPreviousPage}
-          onClick={() =>
-            setPagination({
-              ...pagination,
-              pageIndex: pagination.pageIndex - 1,
-            })
-          }
+          disabled={!table.getCanPreviousPage()}
+          onClick={() => table.previousPage()}
           size="icon"
           variant="outline"
         >
@@ -91,13 +71,8 @@ export const TablePagination = ({
         </Button>
         <Button
           className="size-8"
-          disabled={!canNextPage}
-          onClick={() =>
-            setPagination({
-              ...pagination,
-              pageIndex: pagination.pageIndex + 1,
-            })
-          }
+          disabled={!table.getCanNextPage()}
+          onClick={() => table.nextPage()}
           size="icon"
           variant="outline"
         >
@@ -106,13 +81,8 @@ export const TablePagination = ({
         </Button>
         <Button
           className="hidden size-8 lg:flex"
-          disabled={!canNextPage}
-          onClick={() =>
-            setPagination({
-              ...pagination,
-              pageIndex: pageCount - 1,
-            })
-          }
+          disabled={!table.getCanNextPage()}
+          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           size="icon"
           variant="outline"
         >
@@ -122,4 +92,4 @@ export const TablePagination = ({
       </div>
     </div>
   );
-};
+}
