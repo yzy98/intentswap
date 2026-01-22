@@ -2,13 +2,16 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useRef } from "react";
+import { format } from "date-fns";
+import { ChevronDownIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import { erc20Abi, isAddress, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { z } from "zod";
 import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -23,6 +26,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import {
@@ -61,23 +69,26 @@ const createIntentFormSchema = z.object({
         return false;
       }
     }, "Price threshold must be a positive number"),
-  expiration: z
+  expirationDate: z
     .string()
-    .min(1, "Expiration time is required")
+    .min(1, "Expiration date is required")
     .refine((val) => {
       const date = new Date(val);
       return date.getTime() > Date.now();
-    }, "Expiration time must be in the future"),
+    }, "Expiration date must be in the future"),
+  expirationTime: z.string().min(1, "Expiration time is required"),
 });
 
 type CreateIntentFormValues = z.infer<typeof createIntentFormSchema>;
 
 export function CreateIntentCard() {
+  const [open, setOpen] = useState(false);
   const formValuesRef = useRef<CreateIntentFormValues | undefined>(undefined);
+
   const { mutateAsync } = useWriteContract();
   const { refetchIntentIds } = useIntentIds();
-  const config = useConfig();
   const { address } = useConnection();
+  const config = useConfig();
 
   const { execute, isPending } = useMyWriteContract({
     mutateAsyncFn: async () => {
@@ -90,8 +101,9 @@ export function CreateIntentCard() {
       const tokenTo = currentValues.tokenTo;
       const amount = parseEther(currentValues.amount);
       const priceThreshold = parseEther(currentValues.priceThreshold);
+      const combined = `${currentValues.expirationDate}T${currentValues.expirationTime}`;
       const expiration = BigInt(
-        Math.floor(new Date(currentValues.expiration).getTime() / 1000)
+        Math.floor(new Date(combined).getTime() / 1000)
       );
 
       if (!address) {
@@ -127,7 +139,7 @@ export function CreateIntentCard() {
         ...intentFactoryContractSepolia,
         functionName: "createIntent",
         args: [tokenFrom, tokenTo, amount, priceThreshold, expiration],
-        gas: BigInt(300_000),
+        // gas: BigInt(300_000),
       });
     },
     messages: {
@@ -151,7 +163,8 @@ export function CreateIntentCard() {
       tokenTo: "",
       amount: "",
       priceThreshold: "",
-      expiration: "",
+      expirationDate: "",
+      expirationTime: format(new Date(), "HH:mm:ss"),
     },
     validators: {
       onSubmit: createIntentFormSchema,
@@ -283,32 +296,81 @@ export function CreateIntentCard() {
               }}
               name="priceThreshold"
             />
-            <form.Field
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Expiration</FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="off"
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="2025-01-01T12:00"
-                      type="datetime-local"
-                      value={field.state.value}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-              name="expiration"
-            />
+            <div className="flex gap-8">
+              <form.Field
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>
+                        Expiration Date
+                      </FieldLabel>
+                      <Popover onOpenChange={setOpen} open={open}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            className="w-32 justify-between font-normal"
+                            id={field.name}
+                            variant="outline"
+                          >
+                            {field.state.value
+                              ? format(field.state.value, "PPP")
+                              : "Select date"}
+                            <ChevronDownIcon />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="start"
+                          className="w-auto overflow-hidden p-0"
+                        >
+                          <Calendar
+                            captionLayout="dropdown"
+                            mode="single"
+                            onSelect={(date) => {
+                              field.handleChange(
+                                date ? format(date, "yyyy-MM-dd") : ""
+                              );
+                              setOpen(false);
+                            }}
+                            selected={new Date(field.state.value)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+                name="expirationDate"
+              />
+              <form.Field
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field className="w-32" data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>Time</FieldLabel>
+                      <Input
+                        aria-invalid={isInvalid}
+                        autoComplete="off"
+                        id={field.name}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        step="1"
+                        type="time"
+                        value={field.state.value}
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+                name="expirationTime"
+              />
+            </div>
           </FieldGroup>
         </form>
       </CardContent>

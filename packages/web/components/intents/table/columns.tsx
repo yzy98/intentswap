@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   CalendarClockIcon,
   CircleArrowDownIcon,
@@ -123,9 +124,10 @@ export const columns: ColumnDef<IntentRow>[] = [
     accessorFn: (row) => row.intent.expiration,
     cell: ({ row }) => (
       <div className="text-right tabular-nums">
-        {new Date(
-          Number(row.original.intent.expiration) * 1000
-        ).toLocaleString()}
+        {format(
+          new Date(Number(row.original.intent.expiration) * 1000),
+          "PPpp"
+        )}
       </div>
     ),
   },

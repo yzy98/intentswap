@@ -53,7 +53,7 @@ export const RowActions = ({
             isDisabled={!canExecute}
             messages={{
               refetching: "Transaction confirmed, refetching intent data...",
-              success: `Intent ${intentId} executed successfully`,
+              success: "Intent executed successfully",
             }}
             mutateAsyncFn={() =>
               mutateAsync({
@@ -69,7 +69,7 @@ export const RowActions = ({
             isDisabled={!isActive}
             messages={{
               refetching: "Transaction confirmed, refetching intent data...",
-              success: `Intent ${intentId} cancelled successfully`,
+              success: "Intent cancelled successfully",
             }}
             mutateAsyncFn={() =>
               mutateAsync({
