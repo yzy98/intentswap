@@ -10,31 +10,13 @@ import {
   CoinsIcon,
   TrendingUpDownIcon,
 } from "lucide-react";
-import type { ReadContractReturnType } from "viem";
 import { formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
-import type { intentFactoryContractSepolia } from "@/lib/contracts";
-import type { IntentStatusNumber } from "@/lib/types";
+import type { IntentRow, IntentStatusNumber } from "@/lib/types";
 import { getIntentStatusFromEnum, getTokenByAddress } from "@/lib/utils";
 import { ColumnHeader } from "./column-header";
 import { PriceThresholdCell } from "./price-threshold-cell";
 import { RowActions } from "./row-actions";
-
-export type Intent = ReadContractReturnType<
-  typeof intentFactoryContractSepolia.abi,
-  "getIntent",
-  readonly [bigint]
->;
-
-export interface IntentRow {
-  intentId: bigint;
-  intent: Intent;
-  isActive: boolean;
-  hasBalance: boolean;
-  hasAllowance: boolean;
-  canExecute: boolean;
-  executionBlockReason?: string;
-}
 
 export const columns: ColumnDef<IntentRow>[] = [
   {

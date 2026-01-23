@@ -17,7 +17,7 @@ import {
 import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
-} from "@/lib/contracts";
+} from "@/lib/constants";
 
 interface RowActionsProps {
   intentId: bigint;

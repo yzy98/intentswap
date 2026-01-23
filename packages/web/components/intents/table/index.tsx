@@ -8,9 +8,10 @@ import { DataTable } from "@/components/intents/table/data-table";
 import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
-} from "@/lib/contracts";
+} from "@/lib/constants";
+import type { IntentRow } from "@/lib/types";
 import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
-import { columns, type IntentRow } from "./columns";
+import { columns } from "./columns";
 
 interface Props {
   intentIds: readonly bigint[];

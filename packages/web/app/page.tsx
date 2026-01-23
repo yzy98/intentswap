@@ -1,5 +1,5 @@
-import { CreateIntentCard } from "@/components/create-intent-card";
-import { Intents } from "@/components/intents";
+import { CreateIntentCard } from "@/components/intents/create-intent-card";
+import { IntentsCard } from "@/components/intents/intents-card";
 import { OracleCard } from "@/components/oracle-card";
 
 export default function Page() {
@@ -10,7 +10,7 @@ export default function Page() {
         <CreateIntentCard />
       </section>
       <section className="w-full">
-        <Intents />
+        <IntentsCard />
       </section>
     </div>
   );

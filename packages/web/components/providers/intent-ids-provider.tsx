@@ -1,10 +1,9 @@
 import type { RefetchOptions, UseQueryResult } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
-import type { ReadContractReturnType } from "viem";
+import type { Address, ReadContractReturnType } from "viem";
 import { useConnection, useReadContract } from "wagmi";
 import type { ReadContractErrorType } from "wagmi/actions";
-import { intentFactoryContractSepolia } from "@/lib/contracts";
-import type { Address } from "@/lib/types";
+import { intentFactoryContractSepolia } from "@/lib/constants";
 
 export type IntentIds =
   | ReadContractReturnType<

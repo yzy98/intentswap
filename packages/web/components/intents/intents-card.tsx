@@ -5,7 +5,7 @@ import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IntentsTable } from "./table";
 
-export function Intents() {
+export function IntentsCard() {
   const { intentIds, isLoadingIntentIds } = useIntentIds();
   const { address } = useConnection();
 

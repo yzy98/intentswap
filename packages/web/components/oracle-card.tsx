@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useConfig, useConnection, useReadContract } from "wagmi";
 import { readContract } from "wagmi/actions";
-import { oracleAbi } from "@/abis/oracle";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -14,11 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SEPOLIA_CONTRACT_ORACLE_ADDRESS } from "@/lib/addresses";
-import { oracleContractSepolia } from "@/lib/contracts";
-import { bySymbol } from "@/lib/token-map";
+import { bySymbol, oracleContractSepolia } from "@/lib/constants";
 import { SetFeedDialog } from "./set-feed-dialog";
-import { Button } from "./ui/button";
 
 export function OracleCard() {
   const [tokenA, setTokenA] = useState<`0x${string}` | undefined>();
@@ -41,16 +38,15 @@ export function OracleCard() {
       return;
     }
 
+    // [TODO] Use readContracts instead
     const [price, decimals] = await Promise.all([
       await readContract(config, {
-        abi: oracleAbi,
-        address: SEPOLIA_CONTRACT_ORACLE_ADDRESS,
+        ...oracleContractSepolia,
         functionName: "getPrice",
         args: [tokenA, tokenB],
       }),
       await readContract(config, {
-        abi: oracleAbi,
-        address: SEPOLIA_CONTRACT_ORACLE_ADDRESS,
+        ...oracleContractSepolia,
         functionName: "getDecimals",
         args: [tokenA, tokenB],
       }),

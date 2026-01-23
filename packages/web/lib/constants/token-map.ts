@@ -1,11 +1,12 @@
+import type { Address } from "viem";
+import type { TokenInfo, TokenSymbol } from "../types";
+import { normalizeAddress } from "../utils";
 import {
   SEPOLIA_BTC_TOKEN_ADDRESS,
   SEPOLIA_ETH_TOKEN_ADDRESS,
   SEPOLIA_LINK_TOKEN_ADDRESS,
   SEPOLIA_WRAPPED_ETH_TOKEN_ADDRESS,
 } from "./addresses";
-import type { Address, TokenInfo, TokenSymbol } from "./types";
-import { normalizeAddress } from "./utils";
 
 export const bySymbol = {
   BTC: { symbol: "BTC", address: SEPOLIA_BTC_TOKEN_ADDRESS },

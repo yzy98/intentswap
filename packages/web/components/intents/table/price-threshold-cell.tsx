@@ -11,7 +11,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import { intentFactoryContractSepolia } from "@/lib/contracts";
+import { intentFactoryContractSepolia } from "@/lib/constants";
 
 interface PriceThresholdCellProps {
   priceThreshold: bigint;

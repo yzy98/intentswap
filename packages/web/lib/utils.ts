@@ -1,8 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { byAddress, bySymbol } from "./token-map";
+import type { Address } from "viem";
+import { byAddress, bySymbol } from "./constants";
 import type {
-  Address,
   IntentStatusNumber,
   IntentStatusString,
   TokenInfo,
