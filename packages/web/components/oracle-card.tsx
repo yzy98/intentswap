@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useConfig, useConnection, useReadContract } from "wagmi";
-import { readContract } from "wagmi/actions";
+import { readContracts } from "wagmi/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -38,19 +38,21 @@ export function OracleCard() {
       return;
     }
 
-    // [TODO] Use readContracts instead
-    const [price, decimals] = await Promise.all([
-      await readContract(config, {
-        ...oracleContractSepolia,
-        functionName: "getPrice",
-        args: [tokenA, tokenB],
-      }),
-      await readContract(config, {
-        ...oracleContractSepolia,
-        functionName: "getDecimals",
-        args: [tokenA, tokenB],
-      }),
-    ]);
+    const [price, decimals] = await readContracts(config, {
+      contracts: [
+        {
+          ...oracleContractSepolia,
+          functionName: "getPrice",
+          args: [tokenA, tokenB],
+        },
+        {
+          ...oracleContractSepolia,
+          functionName: "getDecimals",
+          args: [tokenA, tokenB],
+        },
+      ],
+      allowFailure: false,
+    });
 
     setFeedPrice(Number(price) / 10 ** decimals);
   };
