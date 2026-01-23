@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import type { Address } from "viem";
 import { useConfig, useConnection, useReadContract } from "wagmi";
 import { readContracts } from "wagmi/actions";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,8 @@ import { bySymbol, oracleContractSepolia } from "@/lib/constants";
 import { SetFeedDialog } from "./set-feed-dialog";
 
 export function OracleCard() {
-  const [tokenA, setTokenA] = useState<`0x${string}` | undefined>();
-  const [tokenB, setTokenB] = useState<`0x${string}` | undefined>();
+  const [tokenA, setTokenA] = useState<Address | undefined>();
+  const [tokenB, setTokenB] = useState<Address | undefined>();
   const [feedPrice, setFeedPrice] = useState<number | undefined>();
 
   const { address } = useConnection();
@@ -66,7 +67,7 @@ export function OracleCard() {
         {isOwner && <SetFeedDialog />}
         <div className="flex items-center gap-2">
           <Select
-            onValueChange={(value) => setTokenA(value as `0x${string}`)}
+            onValueChange={(value) => setTokenA(value as Address)}
             value={tokenA}
           >
             <SelectTrigger className="w-[180px]">
@@ -84,7 +85,7 @@ export function OracleCard() {
           </Select>
           <span>/</span>
           <Select
-            onValueChange={(value) => setTokenB(value as `0x${string}`)}
+            onValueChange={(value) => setTokenB(value as Address)}
             value={tokenB}
           >
             <SelectTrigger className="w-[180px]">

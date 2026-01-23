@@ -1,9 +1,11 @@
 "use client";
 
 import { toast } from "sonner";
+import type { Address } from "viem";
 import { useWriteContract } from "wagmi";
-import { oracleAbi } from "@/abis/oracle";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,10 +14,8 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/ui/responsive-dialog";
-import { SEPOLIA_CONTRACT_ORACLE_ADDRESS } from "@/lib/constants/addresses";
+import { oracleContractSepolia } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 
 export function SetFeedDialog() {
   return (
@@ -42,14 +42,13 @@ function SetFeedForm({ className }: React.ComponentProps<"form">) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const tokenA = formData.get("tokenA") as `0x${string}`;
-    const tokenB = formData.get("tokenB") as `0x${string}`;
-    const feed = formData.get("feed") as `0x${string}`;
+    const tokenA = formData.get("tokenA") as Address;
+    const tokenB = formData.get("tokenB") as Address;
+    const feed = formData.get("feed") as Address;
 
     toast.promise(
       mutateAsync({
-        abi: oracleAbi,
-        address: SEPOLIA_CONTRACT_ORACLE_ADDRESS,
+        ...oracleContractSepolia,
         functionName: "setFeed",
         args: [tokenA, tokenB, feed],
       }),
