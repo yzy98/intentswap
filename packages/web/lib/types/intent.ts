@@ -21,6 +21,7 @@ export interface IntentRow {
   intentId: bigint;
   intent: Intent;
   isActive: boolean;
+  isExpired: boolean;
   hasBalance: boolean;
   hasAllowance: boolean;
   canExecute: boolean;

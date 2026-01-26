@@ -57,6 +57,7 @@ export const columns: ColumnDef<IntentRow>[] = [
       <PriceThresholdCell
         intentId={row.original.intentId}
         isActive={row.original.isActive}
+        isExpired={row.original.isExpired}
         priceThreshold={row.original.intent.priceThreshold}
         refetch={
           (table.options.meta as { refetchPage?: () => Promise<unknown> })
@@ -70,14 +71,18 @@ export const columns: ColumnDef<IntentRow>[] = [
     header: () => <ColumnHeader icon={CircleDot} title="Status" />,
     accessorFn: (row) => row.intent.status,
     cell: ({ row }) => {
-      const statusText = getIntentStatusFromEnum(
-        row.original.intent.status as IntentStatusNumber
-      );
-      let variant: "active" | "destructive" | "secondary";
-      if (statusText === "Active") {
-        variant = "active";
-      } else if (statusText === "Executed") {
+      const statusText = row.original.isExpired
+        ? "Expired"
+        : getIntentStatusFromEnum(
+            row.original.intent.status as IntentStatusNumber
+          );
+      let variant: "active" | "default" | "secondary" | "destructive";
+      if (statusText === "Expired") {
         variant = "destructive";
+      } else if (statusText === "Active") {
+        variant = "default";
+      } else if (statusText === "Executed") {
+        variant = "active";
       } else {
         variant = "secondary";
       }

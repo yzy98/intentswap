@@ -3,7 +3,7 @@
 import type { PaginationState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { erc20Abi } from "viem";
-import { useReadContracts } from "wagmi";
+import { useBlock, useReadContracts } from "wagmi";
 import { DataTable } from "@/components/intents/table/data-table";
 import {
   intentExecutorContractSepolia,
@@ -23,6 +23,9 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     pageIndex: 0,
     pageSize: 5,
   });
+
+  const { data: block } = useBlock();
+  const chainBlockTimestamp = block?.timestamp;
 
   // Slice current page intent ids
   const currentPageIntentIds = useMemo(() => {
@@ -97,12 +100,17 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
       const allowance = getReadContractsResult(allowanceEntry);
 
       const isActive = intent.status === 0;
+      const isExpired =
+        isActive &&
+        chainBlockTimestamp !== undefined &&
+        intent.expiration <= chainBlockTimestamp;
       const hasBalance = balance !== undefined && balance >= intent.amount;
       const hasAllowance =
         allowance !== undefined && allowance >= intent.amount;
-      const canExecute = isActive && hasBalance && hasAllowance;
+      const canExecute = isActive && !isExpired && hasBalance && hasAllowance;
       const executionBlockReason = getExecutionBlockReason(
         isActive,
+        isExpired,
         hasBalance,
         hasAllowance,
         balanceEntry?.status,
@@ -113,6 +121,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
         intentId,
         intent,
         isActive,
+        isExpired,
         hasBalance,
         hasAllowance,
         canExecute,
@@ -124,6 +133,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     currentPageIntents,
     currentPageTokenFromBalances,
     currentPageTokenFromAllowances,
+    chainBlockTimestamp,
   ]);
 
   const refetchPage = () =>

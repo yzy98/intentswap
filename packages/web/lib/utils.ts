@@ -55,12 +55,13 @@ export const getReadContractsResult = <T>(
 
 export const getExecutionBlockReason = (
   isActive: boolean,
+  isExpired: boolean,
   hasBalance: boolean,
   hasAllowance: boolean,
   balanceStatus?: "success" | "failure",
   allowanceStatus?: "success" | "failure"
 ) => {
-  if (!isActive) {
+  if (!isActive || isExpired) {
     return undefined;
   }
   if (balanceStatus === "failure" || allowanceStatus === "failure") {

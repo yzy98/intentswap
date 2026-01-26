@@ -16,6 +16,7 @@ import { intentFactoryContractSepolia } from "@/lib/constants";
 interface PriceThresholdCellProps {
   priceThreshold: bigint;
   isActive: boolean;
+  isExpired: boolean;
   intentId: bigint;
   refetch?: () => Promise<unknown>;
 }
@@ -23,6 +24,7 @@ interface PriceThresholdCellProps {
 export const PriceThresholdCell = ({
   priceThreshold,
   isActive,
+  isExpired,
   intentId,
   refetch,
 }: PriceThresholdCellProps) => {
@@ -117,7 +119,7 @@ export const PriceThresholdCell = ({
       ) : (
         <div className="flex items-center gap-1">
           <span>{formatEther(priceThreshold)}</span>
-          {isActive && (
+          {isActive && !isExpired && (
             <Button
               onClick={() => setIsEditing(true)}
               size="icon-xs"
