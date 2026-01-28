@@ -1,5 +1,7 @@
 import { MoreVerticalIcon } from "lucide-react";
-import { useWriteContract } from "wagmi";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useChainId, useConnection, useWriteContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +21,8 @@ import {
   intentFactoryContractSepolia,
 } from "@/lib/constants";
 
+const BOT_SUBSCRIBE_URL = "http://localhost:8787/subscribe";
+
 interface RowActionsProps {
   intentId: bigint;
   isActive: boolean;
@@ -32,7 +36,46 @@ export const RowActions = ({
   canExecute,
   refetch,
 }: RowActionsProps) => {
+  const { address } = useConnection();
+  const chainId = useChainId();
   const { mutateAsync } = useWriteContract();
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribeBot = async () => {
+    if (!address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const response = await fetch(BOT_SUBSCRIBE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intentId: intentId.toString(),
+          chainId,
+          user: address,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        const message = errorBody?.error ?? "Failed to subscribe bot";
+        throw new Error(message);
+      }
+
+      toast.success("Bot subscribed to this intent");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Subscribe failed";
+      toast.error(message);
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <DropdownMenu modal={false}>
@@ -81,6 +124,12 @@ export const RowActions = ({
             refetch={refetch}
             text="Cancel"
           />
+          <DropdownMenuItem
+            disabled={!canExecute || isSubscribing}
+            onSelect={handleSubscribeBot}
+          >
+            {isSubscribing ? "Subscribing..." : "Bot"}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

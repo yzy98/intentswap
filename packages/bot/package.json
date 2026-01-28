@@ -1,0 +1,20 @@
+{
+  "name": "@packages/bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "trigger-cron": "curl http://localhost:8787/cdn-cgi/handler/scheduled"
+  },
+  "dependencies": {
+    "hono": "^4.11.6",
+    "viem": "catalog:",
+    "@packages/web": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260127.0",
+    "wrangler": "^4.4.0"
+  }
+}
