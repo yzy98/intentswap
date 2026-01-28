@@ -1,4 +1,4 @@
-import type { KVNamespace } from "@cloudflare/workers-types";
+import type { KVNamespace, RateLimit } from "@cloudflare/workers-types";
 import type { Context } from "hono";
 import type { Address, Hex, PublicClient, WalletClient } from "viem";
 
@@ -9,6 +9,7 @@ export type AppContext = Context<{
 
 export interface Bindings {
   INTENTS_SUBSCRIPTIONS: KVNamespace;
+  SUBSCRIPTION_RATE_LIMITER: RateLimit;
   CORS_ORIGIN: string;
   CHAIN_ID: string;
   RPC_URL: string;
