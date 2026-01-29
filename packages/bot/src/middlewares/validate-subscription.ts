@@ -23,7 +23,7 @@ export const validateSubscription = async (c: AppContext, next: Next) => {
 
     const intent = await publicClient.readContract({
       abi: intentFactoryAbi,
-      address: c.env.SEPOLIA_CONTRACT_INTENT_FACTORY_ADDRESS,
+      address: c.env.CONTRACT_INTENT_FACTORY_ADDRESS,
       functionName: "getIntent",
       args: [BigInt(body.intentId)],
     });

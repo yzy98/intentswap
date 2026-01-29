@@ -76,6 +76,54 @@ app.get("/status", async (c) => {
   }
 });
 
+// Status - batch
+app.get("/status/batch", async (c) => {
+  try {
+    const intentIds = c.req.query("intentIds"); // comma separated: "1,2,3"
+    const chainId = c.req.query("chainId");
+
+    if (!(intentIds && chainId)) {
+      return jsonError(c, "Missing intentIds or chainId");
+    }
+
+    const intentIdsArr = intentIds.split(",").filter(Boolean);
+
+    if (intentIdsArr.length === 0) {
+      return c.json({
+        ok: true,
+        statuses: {},
+      });
+    }
+
+    // Restrict to 50 intent ids max per request
+    if (intentIdsArr.length > 50) {
+      return jsonError(c, "Too many intentIds, max 50");
+    }
+
+    const results = await Promise.all(
+      intentIdsArr.map(async (intentId) => {
+        const value = await c.env.INTENTS_SUBSCRIPTIONS.get(
+          `sub:${chainId}:${intentId}`
+        );
+        return [intentId, value !== null] as const;
+      })
+    );
+
+    // format results to { intentId: subscribed }
+    const statuses = Object.fromEntries(results);
+
+    return c.json({
+      ok: true,
+      statuses,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return jsonError(c, error.message);
+    }
+    return jsonError(c, "Failed to get statuses batched");
+  }
+});
+
 export default {
   fetch: app.fetch,
   scheduled: cron,

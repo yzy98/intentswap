@@ -26,4 +26,5 @@ export interface IntentRow {
   hasAllowance: boolean;
   canExecute: boolean;
   executionBlockReason?: string;
+  botSubscribed: boolean;
 }

@@ -1,9 +1,10 @@
 /** biome-ignore-all lint/style/noNestedTernary: Ignore */
 
+import { useQuery } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { erc20Abi } from "viem";
-import { useBlock, useReadContracts } from "wagmi";
+import { useBlock, useChainId, useReadContracts } from "wagmi";
 import { DataTable } from "@/components/intents/table/data-table";
 import {
   intentExecutorContractSepolia,
@@ -12,6 +13,14 @@ import {
 import type { IntentRow } from "@/lib/types";
 import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
 import { columns } from "./columns";
+
+const BOT_API_URL =
+  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
+
+interface BotStatusBatchResponse {
+  ok: boolean;
+  statuses: Record<string, boolean>; // { intentId: subscribed }
+}
 
 interface Props {
   intentIds: readonly bigint[];
@@ -24,6 +33,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     pageSize: 5,
   });
 
+  const chainId = useChainId();
   const { data: block } = useBlock();
   const chainBlockTimestamp = block?.timestamp;
 
@@ -81,6 +91,35 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     query: { enabled: !!currentPageIntents?.length },
   });
 
+  // Bot statuses of current page intents
+  const { data: botStatuses, refetch: refetchBotStatuses } =
+    useQuery<BotStatusBatchResponse>({
+      queryKey: ["bot-status-batch", currentPageIntentIds.join(","), chainId],
+      queryFn: async () => {
+        if (currentPageIntentIds.length === 0) {
+          return {
+            ok: true,
+            statuses: {},
+          };
+        }
+
+        const params = new URLSearchParams({
+          intentIds: currentPageIntentIds.join(","),
+          chainId: chainId.toString(),
+        });
+
+        const response = await fetch(`${BOT_API_URL}/status/batch?${params}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? "Failed to get bot statuses");
+        }
+
+        return data;
+      },
+      enabled: !!currentPageIntentIds.length,
+    });
+
   const currentPageData: IntentRow[] = useMemo(() => {
     if (
       !(
@@ -116,6 +155,8 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
         balanceEntry?.status,
         allowanceEntry?.status
       );
+      const botSubscribed =
+        botStatuses?.statuses?.[intentId.toString()] ?? false;
 
       return {
         intentId,
@@ -126,6 +167,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
         hasAllowance,
         canExecute,
         executionBlockReason,
+        botSubscribed,
       };
     });
   }, [
@@ -134,6 +176,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     currentPageTokenFromBalances,
     currentPageTokenFromAllowances,
     chainBlockTimestamp,
+    botStatuses,
   ]);
 
   const refetchPage = () =>
@@ -141,6 +184,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
       refetchCurrentPageIntents(),
       refetchCurrentPageTokenFromBalances(),
       refetchCurrentPageTokenFromAllowances(),
+      refetchBotStatuses(),
     ]);
 
   return (

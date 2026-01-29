@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
+  BotIcon,
   CalendarClockIcon,
   CircleArrowDownIcon,
   CircleArrowUpIcon,
@@ -14,6 +15,7 @@ import { formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
 import type { IntentRow, IntentStatusNumber } from "@/lib/types";
 import { getIntentStatusFromEnum, getTokenByAddress } from "@/lib/utils";
+import { BotSwitchCell } from "./bot-switch-cell";
 import { ColumnHeader } from "./column-header";
 import { PriceThresholdCell } from "./price-threshold-cell";
 import { RowActions } from "./row-actions";
@@ -98,6 +100,20 @@ export const columns: ColumnDef<IntentRow>[] = [
         </div>
       );
     },
+  },
+  {
+    id: "bot",
+    header: () => <ColumnHeader icon={BotIcon} title="Bot Auto-Exec" />,
+    accessorFn: (row) => row.botSubscribed,
+    cell: ({ row, table }) => (
+      <BotSwitchCell
+        refetch={
+          (table.options.meta as { refetchPage?: () => Promise<unknown> })
+            ?.refetchPage
+        }
+        row={row}
+      />
+    ),
   },
   {
     id: "expiration",
