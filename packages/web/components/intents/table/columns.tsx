@@ -139,13 +139,11 @@ export const columns: ColumnDef<IntentRow>[] = [
     cell: ({ row, table }) => (
       <div className="flex justify-end">
         <RowActions
-          canExecute={row.original.canExecute}
-          intentId={row.original.intentId}
-          isActive={row.original.isActive}
           refetch={
             (table.options.meta as { refetchPage?: () => Promise<unknown> })
               ?.refetchPage
           }
+          row={row}
         />
       </div>
     ),

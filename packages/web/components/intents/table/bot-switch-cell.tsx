@@ -41,7 +41,7 @@ export const BotSwitchCell = ({ row, refetch }: BotSwitchCellProps) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Failed");
+        throw new Error(data.error ?? "Failed to toggle bot auto-execution");
       }
 
       return data;

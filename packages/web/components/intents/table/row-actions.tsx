@@ -1,6 +1,10 @@
+import { useMutation } from "@tanstack/react-query";
+import type { Row } from "@tanstack/react-table";
 import { MoreVerticalIcon } from "lucide-react";
 import { useState } from "react";
-import { useWriteContract } from "wagmi";
+import { toast } from "sonner";
+import { useChainId, useConfig, useConnection, useWriteContract } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,27 +15,104 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  type UseMyWriteContractOptions,
-  useMyWriteContract,
-} from "@/hooks/use-my-write-contract";
 import { intentFactoryContractSepolia } from "@/lib/constants";
+import type { IntentRow } from "@/lib/types";
+
+const BOT_API_URL =
+  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
 interface RowActionsProps {
-  intentId: bigint;
-  isActive: boolean;
-  canExecute: boolean;
+  row: Row<IntentRow>;
   refetch?: () => Promise<unknown>;
 }
 
-export const RowActions = ({
-  intentId,
-  isActive,
-  refetch,
-}: RowActionsProps) => {
+export const RowActions = ({ row, refetch }: RowActionsProps) => {
+  const { intentId, isActive, botSubscribed } = row.original;
+
   const [isOpen, setIsOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   const { mutateAsync } = useWriteContract();
+  const { address } = useConnection();
+  const chainId = useChainId();
+  const config = useConfig();
+
+  const { mutateAsync: unsubscribe } = useMutation({
+    mutationFn: async () => {
+      if (!address) {
+        throw new Error("Wallet not connected");
+      }
+
+      const response = await fetch(`${BOT_API_URL}/unsubscribe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          intentId: intentId.toString(),
+          chainId,
+          user: address,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to disable bot auto-execution");
+      }
+
+      return data;
+    },
+  });
+
+  const handleCancelIntent = async () => {
+    setIsPending(true);
+    const toastId = toast.loading("Sending cancel transaction...");
+
+    try {
+      // Send cancel intent transaction
+      const txHash = await mutateAsync({
+        ...intentFactoryContractSepolia,
+        functionName: "cancelIntent",
+        args: [intentId],
+      });
+
+      // Wait for transaction confirmation
+      toast.loading("Waiting for transaction to be confirmed...", {
+        id: toastId,
+      });
+
+      const receipt = await waitForTransactionReceipt(config, {
+        hash: txHash,
+      });
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction reverted");
+      }
+
+      // If bot auto-execution is enabled, unsubscribe from the intent
+      if (botSubscribed) {
+        toast.loading("Disabling bot auto-execution...", { id: toastId });
+        await unsubscribe();
+      }
+
+      // If refetch function is provided, refetch the intent data
+      if (refetch) {
+        toast.loading("Transaction confirmed, refetching intent data...", {
+          id: toastId,
+        });
+        await refetch();
+      }
+
+      toast.success("Intent cancelled successfully", { id: toastId });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to cancel", {
+        id: toastId,
+      });
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <DropdownMenu modal={false} onOpenChange={setIsOpen} open={isOpen}>
@@ -48,50 +129,14 @@ export const RowActions = ({
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <WrappedDropdownMenuItem
-            isDisabled={!isActive}
-            messages={{
-              refetching: "Transaction confirmed, refetching intent data...",
-              success: "Intent cancelled successfully",
-            }}
-            mutateAsyncFn={() =>
-              mutateAsync({
-                ...intentFactoryContractSepolia,
-                functionName: "cancelIntent",
-                args: [intentId],
-              })
-            }
-            refetch={refetch}
-            text="Cancel"
-          />
+          <DropdownMenuItem
+            disabled={!isActive || isPending}
+            onSelect={handleCancelIntent}
+          >
+            Cancel
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
-
-const WrappedDropdownMenuItem = ({
-  text,
-  isDisabled,
-  mutateAsyncFn,
-  refetch,
-  messages,
-  onSuccess,
-  onError,
-  onFinally,
-}: { text: string; isDisabled?: boolean } & UseMyWriteContractOptions) => {
-  const { execute, isPending } = useMyWriteContract({
-    mutateAsyncFn,
-    refetch,
-    messages,
-    onSuccess,
-    onError,
-    onFinally,
-  });
-
-  return (
-    <DropdownMenuItem disabled={isDisabled || isPending} onSelect={execute}>
-      {text}
-    </DropdownMenuItem>
   );
 };
