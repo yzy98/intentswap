@@ -43,6 +43,7 @@ const processSubscription = async ({
   const txHash = await walletClient.writeContract(request);
   console.log(`Executed intent ${subscription.intentId}: ${txHash}`);
 
+  // Delete KV after successful execution
   await env.INTENTS_SUBSCRIPTIONS.delete(k);
 };
 
