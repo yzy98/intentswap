@@ -37,11 +37,6 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "IntentExecutor__PaymentFailed",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "IntentExecutor__PriceThresholdNotMet",
     type: "error",
   },
@@ -112,12 +107,25 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "amountOutMinimum",
+    name: "AMOUNT_OUT_MINIMUM",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "POOL_FEE",
+    outputs: [
+      {
+        internalType: "uint24",
+        name: "",
+        type: "uint24",
       },
     ],
     stateMutability: "view",
@@ -183,19 +191,6 @@ export const intentExecutorAbi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "poolFee",
-    outputs: [
-      {
-        internalType: "uint24",
-        name: "",
-        type: "uint24",
       },
     ],
     stateMutability: "view",

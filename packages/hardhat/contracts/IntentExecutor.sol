@@ -21,9 +21,9 @@ contract IntentExecutor is Ownable {
   Oracle public oracle;
   UniswapV3Swapper public swapper;
 
-  uint256 public executionFee = 0.001 ether; // Service fee / Rewards for executing intents
-  uint24 public constant poolFee = 3000; // 0.3% fee
-  uint256 public constant amountOutMinimum = 0; // Minimum amount of tokens to receive
+  uint256 public executionFee = 30; // 0.3% = 30/10000 Service fee / Rewards for executing intents
+  uint24 public constant POOL_FEE = 3000; // 0.3% fee
+  uint256 public constant AMOUNT_OUT_MINIMUM = 0; // Minimum amount of tokens to receive
 
   event ExecutionFeeUpdated(uint256 newFee);
 
@@ -31,7 +31,6 @@ contract IntentExecutor is Ownable {
   error IntentExecutor__IntentAlreadyCancelled();
   error IntentExecutor__IntentExpired();
   error IntentExecutor__PriceThresholdNotMet();
-  error IntentExecutor__PaymentFailed();
 
   constructor(address _intentFactory, address _oracle, address _swapper) Ownable(msg.sender) {
     intentFactory = IntentFactory(_intentFactory);
@@ -78,17 +77,22 @@ contract IntentExecutor is Ownable {
     // Note: User must have approved IntentExecutor contract beforehand
     IERC20(intent.tokenFrom).safeTransferFrom(intent.user, address(swapper), intent.amount);
 
-    // Call swapper
-    swapper.swapExactInputSingle(
+    // Step 2: Swap tokens, output tokens go to this contract first
+    uint256 amountOut = swapper.swapExactInputSingle(
       intent.tokenFrom,
       intent.tokenTo,
-      poolFee,
+      POOL_FEE,
       intent.amount,
-      amountOutMinimum,
-      intent.user
+      AMOUNT_OUT_MINIMUM,
+      address(this)
     );
 
-    // [TODO] Pay execution fee to the executor
+    // Step 3: Calculate and distribute execution fee
+    uint256 fee = (amountOut * executionFee) / 10000;
+    IERC20(intent.tokenTo).safeTransfer(owner(), fee);
+    
+    // Step 4: Transfer remaining tokens to user
+    IERC20(intent.tokenTo).safeTransfer(intent.user, amountOut - fee);
 
     intentFactory.markExecuted(_intentId);
   }
