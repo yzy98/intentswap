@@ -1,3 +1,4 @@
+import type { Row } from "@tanstack/react-table";
 import { CheckIcon, Loader2Icon, PencilIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -12,22 +13,24 @@ import {
 } from "@/components/ui/input-group";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import { intentFactoryContractSepolia } from "@/lib/constants";
+import type { IntentRow } from "@/lib/types";
 
 interface PriceThresholdCellProps {
-  priceThreshold: bigint;
-  isActive: boolean;
-  isExpired: boolean;
-  intentId: bigint;
+  row: Row<IntentRow>;
   refetch?: () => Promise<unknown>;
 }
 
 export const PriceThresholdCell = ({
-  priceThreshold,
-  isActive,
-  isExpired,
-  intentId,
+  row,
   refetch,
 }: PriceThresholdCellProps) => {
+  const {
+    intentId,
+    isActive,
+    isExpired,
+    intent: { priceThreshold },
+  } = row.original;
+
   const [isEditing, setIsEditing] = useState(false);
   const [newPriceThreshold, setNewPriceThreshold] = useState(
     formatEther(priceThreshold)

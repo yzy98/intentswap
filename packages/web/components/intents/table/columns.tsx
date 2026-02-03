@@ -57,14 +57,11 @@ export const columns: ColumnDef<IntentRow>[] = [
     accessorFn: (row) => row.intent.priceThreshold,
     cell: ({ row, table }) => (
       <PriceThresholdCell
-        intentId={row.original.intentId}
-        isActive={row.original.isActive}
-        isExpired={row.original.isExpired}
-        priceThreshold={row.original.intent.priceThreshold}
         refetch={
           (table.options.meta as { refetchPage?: () => Promise<unknown> })
             ?.refetchPage
         }
+        row={row}
       />
     ),
   },
