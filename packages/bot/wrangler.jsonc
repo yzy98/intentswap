@@ -31,6 +31,15 @@
       "enabled": true,
       "invocation_logs": true
     }
+  },
+  "vars": {
+    "CORS_ORIGIN": "http://localhost:3000",
+    "CHAIN_ID": "11155111",
+    "RPC_URL": "https://sepolia.infura.io/v3/36ab41cc918b4d198e7d6f59730f4e52",
+    "CONTRACT_ORACLE_ADDRESS": "0xaa134cf011c92aafe088f8398942e0d5801cebe9",
+    "CONTRACT_SWAPPER_ADDRESS": "0xef6e619f71075a12b37b2bfccd2500a4755eb6b0",
+    "CONTRACT_INTENT_FACTORY_ADDRESS": "0x31b156a2355a1718a17ac2df481e782d292d4830",
+    "CONTRACT_INTENT_EXECUTOR_ADDRESS": "0xcd9bbd15df3aea402e6e7223b8ecc5f8e67c1176"
   }
   // "compatibility_flags": ["nodejs_compat"],
   // "vars": {
