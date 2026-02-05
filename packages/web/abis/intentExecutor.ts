@@ -22,6 +22,26 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
+    name: "EnforcedPause",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ExpectedPause",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "IntentExecutor__ExecutionFeeTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "IntentExecutor__InsufficientOutputAmount",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "IntentExecutor__IntentAlreadyCancelled",
     type: "error",
   },
@@ -37,7 +57,17 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
+    name: "IntentExecutor__InvalidSlippageTolerance",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "IntentExecutor__PriceThresholdNotMet",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "IntentExecutor__ZeroAddress",
     type: "error",
   },
   {
@@ -63,6 +93,11 @@ export const intentExecutorAbi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "ReentrancyGuardReentrantCall",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -79,11 +114,86 @@ export const intentExecutorAbi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "oldFee",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "newFee",
         type: "uint256",
       },
     ],
     name: "ExecutionFeeUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "intentId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    name: "IntentExecuted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldFactory",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newFactory",
+        type: "address",
+      },
+    ],
+    name: "IntentFactoryUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldOracle",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOracle",
+        type: "address",
+      },
+    ],
+    name: "OracleUpdated",
     type: "event",
   },
   {
@@ -106,8 +216,116 @@ export const intentExecutorAbi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "Paused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint24",
+        name: "oldFee",
+        type: "uint24",
+      },
+      {
+        indexed: false,
+        internalType: "uint24",
+        name: "newFee",
+        type: "uint24",
+      },
+    ],
+    name: "PoolFeeUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldTolerance",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newTolerance",
+        type: "uint256",
+      },
+    ],
+    name: "SlippageToleranceUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldSwapper",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newSwapper",
+        type: "address",
+      },
+    ],
+    name: "SwapperUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "TokensRescued",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "Unpaused",
+    type: "event",
+  },
+  {
     inputs: [],
-    name: "AMOUNT_OUT_MINIMUM",
+    name: "FEE_DENOMINATOR",
     outputs: [
       {
         internalType: "uint256",
@@ -120,12 +338,25 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "POOL_FEE",
+    name: "MAX_EXECUTION_FEE",
     outputs: [
       {
-        internalType: "uint24",
+        internalType: "uint256",
         name: "",
-        type: "uint24",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MAX_SLIPPAGE_TOLERANCE",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -151,6 +382,44 @@ export const intentExecutorAbi = [
       {
         internalType: "uint256",
         name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getConfig",
+    outputs: [
+      {
+        internalType: "address",
+        name: "_intentFactory",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_oracle",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_swapper",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_executionFee",
+        type: "uint256",
+      },
+      {
+        internalType: "uint24",
+        name: "_poolFee",
+        type: "uint24",
+      },
+      {
+        internalType: "uint256",
+        name: "_slippageTolerance",
         type: "uint256",
       },
     ],
@@ -198,9 +467,78 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "paused",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "poolFee",
+    outputs: [
+      {
+        internalType: "uint24",
+        name: "",
+        type: "uint24",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "renounceOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+    ],
+    name: "rescueTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "slippageTolerance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -230,6 +568,13 @@ export const intentExecutorAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -238,6 +583,71 @@ export const intentExecutorAbi = [
       },
     ],
     name: "updateExecutionFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_newFactory",
+        type: "address",
+      },
+    ],
+    name: "updateIntentFactory",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_newOracle",
+        type: "address",
+      },
+    ],
+    name: "updateOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint24",
+        name: "_newPoolFee",
+        type: "uint24",
+      },
+    ],
+    name: "updatePoolFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_newTolerance",
+        type: "uint256",
+      },
+    ],
+    name: "updateSlippageTolerance",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_newSwapper",
+        type: "address",
+      },
+    ],
+    name: "updateSwapper",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

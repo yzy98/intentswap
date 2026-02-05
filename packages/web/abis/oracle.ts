@@ -6,6 +6,11 @@ export const oracleAbi = [
   },
   {
     inputs: [],
+    name: "Oracle__ArrayLengthMismatch",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "Oracle__InvalidAddress",
     type: "error",
   },
@@ -22,6 +27,11 @@ export const oracleAbi = [
   {
     inputs: [],
     name: "Oracle__PriceFeedNotUpdated",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Oracle__PriceFeedStale",
     type: "error",
   },
   {
@@ -45,6 +55,25 @@ export const oracleAbi = [
     ],
     name: "OwnableUnauthorizedAccount",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "tokenA",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "tokenB",
+        type: "address",
+      },
+    ],
+    name: "FeedRemoved",
+    type: "event",
   },
   {
     anonymous: false,
@@ -89,6 +118,19 @@ export const oracleAbi = [
     ],
     name: "OwnershipTransferred",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "PRICE_STALENESS_THRESHOLD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -151,12 +193,94 @@ export const oracleAbi = [
         type: "address",
       },
     ],
+    name: "getFeed",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenB",
+        type: "address",
+      },
+    ],
     name: "getPrice",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenB",
+        type: "address",
+      },
+    ],
+    name: "getSafePrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "decimals",
+        type: "uint8",
+      },
+      {
+        internalType: "uint256",
+        name: "updatedAt",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenB",
+        type: "address",
+      },
+    ],
+    name: "hasFeed",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -173,6 +297,24 @@ export const oracleAbi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenB",
+        type: "address",
+      },
+    ],
+    name: "removeFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -201,6 +343,29 @@ export const oracleAbi = [
       },
     ],
     name: "setFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_tokenAs",
+        type: "address[]",
+      },
+      {
+        internalType: "address[]",
+        name: "_tokenBs",
+        type: "address[]",
+      },
+      {
+        internalType: "address[]",
+        name: "_feeds",
+        type: "address[]",
+      },
+    ],
+    name: "setFeeds",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

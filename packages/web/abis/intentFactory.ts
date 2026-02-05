@@ -141,6 +141,12 @@ export const intentFactoryAbi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "oldPriceThreshold",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "newPriceThreshold",
         type: "uint256",
       },
@@ -166,6 +172,19 @@ export const intentFactoryAbi = [
     ],
     name: "OwnershipTransferred",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "MAX_EXPIRATION_DURATION",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -212,7 +231,7 @@ export const intentFactoryAbi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "intentId",
         type: "uint256",
       },
     ],
