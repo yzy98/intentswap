@@ -6,23 +6,42 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @title IntentFactory
  * @author yzy98
- * @notice This contract is responsible for creating, getting, canceling and marking intents as executed. It is owned by the IntentExecutor contract and can be used to create, get, cancel and mark intents as executed.
+ * @notice Factory contract for creating and managing swap intents
+ * @dev Intents are stored in an array and never deleted, only status changes
+ *      The contract owner (IntentExecutor) can mark intents as executed.
  */
 contract IntentFactory is Ownable {
+  /**
+   * @notice Intent status enum
+   * @dev Active(0) -> Executed(1) or Cancelled(2)
+   */
   enum Status {
     Active,
     Executed,
     Cancelled
   }
+
+  /**
+   * @notice Intent struct containing all swap parameters
+   * @param user Address of the intent creator
+   * @param tokenFrom Token address to swap from
+   * @param tokenTo Token address to swap to
+   * @param amount Amount of tokenFrom to swap
+   * @param priceThreshold Minimum price (1e18 scaled) required to execute
+   * @param expiration Unix timestamp after which intent cannot be executed
+   * @param status Current status of the intent
+   */
   struct Intent {
-    address user;               // User who created the intent
-    address tokenFrom;          // Token to swap
-    address tokenTo;            // Token to receive
-    uint256 amount;             // Amount of tokens to swap
-    uint256 priceThreshold;     // Price threshold for the swap
-    uint256 expiration;         // Expiration time stamp for the intent
-    Status status;              // Status of the intent
+    address user;
+    address tokenFrom;
+    address tokenTo;
+    uint256 amount;
+    uint256 priceThreshold;
+    uint256 expiration;
+    Status status;
   }
+
+  uint256 public constant MAX_EXPIRATION_DURATION = 365 days;
 
   Intent[] public intents;
   mapping (address => uint256[]) public userIntentIds;
@@ -30,7 +49,12 @@ contract IntentFactory is Ownable {
   event IntentCreated(uint256 indexed intentId, address indexed user);
   event IntentCancelled(uint256 indexed intentId, address indexed user);
   event IntentExecuted(uint256 indexed intentId, address indexed user);
-  event IntentUpdated(uint256 indexed intentId, address indexed user, uint256 newPriceThreshold);
+  event IntentUpdated(
+    uint256 indexed intentId,
+    address indexed user,
+    uint256 oldPriceThreshold,
+    uint256 newPriceThreshold
+  );
 
   error IntentFactory__InvalidAddress();
   error IntentFactory__InvalidAmount();
@@ -41,29 +65,41 @@ contract IntentFactory is Ownable {
   error IntentFactory__NotYourIntent();
   error IntentFactory__IntentExpired();
 
-  modifier validIntentId(uint256 intentId) {
-    if (intentId >= intents.length) {
+  /**
+   * @dev Validates that the intent ID exists
+   */
+  modifier validIntentId(uint256 _intentId) {
+    if (_intentId >= intents.length) {
       revert IntentFactory__InvalidIntentId();
     }
     _;
   }
 
-  modifier onlyIntentOwner(uint256 intentId) {
-    if (intents[intentId].user != msg.sender) {
+  /**
+   * @dev Validates that the caller owns the intent
+   */
+  modifier onlyIntentOwner(uint256 _intentId) {
+    if (intents[_intentId].user != msg.sender) {
       revert IntentFactory__NotYourIntent();
     }
     _;
   }
 
-  modifier onlyIntentActive(uint256 intentId) {
-    if (intents[intentId].status != Status.Active) {
+  /**
+   * @dev Validates that the intent is active
+   */
+  modifier onlyIntentActive(uint256 _intentId) {
+    if (intents[_intentId].status != Status.Active) {
       revert IntentFactory__InvalidStatus();
     }
     _;
   }
 
-  modifier notIntentExpired(uint256 intentId) {
-    if (intents[intentId].expiration <= block.timestamp) {
+  /**
+   * @dev Validates that the intent has not expired
+   */
+  modifier intentNotExpired(uint256 _intentId) {
+    if (intents[_intentId].expiration <= block.timestamp) {
       revert IntentFactory__IntentExpired();
     }
     _;
@@ -71,23 +107,25 @@ contract IntentFactory is Ownable {
 
   constructor() Ownable(msg.sender) {}
 
-/**
- * @notice Create a new swap intent
- * @param _tokenFrom The token to swap from
- * @param _tokenTo The token to swap to
- * @param _amount Amount of tokens to swap
- * @param _priceThreshold Price threshold for the swap
- * @param _expiration Expiration time stamp for the intent
- * @return The intent ID
- */
+  /**
+   * @notice Create a new swap intent
+   * @param _tokenFrom Token address to swap from
+   * @param _tokenTo Token address to swap to
+   * @param _amount Amount of tokenFrom to swap (must be greater than 0)
+   * @param _priceThreshold Minimum price to execute (1e18 scaled, must be > 0)
+   * @param _expiration Unix timestamp for intent expiration
+   * @return intentId The ID of the newly created intent
+   * @dev User must approve IntentExecutor for tokenFrom before execution
+   */
   function createIntent(
     address _tokenFrom,
     address _tokenTo,
     uint256 _amount,
     uint256 _priceThreshold,
     uint256 _expiration
-  ) external returns (uint256) {
-    if (_tokenFrom == _tokenTo) {
+  ) external returns (uint256 intentId) 
+  {
+    if (_tokenFrom == _tokenTo || _tokenFrom == address(0) || _tokenTo == address(0)) {
       revert IntentFactory__InvalidAddress();
     }
     if (_amount == 0) {
@@ -96,7 +134,10 @@ contract IntentFactory is Ownable {
     if (_priceThreshold == 0) {
       revert IntentFactory__InvalidPriceThreshold();
     }
-    if (_expiration <= block.timestamp) {
+    if (
+      _expiration <= block.timestamp ||
+      _expiration > block.timestamp + MAX_EXPIRATION_DURATION
+    ) {
       revert IntentFactory__InvalidExpiration();
     }
 
@@ -111,39 +152,16 @@ contract IntentFactory is Ownable {
     });
 
     intents.push(newIntent);
-    uint256 intentId = intents.length - 1;
+    intentId = intents.length - 1;
     userIntentIds[msg.sender].push(intentId);
 
     emit IntentCreated(intentId, msg.sender);
-    return intentId;
-  }
-
-/**
- * @notice Get the intent IDs for a user
- * @param _user The user address
- * @return All intent IDs for the user
- */
-  function getUserIntentIds(address _user) external view returns (uint256[] memory) {
-    return userIntentIds[_user];
-  }
-
-  /**
-   * @notice Get an intent by intent ID
-   * @param _intentId The intent ID
-   * @return The intent
-   */
-  function getIntent(uint256 _intentId) 
-    external 
-    view 
-    validIntentId(_intentId)
-    returns (Intent memory) 
-  {
-    return intents[_intentId];
   }
 
   /**
    * @notice Cancel an intent
    * @param _intentId The intent ID
+   * @dev Only callable by the intent owner. Intent must be active.
    */
   function cancelIntent(uint256 _intentId) 
     external
@@ -156,8 +174,9 @@ contract IntentFactory is Ownable {
   }
 
   /**
-   * @notice Mark an intent as executed, only callable by the owner (IntentExecutor)
+   * @notice Mark an intent as executed
    * @param _intentId The intent ID
+   * @dev Only callable by the contract owner (IntentExecutor)
    */
   function markExecuted(uint256 _intentId)
     external
@@ -170,22 +189,57 @@ contract IntentFactory is Ownable {
   }
 
   /**
-   * @notice Update the price threshold for an intent
+   * @notice Update the price threshold for an active intent
    * @param _intentId The intent ID
-   * @param _newPriceThreshold The new price threshold
+   * @param _newPriceThreshold The new price threshold (1e18 scaled)
+   * @dev Only callable by the intent owner. Intent must be active and ont expired.
    */
   function updateIntentCondition(uint256 _intentId, uint256 _newPriceThreshold) 
     external
     validIntentId(_intentId)
     onlyIntentOwner(_intentId)
     onlyIntentActive(_intentId)
-    notIntentExpired(_intentId)
+    intentNotExpired(_intentId)
   {
     if (_newPriceThreshold == 0) {
       revert IntentFactory__InvalidPriceThreshold();
     }
 
+    uint256 oldPriceThreshold = intents[_intentId].priceThreshold;
     intents[_intentId].priceThreshold = _newPriceThreshold;
-    emit IntentUpdated(_intentId, msg.sender, _newPriceThreshold);
+
+    emit IntentUpdated(
+      _intentId,
+      msg.sender,
+      oldPriceThreshold,
+      _newPriceThreshold
+    );
+  }
+
+  /**
+   * @notice Get an intent by ID
+   * @param _intentId The intent ID
+   * @return The intent struct
+   */
+  function getIntent(uint256 _intentId) 
+    external 
+    view 
+    validIntentId(_intentId)
+    returns (Intent memory) 
+  {
+    return intents[_intentId];
+  }
+
+  /**
+   * @notice Get all intent IDs for a user
+   * @param _user The user address
+   * @return Array of intent IDs owned by the user
+   */
+  function getUserIntentIds(address _user) 
+    external 
+    view 
+    returns (uint256[] memory)
+  {
+    return userIntentIds[_user];
   }
 }

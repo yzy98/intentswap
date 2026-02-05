@@ -3,6 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { network } from "hardhat";
 
+// Uniswap V3 Contract Address in Sepolia (11155111)
+// SwapRouter02: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
+const SWAP_ROUTER_ADDRESS = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -29,13 +33,10 @@ async function main() {
     `export const oracleAbi = ${JSON.stringify(oracle.abi, null, 2)} as const;`
   );
 
-  // Uniswap V3 Contract Address in Sepolia (11155111)
-  // SwapRouter02: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
-
   // Deploy UniswapV3Swapper contract
   console.log("Deploying UniswapV3Swapper contract...");
   const swapper = await viem.deployContract("UniswapV3Swapper", [
-    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
+    SWAP_ROUTER_ADDRESS,
   ]);
   console.log("UniswapV3Swapper contract deployed to: ", swapper.address);
   // Generate TypeScript file with as const for type inference
@@ -71,6 +72,10 @@ async function main() {
   // Transfer ownership of IntentFactory to IntentExecutor
   await intentFactory.write.transferOwnership([intentExecutor.address]);
   console.log("Ownership of IntentFactory transferred to IntentExecutor");
+
+  // Authorize IntentExecutor as Swapper executor
+  await swapper.write.authorizeExecutor([intentExecutor.address]);
+  console.log("IntentExecutor authorized as Swapper executor");
 }
 
 main().catch((error) => {

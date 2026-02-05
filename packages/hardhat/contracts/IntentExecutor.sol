@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IntentFactory} from "./IntentFactory.sol";
@@ -11,54 +13,130 @@ import {UniswapV3Swapper} from "./UniswapV3Swapper.sol";
 /**
  * @title IntentExecutor
  * @author yzy98
- * @notice This contract is responsible for executing intents. It uses the Oracle contract to get the price of the tokens and the IntentFactory contract to get the intent details.
+ * @notice Executes swap intents when price conditions are met
+ * @dev Uses Chainlink Oracle for price feeds and Uniswap V3 for swaps.
+ *      Implement slippage protection, reentrancy guard, and emergency pause.
  * 
+ * Security features:
+ * - ReentrancyGuard: Prevents reentrancy attacks during token transfers
+ * - Pausable: Emergency stop mechanism for critical situations
+ * - Slippage protection: Minimum output amount based on oracle price
+ * - Fee cap: Maximum execution fee to protect users
  */
-contract IntentExecutor is Ownable {
+contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   using SafeERC20 for IERC20;
+
+  /// @notice Maximum allowed execution fee (5% = 500/10000)
+  uint256 public constant MAX_EXECUTION_FEE = 500;
+
+  /// @notice Basis points denominator for fee calculations
+  uint256 public constant FEE_DENOMINATOR = 10000;
+
+  /// @notice Maximum allowed slippage tolerance (50% = 5000/10000)
+  uint256 public constant MAX_SLIPPAGE_TOLERANCE = 5000;
+
+  /// @notice Price normalization target (18 decimals)
+  uint256 private constant PRICE_PRECISION = 1e18;
 
   IntentFactory public intentFactory;
   Oracle public oracle;
   UniswapV3Swapper public swapper;
 
-  uint256 public executionFee = 30; // 0.3% = 30/10000 Service fee / Rewards for executing intents
-  uint24 public constant POOL_FEE = 3000; // 0.3% fee
-  uint256 public constant AMOUNT_OUT_MINIMUM = 0; // Minimum amount of tokens to receive
+  /// @notice Execution fee in basis points (default 0.3% = 30/10000)
+  uint256 public executionFee;
 
-  event ExecutionFeeUpdated(uint256 newFee);
+  /// @notice Uniswap V3 pool fee tier (default 0.3% = 3000)
+  uint24 public poolFee;
+
+  /// @notice Slippage tolerance in basis points (default 5% = 500/10000)
+  uint256 public slippageTolerance;
+
+  event IntentExecuted(
+    uint256 indexed intentId,
+    address indexed user,
+    uint256 amountOut,
+    uint256 fee
+  );
+  event ExecutionFeeUpdated(uint256 oldFee,uint256 newFee);
+  event PoolFeeUpdated(uint24 oldFee, uint24 newFee);
+  event SlippageToleranceUpdated(uint256 oldTolerance, uint256 newTolerance);
+  event IntentFactoryUpdated(address oldFactory, address newFactory);
+  event OracleUpdated(address oldOracle, address newOracle);
+  event SwapperUpdated(address oldSwapper, address newSwapper);
+
+  /// @notice Emitted when tokens are rescued from the contract
+  /// @param token The token address
+  /// @param to The recipient address
+  /// @param amount The amount rescued
+  event TokensRescued(address indexed token, address indexed to, uint256 amount);
 
   error IntentExecutor__IntentAlreadyExecuted();
   error IntentExecutor__IntentAlreadyCancelled();
   error IntentExecutor__IntentExpired();
   error IntentExecutor__PriceThresholdNotMet();
+  error IntentExecutor__ExecutionFeeTooHigh();
+  error IntentExecutor__InvalidSlippageTolerance();
+  error IntentExecutor__ZeroAddress();
+  error IntentExecutor__InsufficientOutputAmount();
 
-  constructor(address _intentFactory, address _oracle, address _swapper) Ownable(msg.sender) {
+  /// @dev Validates that an address is not zero
+  modifier notZeroAddress(address _addr) {
+    if (_addr == address(0)) {
+      revert IntentExecutor__ZeroAddress();
+    }
+    _;
+  }
+
+  constructor(
+    address _intentFactory,
+    address _oracle,
+    address _swapper
+  )
+    Ownable(msg.sender)
+    notZeroAddress(_intentFactory)
+    notZeroAddress(_oracle)
+    notZeroAddress(_swapper)
+  {
     intentFactory = IntentFactory(_intentFactory);
     oracle = Oracle(_oracle);
     swapper = UniswapV3Swapper(_swapper);
+
+    executionFee = 30; // 0.3%
+    poolFee = 3000; // 0.3% Uniswap pool
+    slippageTolerance = 500; // 5%
   }
 
   /**
-   * @notice Execute an intent
-   * @param _intentId The intent ID
+   * @dev Validate intent status and expiration
+   * @param _intent The intent to validate
    */
-  function executeIntent(uint256 _intentId) external {
-    IntentFactory.Intent memory intent = intentFactory.getIntent(_intentId);
-
-    if (intent.status == IntentFactory.Status.Executed) {
+  function _validateIntent(IntentFactory.Intent memory _intent) internal view {
+    if (_intent.status == IntentFactory.Status.Executed) {
       revert IntentExecutor__IntentAlreadyExecuted();
     }
-    if (intent.status == IntentFactory.Status.Cancelled) {
+    if (_intent.status == IntentFactory.Status.Cancelled) {
       revert IntentExecutor__IntentAlreadyCancelled();
     }
-    if (intent.expiration <= block.timestamp) {
+    if (_intent.expiration <= block.timestamp) {
       revert IntentExecutor__IntentExpired();
     }
+  }
 
-    uint256 rawPrice = oracle.getPrice(intent.tokenFrom, intent.tokenTo);
-    uint8 decimals = oracle.getDecimals(intent.tokenFrom, intent.tokenTo);
-    // Normalize price to 18 decimals
-    uint256 normalizedPrice;
+  /**
+   * @dev Get price from oracle, normalize to 18 decimals and validate threshold
+   * @param _tokenFrom The token to swap from
+   * @param _tokenTo The token to swap to
+   * @param _priceThreshold User's minimum acceptable price (1e18 scaled)
+   * @return normalizedPrice Price normalized to 18 decimals
+   */
+  function _getAndValidatePrice(
+    address _tokenFrom,
+    address _tokenTo,
+    uint256 _priceThreshold
+  ) internal view returns (uint256 normalizedPrice) {
+    (uint256 rawPrice, uint8 decimals, ) = oracle.getSafePrice(_tokenFrom, _tokenTo);
+
+    // Normalize price to 18 decimals for consistent comparison
     if (decimals == 18) {
       normalizedPrice = rawPrice;
     } else if (decimals < 18) {
@@ -66,44 +144,280 @@ contract IntentExecutor is Ownable {
     } else {
       normalizedPrice = rawPrice / (10 ** (decimals - 18));
     }
-    
-    // IMPORTANT: define intent.priceThreshold as 1e18-scaled price
-    if (normalizedPrice < intent.priceThreshold) {
+
+    // Verify price meets user's threshold
+    if (normalizedPrice < _priceThreshold) {
       revert IntentExecutor__PriceThresholdNotMet();
     }
+  }
 
-    // Using Universal V3
-    // Step 1: Transfer input tokens from user to swapper contract
-    // Note: User must have approved IntentExecutor contract beforehand
-    IERC20(intent.tokenFrom).safeTransferFrom(intent.user, address(swapper), intent.amount);
+  /**
+   * @dev Calculate minimum output amount with slippage protection
+   * @param _amountIn Input amount
+   * @param _normalizedPrice Oracle price (1e18 scaled)
+   * @return Minimum acceptable output amount
+   */
+  function _calculateMinimumOutput(
+    uint256 _amountIn,
+    uint256 _normalizedPrice
+  ) internal view returns (uint256) {
+    uint256 expectedOutput = (_amountIn * _normalizedPrice) / PRICE_PRECISION;
+    uint256 minOutput = (expectedOutput * (FEE_DENOMINATOR - slippageTolerance)) / FEE_DENOMINATOR;
+    return minOutput;
+  }
 
-    // Step 2: Swap tokens, output tokens go to this contract first
-    uint256 amountOut = swapper.swapExactInputSingle(
-      intent.tokenFrom,
-      intent.tokenTo,
-      POOL_FEE,
-      intent.amount,
-      AMOUNT_OUT_MINIMUM,
+  /**
+   * @dev Execute swap via UniswapV3Swapper
+   * @param _intent The intent being executed
+   * @param _amountOutMinimum Minimum acceptable output amount
+   * @return amountOut Actual output amount from swap
+   */
+  function _executeSwap(
+    IntentFactory.Intent memory _intent,
+    uint256 _amountOutMinimum
+  ) internal returns (uint256 amountOut) {
+    // Transfer input tokens from user to swapper contract
+    // Note: User must have approved this contract beforehand
+    IERC20(_intent.tokenFrom).safeTransferFrom(
+      _intent.user,
+      address(swapper),
+      _intent.amount
+    );
+
+    // Execute swap, output goes to this contract first
+    amountOut = swapper.swapExactInputSingle(
+      _intent.tokenFrom,
+      _intent.tokenTo,
+      poolFee,
+      _intent.amount,
+      _amountOutMinimum,
       address(this)
     );
 
-    // Step 3: Calculate and distribute execution fee
-    uint256 fee = (amountOut * executionFee) / 10000;
-    IERC20(intent.tokenTo).safeTransfer(owner(), fee);
-    
-    // Step 4: Transfer remaining tokens to user
-    IERC20(intent.tokenTo).safeTransfer(intent.user, amountOut - fee);
+    // Belt and suspenders: verify output meets minimum
+    // (Uniswap already checks, but we double-check for safety)
+    if (amountOut < _amountOutMinimum) {
+      revert IntentExecutor__InsufficientOutputAmount();
+    }
+  }
 
+  /**
+   * @dev Distribute output tokens: fee to owner, remaining to user
+   * @param _intent The intent being executed
+   * @param _amountOut Total output from swap
+   * @return fee The fee amount taken
+   */
+  function _distributeTokens(
+    IntentFactory.Intent memory _intent,
+    uint256 _amountOut
+  ) internal returns (uint256 fee) {
+    // Calculate execution fee
+    fee = (_amountOut * executionFee) / FEE_DENOMINATOR;
+
+    // Transfer fee to owner (protocol revenue)
+    if (fee > 0) {
+      IERC20(_intent.tokenTo).safeTransfer(owner(), fee);
+    }
+
+    // Transfer remaining tokens to user
+    IERC20(_intent.tokenTo).safeTransfer(_intent.user, _amountOut - fee);
+  }
+
+  /**
+   * @notice Execute an intent
+   * @param _intentId The intent ID
+   */
+  function executeIntent(uint256 _intentId) 
+    external
+    nonReentrant
+    whenNotPaused
+  {
+    // Load intent data
+    IntentFactory.Intent memory intent = intentFactory.getIntent(_intentId);
+
+    // Validate intent status and expiration
+    _validateIntent(intent);
+
+    // Get normalized price and validate threshold
+    uint256 normalizedPrice = _getAndValidatePrice(
+      intent.tokenFrom,
+      intent.tokenTo,
+      intent.priceThreshold
+    );
+
+    // Calculate minimum output with slippage protection
+    uint256 amountOutMinimum = _calculateMinimumOutput(intent.amount, normalizedPrice);
+
+    // Execute the swap
+    uint256 amountOut = _executeSwap(intent, amountOutMinimum);
+
+    // Distribute tokens (fee to owner, remaining to user)
+    uint256 fee = _distributeTokens(intent, amountOut);
+
+    // Mark intent as executed in factory
     intentFactory.markExecuted(_intentId);
+
+    emit IntentExecuted(_intentId, intent.user, amountOut, fee);
   }
 
   /**
    * @notice Update the execution fee 
-   * @param _newFee The new execution fee
+   * @param _newFee The new execution fee in basis points (max 500 = 500/10000 = 5%)
    * @dev Only callable by the contract owner
    */
   function updateExecutionFee(uint256 _newFee) external onlyOwner {
+    if (_newFee > MAX_EXECUTION_FEE) {
+      revert IntentExecutor__ExecutionFeeTooHigh();
+    }
+
+    uint256 oldFee = executionFee;
     executionFee = _newFee;
-    emit ExecutionFeeUpdated(_newFee);
+
+    emit ExecutionFeeUpdated(oldFee, _newFee);
   }
+
+  /**
+   * @notice Update the Uniswap V3 pool fee tier
+   * @param _newPoolFee New pool fee (100, 500, 3000, or 10000)
+   * @dev Only callable by owner. Common values: 100=0.01%, 500=0.05%, 3000=0.3%, 10000=1%
+   */
+  function updatePoolFee(uint24 _newPoolFee) external onlyOwner {
+    uint24 oldPoolFee = poolFee;
+    poolFee = _newPoolFee;
+
+    emit PoolFeeUpdated(oldPoolFee, _newPoolFee);
+  }
+
+  /**
+   * @notice Update slippage tolerance
+   * @param _newTolerance New tolerance in basis points (max 5000 = 50%)
+   * @dev Only callable by owner
+   */
+  function updateSlippageTolerance(uint256 _newTolerance) external onlyOwner {
+    if (_newTolerance > MAX_SLIPPAGE_TOLERANCE) {
+      revert IntentExecutor__InvalidSlippageTolerance();
+    }
+
+    uint256 oldTolerance = slippageTolerance;
+    slippageTolerance = _newTolerance;
+
+    emit SlippageToleranceUpdated(oldTolerance, _newTolerance);
+  }
+
+  /**
+   * @notice Update the IntentFactory contract address
+   * @param _newFactory New factory address
+   * @dev Only callable by owner
+   */
+  function updateIntentFactory(address _newFactory)
+    external
+    onlyOwner
+    notZeroAddress(_newFactory) 
+  {
+    address oldFactory = address(intentFactory);
+    intentFactory = IntentFactory(_newFactory);
+
+    emit IntentFactoryUpdated(oldFactory, _newFactory);
+  }
+
+  /**
+   * @notice Update the Oracle contract address
+   * @param _newOracle New oracle address
+   * @dev Only callable by owner
+   */
+  function updateOracle(address _newOracle)
+    external
+    onlyOwner
+    notZeroAddress(_newOracle)
+  {
+    address oldOracle = address(oracle);
+    oracle = Oracle(_newOracle);
+
+    emit OracleUpdated(oldOracle, _newOracle);
+  }
+
+
+  /**
+   * @notice Update the Swapper contract address
+   * @param _newSwapper New swapper address
+   * @dev Only callable by owner
+   */
+  function updateSwapper(address _newSwapper)
+    external
+    onlyOwner
+    notZeroAddress(_newSwapper)
+  {
+    address oldSwapper = address(swapper);
+    swapper = UniswapV3Swapper(_newSwapper);
+
+    emit SwapperUpdated(oldSwapper, _newSwapper); 
+  }
+
+  /**
+   * @notice Pause the contract
+   * @dev Only callable by owner. Prevents executeIntent from being called.
+   */
+  function pause() external onlyOwner {
+    _pause();
+  }
+
+  /**
+   * @notice Unpause the contract
+   * @dev Only callable by owner
+   */
+  function unpause() external onlyOwner {
+    _unpause();
+  }
+
+  /**
+   * @notice Rescue tokens accidentally sent to this contract
+   * @param _token Token address to rescue
+   * @param _to Recipient address
+   * @param _amount Amount to rescue
+   * @dev Only callable by owner. Use for emergency token recovery.
+   */
+  function rescueTokens(
+      address _token,
+      address _to,
+      uint256 _amount
+  )
+      external
+      onlyOwner
+      notZeroAddress(_token)
+      notZeroAddress(_to)
+  {
+      IERC20(_token).safeTransfer(_to, _amount);
+
+      emit TokensRescued(_token, _to, _amount);
+  }
+
+  /**
+   * @notice Get the contract configuration
+   * @return _intentFactory The intent factory address
+   * @return _oracle The oracle address
+   * @return _swapper The swapper address
+   * @return _executionFee The execution fee
+   * @return _poolFee The pool fee
+   * @return _slippageTolerance The slippage tolerance
+   */
+  function getConfig()
+    external
+    view
+    returns (
+      address _intentFactory,
+      address _oracle,
+      address _swapper,
+      uint256 _executionFee,
+      uint24 _poolFee,
+      uint256 _slippageTolerance
+    ) {
+      return (
+        address(intentFactory),
+        address(oracle),
+        address(swapper),
+        executionFee,
+        poolFee,
+        slippageTolerance
+      );
+    }
 }
