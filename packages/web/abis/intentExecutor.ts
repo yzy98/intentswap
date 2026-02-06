@@ -16,6 +16,11 @@ export const intentExecutorAbi = [
         name: "_swapper",
         type: "address",
       },
+      {
+        internalType: "bool",
+        name: "_skipOraclePrice",
+        type: "bool",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -422,6 +427,11 @@ export const intentExecutorAbi = [
         name: "_slippageTolerance",
         type: "uint256",
       },
+      {
+        internalType: "bool",
+        name: "_skipOraclePrice",
+        type: "bool",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -526,6 +536,19 @@ export const intentExecutorAbi = [
     name: "rescueTokens",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "skipOraclePrice",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

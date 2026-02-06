@@ -51,6 +51,10 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   /// @notice Slippage tolerance in basis points (default 5% = 500/10000)
   uint256 public slippageTolerance;
 
+  /// @notice Whether to skip oracle price for minimum output calculation (testnet only)
+  /// @dev Set at deployment time and cannot be changed. NEVER set to true on mainnet!
+  bool public immutable skipOraclePrice;
+
   event IntentExecuted(
     uint256 indexed intentId,
     address indexed user,
@@ -90,7 +94,8 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   constructor(
     address _intentFactory,
     address _oracle,
-    address _swapper
+    address _swapper,
+    bool _skipOraclePrice
   )
     Ownable(msg.sender)
     notZeroAddress(_intentFactory)
@@ -104,6 +109,8 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
     executionFee = 30; // 0.3%
     poolFee = 3000; // 0.3% Uniswap pool
     slippageTolerance = 500; // 5%
+
+    skipOraclePrice = _skipOraclePrice;
   }
 
   /**
@@ -161,6 +168,11 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
     uint256 _amountIn,
     uint256 _normalizedPrice
   ) internal view returns (uint256) {
+    // Testnet mode: skip oracle price check, accept any output
+    if (skipOraclePrice) {
+      return 0;
+    }
+
     uint256 expectedOutput = (_amountIn * _normalizedPrice) / PRICE_PRECISION;
     uint256 minOutput = (expectedOutput * (FEE_DENOMINATOR - slippageTolerance)) / FEE_DENOMINATOR;
     return minOutput;
@@ -399,6 +411,7 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
    * @return _executionFee The execution fee
    * @return _poolFee The pool fee
    * @return _slippageTolerance The slippage tolerance
+   * @return _skipOraclePrice Whether to skip oracle price for minimum output calculation (testnet only)
    */
   function getConfig()
     external
@@ -409,7 +422,8 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
       address _swapper,
       uint256 _executionFee,
       uint24 _poolFee,
-      uint256 _slippageTolerance
+      uint256 _slippageTolerance,
+      bool _skipOraclePrice
     ) {
       return (
         address(intentFactory),
@@ -417,7 +431,8 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
         address(swapper),
         executionFee,
         poolFee,
-        slippageTolerance
+        slippageTolerance,
+        skipOraclePrice
       );
     }
 }

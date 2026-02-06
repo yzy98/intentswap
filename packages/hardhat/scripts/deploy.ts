@@ -15,6 +15,8 @@ async function main() {
   const { viem, networkName } = await network.connect();
   console.log("Network name: ", networkName);
 
+  const isSepolia = networkName === "sepolia";
+
   // Get deployer account address
   const [deployer] = await viem.getWalletClients();
   console.log("Deployer account address: ", deployer.account.address);
@@ -61,8 +63,12 @@ async function main() {
     intentFactory.address,
     oracle.address,
     swapper.address,
+    isSepolia,
   ]);
-  console.log("IntentExecutor contract deployed to: ", intentExecutor.address);
+  console.log(
+    `IntentExecutor contract deployed with skipOraclePrice = ${isSepolia} and address: `,
+    intentExecutor.address
+  );
   // Generate TypeScript file with as const for type inference
   fs.writeFileSync(
     path.join(abiDir, "intentExecutor.ts"),
