@@ -36,9 +36,12 @@ export const createIntentFormSchema = z.object({
     .string()
     .min(1, "Expiration date is required")
     .refine((val) => {
-      const date = new Date(val);
-      return date.getTime() > Date.now();
-    }, "Expiration date must be in the future"),
+      const selectDate = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return selectDate >= today;
+    }, "Expiration date must be today or in the future"),
   expirationTime: z.string().min(1, "Expiration time is required"),
 });
 
