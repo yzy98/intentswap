@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-export type TokenSymbol = "BTC" | "ETH" | "LINK" | "WETH";
+export type TokenSymbol = "BTC" | "LINK" | "WETH";
 
 export interface TokenInfo {
   symbol: TokenSymbol;

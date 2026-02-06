@@ -1,8 +1,15 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowRightIcon, ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertCircleIcon,
+  ArrowRightIcon,
+  CheckCircle2Icon,
+  ChevronDownIcon,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import type { Address } from "viem";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,15 +35,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import type { CreateIntentFormType } from "@/hooks/use-create-intent-form";
+import { useHasFeed } from "@/hooks/use-has-feed";
+import { useSafePrice } from "@/hooks/use-safe-price";
 import { bySymbol } from "@/lib/constants";
 
 export interface CreateIntentFormProps {
   form: CreateIntentFormType;
 }
 
+export interface CreateIntentFormContentProps {
+  form: CreateIntentFormType;
+  tokenFrom: Address;
+  tokenTo: Address;
+}
+
 export function CreateIntentForm({ form }: CreateIntentFormProps) {
+  return (
+    <form.Subscribe
+      selector={(state) => [state.values.tokenFrom, state.values.tokenTo]}
+    >
+      {([tokenFrom, tokenTo]) => (
+        <CreateIntentFormContent
+          form={form}
+          tokenFrom={tokenFrom as Address}
+          tokenTo={tokenTo as Address}
+        />
+      )}
+    </form.Subscribe>
+  );
+}
+
+function CreateIntentFormContent({
+  form,
+  tokenFrom,
+  tokenTo,
+}: CreateIntentFormContentProps) {
   const [open, setOpen] = useState(false);
+
+  // Check if feed exists
+  const { data: hasFeed, isLoading: isCheckingFeed } = useHasFeed(
+    tokenFrom as Address,
+    tokenTo as Address
+  );
+
+  // Get current price
+  const { data: priceData } = useSafePrice(
+    tokenFrom as Address,
+    tokenTo as Address
+  );
+
+  // Calculate current price from Oracle data
+  const currentPrice = useMemo(() => {
+    if (!priceData) {
+      return undefined;
+    }
+    const [price, decimals] = priceData;
+    return Number(price) / 10 ** decimals;
+  }, [priceData]);
+
+  // Show feed status only when both tokens are selected and different
+  const showFeedStatus = Boolean(tokenFrom && tokenTo && tokenFrom !== tokenTo);
 
   return (
     <form
@@ -111,14 +171,17 @@ export function CreateIntentForm({ form }: CreateIntentFormProps) {
                       </SelectTrigger>
                       <SelectContent position="item-aligned">
                         <SelectGroup>
-                          {Object.values(bySymbol).map((token) => (
-                            <SelectItem
-                              key={token.address}
-                              value={token.address}
-                            >
-                              {token.symbol}
-                            </SelectItem>
-                          ))}
+                          {/* Filter out tokenFrom to prevent same token selection */}
+                          {Object.values(bySymbol)
+                            .filter((token) => token.address !== tokenFrom)
+                            .map((token) => (
+                              <SelectItem
+                                key={token.address}
+                                value={token.address}
+                              >
+                                {token.symbol}
+                              </SelectItem>
+                            ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -130,6 +193,35 @@ export function CreateIntentForm({ form }: CreateIntentFormProps) {
               }}
             </form.Field>
           </div>
+          {/* Feed Status Display */}
+          {showFeedStatus && (
+            <div className="mt-2">
+              {isCheckingFeed && (
+                <Alert>
+                  <Spinner />
+                  <AlertTitle>Checking price feed...</AlertTitle>
+                  <AlertDescription>
+                    Only the token pair with a price feed can be used to create
+                    an intent
+                  </AlertDescription>
+                </Alert>
+              )}
+              {!isCheckingFeed && hasFeed && (
+                <Alert variant="active">
+                  <CheckCircle2Icon />
+                  <AlertTitle>Price feed available</AlertTitle>
+                  <AlertDescription>Intent can be executed</AlertDescription>
+                </Alert>
+              )}
+              {!(isCheckingFeed || hasFeed) && (
+                <Alert variant="destructive">
+                  <AlertCircleIcon />
+                  <AlertTitle>No price feed</AlertTitle>
+                  <AlertDescription>Intent cannot be executed</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
         </FieldSet>
         <FieldSeparator />
 
@@ -183,7 +275,9 @@ export function CreateIntentForm({ form }: CreateIntentFormProps) {
                     name={field.name}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="7.89"
+                    placeholder={
+                      currentPrice ? currentPrice.toFixed(8) : "7.89"
+                    }
                     type="text"
                     value={field.state.value}
                   />

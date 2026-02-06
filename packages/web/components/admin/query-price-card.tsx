@@ -5,9 +5,8 @@ import { toast } from "sonner";
 import type { Address } from "viem";
 import { useConfig } from "wagmi";
 import { readContract } from "wagmi/actions";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { bySymbol, oracleContractSepolia } from "@/lib/constants";
-import { Button } from "../ui/button";
 import {
   Select,
   SelectContent,
@@ -15,7 +14,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { bySymbol, oracleContractSepolia } from "@/lib/constants";
 
 export const QueryPriceCard = () => {
   const [tokenFrom, setTokenFrom] = useState<Address | undefined>();
@@ -109,21 +110,24 @@ export const QueryPriceCard = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {Object.values(bySymbol).map((token) => (
-                  <SelectItem key={token.address} value={token.address}>
-                    {token.symbol}
-                  </SelectItem>
-                ))}
+                {Object.values(bySymbol)
+                  .filter((token) => token.address !== tokenFrom)
+                  .map((token) => (
+                    <SelectItem key={token.address} value={token.address}>
+                      {token.symbol}
+                    </SelectItem>
+                  ))}
               </SelectGroup>
             </SelectContent>
           </Select>
           <Button disabled={isLoading} onClick={handleQuery}>
-            {isLoading ? "Querying..." : "Query"}
+            {isLoading && <Spinner data-icon="inline-start" />}
+            Query
           </Button>
         </div>
 
         {result && (
-          <div className="rounded-lg bg-muted p-4">
+          <div>
             {result.hasFeed ? (
               <div className="space-y-1">
                 <p className="text-muted-foreground text-sm">Current Price</p>

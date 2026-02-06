@@ -9,6 +9,7 @@
     "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "create-pool:sepolia": "hardhat run scripts/create-v3-pool.ts --network sepolia",
+    "get-pool:sepolia": "hardhat run scripts/get-pool.ts --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia"
   },
   "devDependencies": {

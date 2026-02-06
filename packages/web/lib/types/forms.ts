@@ -46,3 +46,21 @@ export type CreateIntentFormValues = z.input<typeof createIntentFormSchema>;
 export type CreateIntentFormParsedValues = z.output<
   typeof createIntentFormSchema
 >;
+
+export const setFeedFormSchema = z.object({
+  tokenFrom: z
+    .string()
+    .min(1, "Please select a token to set the feed from")
+    .refine((val) => isAddress(val)),
+  tokenTo: z
+    .string()
+    .min(1, "Please select a token to set the feed to")
+    .refine((val) => isAddress(val)),
+  feed: z
+    .string()
+    .min(1, "Please select a feed to set")
+    .refine((val) => isAddress(val)),
+});
+
+export type SetFeedFormValues = z.input<typeof setFeedFormSchema>;
+export type SetFeedFormParsedValues = z.output<typeof setFeedFormSchema>;

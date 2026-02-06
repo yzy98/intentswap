@@ -20,11 +20,13 @@ import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import {
   intentExecutorContractSepolia,
   intentFactoryContractSepolia,
+  oracleContractSepolia,
 } from "@/lib/constants";
 import {
   type CreateIntentFormParsedValues,
   createIntentFormSchema,
 } from "@/lib/types";
+import { getTokenByAddress } from "@/lib/utils";
 import { CreateIntentForm } from "./form";
 
 export function CreateIntentCard() {
@@ -55,6 +57,22 @@ export function CreateIntentCard() {
 
       if (!address) {
         throw new Error("Wallet not connected");
+      }
+
+      // Check if price feed exists for this token pair
+      const hasFeed = await readContract(config, {
+        ...oracleContractSepolia,
+        functionName: "hasFeed",
+        args: [tokenFrom, tokenTo],
+      });
+
+      if (!hasFeed) {
+        const tokenFromSymbol =
+          getTokenByAddress(tokenFrom)?.symbol ?? tokenFrom;
+        const tokenToSymbol = getTokenByAddress(tokenTo)?.symbol ?? tokenTo;
+        throw new Error(
+          `No price feed available for ${tokenFromSymbol}/${tokenToSymbol}. Intent cannot be executed.`
+        );
       }
 
       // Check if IntentExecutor has enough allowance of tokenFrom
@@ -93,7 +111,7 @@ export function CreateIntentCard() {
       waiting: "Waiting for transaction to be confirmed...",
       refetching: "Transaction confirmed, refetching intents data...",
       success: formValuesRef.current
-        ? `Intent created successfully for token pair: ${formValuesRef.current.tokenFrom}/${formValuesRef.current.tokenTo}`
+        ? `Intent created successfully for ${getTokenByAddress(formValuesRef.current.tokenFrom)?.symbol ?? "token"}/${getTokenByAddress(formValuesRef.current.tokenTo)?.symbol ?? "token"}`
         : "Intent created successfully",
     },
     refetch: refetchIntentIds,

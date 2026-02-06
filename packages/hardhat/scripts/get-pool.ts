@@ -15,10 +15,15 @@ import type { Address } from "viem";
  * https://docs.uniswap.org/contracts/v3/reference/deployments/ethereum-deployments
  */
 
-// Defaults (override via env)
+// Sepolia
 const DEFAULT_FACTORY = "0x0227628f3F023bb0B980b67D528571c95c6DaC1c" as const;
 const DEFAULT_WETH = "0xfff9976782d46cc05630d1f6ebab18b2324d6b14" as const;
 const DEFAULT_LINK = "0x779877A7B0D9E8603169DdbD7836e478b4624789" as const;
+
+// Base
+// const DEFAULT_FACTORY = "0x33128a8fC17869897dcE68Ed026d694621f6FDfD" as const;
+// const DEFAULT_WETH = "0x4200000000000000000000000000000000000006" as const;
+// const DEFAULT_LINK = "0x88Fb150BDc53A65fe94Dea0c9BA0a6dAf8C6e196" as const;
 
 const factoryAbi = [
   {
