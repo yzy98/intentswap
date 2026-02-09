@@ -59,7 +59,7 @@ IntentSwap allows users to:
 
 - Node.js 18+
 - pnpm 8+
-- A wallet with testnet ETH (for Sepolia)
+- A wallet with testnet ETH (for Base Sepolia)
 
 ### Installation
 
@@ -76,13 +76,6 @@ pnpm install
 
 Create `.env` files in each package:
 
-**packages/hardhat/.env**
-```env
-PRIVATE_KEY=your_private_key
-SEPOLIA_RPC_URL=your_sepolia_rpc_url
-ETHERSCAN_API_KEY=your_etherscan_api_key
-```
-
 **packages/web/.env**
 ```env
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_walletconnect_project_id
@@ -98,8 +91,8 @@ RPC_URL=your_rpc_url
 ### Deploy Contracts
 
 ```bash
-# Deploy to Sepolia testnet
-pnpm deploy:sepolia
+# Deploy to Base Sepolia testnet
+pnpm deploy:baseSepolia
 
 # Or deploy to localhost
 pnpm node          # Start local node
@@ -161,7 +154,7 @@ intentswap/
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| Sepolia | 11155111 | Testnet |
+| baseSepolia | 84532 | Testnet |
 | Base    | 8453     | Mainnet (planned) |
 
 ## Scripts
