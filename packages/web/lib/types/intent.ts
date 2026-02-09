@@ -1,5 +1,5 @@
 import type { ReadContractReturnType } from "viem";
-import type { intentFactoryContractSepolia } from "@/lib/constants";
+import type { intentFactoryContract } from "@/lib/constants";
 
 const intentStatusMap = {
   0: "Active",
@@ -12,7 +12,7 @@ export type IntentStatusNumber = keyof typeof intentStatusMap;
 export type IntentStatusString = (typeof intentStatusMap)[IntentStatusNumber];
 
 export type Intent = ReadContractReturnType<
-  typeof intentFactoryContractSepolia.abi,
+  typeof intentFactoryContract.abi,
   "getIntent",
   readonly [bigint]
 >;

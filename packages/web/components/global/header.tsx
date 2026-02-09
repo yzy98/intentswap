@@ -3,14 +3,14 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import { useConnection, useReadContract } from "wagmi";
-import { oracleContractSepolia } from "@/lib/constants";
+import { oracleContract } from "@/lib/constants";
 import { ModeToggle } from "./mode-toggle";
 
 export function Header() {
   const { address } = useConnection();
 
   const { data: ownerAddress } = useReadContract({
-    ...oracleContractSepolia,
+    ...oracleContract,
     functionName: "owner",
   });
 

@@ -12,7 +12,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import { intentFactoryContractSepolia } from "@/lib/constants";
+import { intentFactoryContract } from "@/lib/constants";
 import type { IntentRow } from "@/lib/types";
 
 interface PriceThresholdCellProps {
@@ -59,7 +59,7 @@ export const PriceThresholdCell = ({
         }
 
         return mutateAsync({
-          ...intentFactoryContractSepolia,
+          ...intentFactoryContract,
           functionName: "updateIntentCondition",
           args: [intentId, parseEther(trimmed)],
         });

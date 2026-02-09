@@ -6,10 +6,7 @@ import { useMemo, useState } from "react";
 import { erc20Abi } from "viem";
 import { useBlock, useChainId, useReadContracts } from "wagmi";
 import { DataTable } from "@/components/intents/table/data-table";
-import {
-  intentExecutorContractSepolia,
-  intentFactoryContractSepolia,
-} from "@/lib/constants";
+import { intentExecutorContract, intentFactoryContract } from "@/lib/constants";
 import type { IntentRow } from "@/lib/types";
 import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
 import { columns } from "./columns";
@@ -52,7 +49,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     refetch: refetchCurrentPageIntents,
   } = useReadContracts({
     contracts: currentPageIntentIds.map((intentId) => ({
-      ...intentFactoryContractSepolia,
+      ...intentFactoryContract,
       functionName: "getIntent" as const,
       args: [intentId] as const,
     })),
@@ -86,7 +83,7 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
         abi: erc20Abi,
         address: intent.tokenFrom,
         functionName: "allowance" as const,
-        args: [intent.user, intentExecutorContractSepolia.address] as const,
+        args: [intent.user, intentExecutorContract.address] as const,
       })) ?? [],
     query: { enabled: !!currentPageIntents?.length },
   });

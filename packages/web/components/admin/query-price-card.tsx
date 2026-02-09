@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { bySymbol, oracleContractSepolia } from "@/lib/constants";
+import { bySymbol, oracleContract } from "@/lib/constants";
 
 export const QueryPriceCard = () => {
   const [tokenFrom, setTokenFrom] = useState<Address | undefined>();
@@ -42,7 +42,7 @@ export const QueryPriceCard = () => {
     try {
       // Check if the feed is set already
       const hasFeed = await readContract(config, {
-        ...oracleContractSepolia,
+        ...oracleContract,
         functionName: "hasFeed",
         args: [tokenFrom, tokenTo],
       });
@@ -57,7 +57,7 @@ export const QueryPriceCard = () => {
 
       // Get the price
       const [price, decimals] = await readContract(config, {
-        ...oracleContractSepolia,
+        ...oracleContract,
         functionName: "getSafePrice",
         args: [tokenFrom, tokenTo],
       });

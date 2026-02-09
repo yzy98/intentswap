@@ -3,11 +3,11 @@ import { createContext, useContext } from "react";
 import type { Address, ReadContractReturnType } from "viem";
 import { useConnection, useReadContract } from "wagmi";
 import type { ReadContractErrorType } from "wagmi/actions";
-import { intentFactoryContractSepolia } from "@/lib/constants";
+import { intentFactoryContract } from "@/lib/constants";
 
 export type IntentIds =
   | ReadContractReturnType<
-      typeof intentFactoryContractSepolia.abi,
+      typeof intentFactoryContract.abi,
       "getUserIntentIds",
       readonly [Address]
     >
@@ -37,7 +37,7 @@ export const IntentIdsProvider = ({
     refetch: refetchIntentIds,
     isLoading: isLoadingIntentIds,
   } = useReadContract({
-    ...intentFactoryContractSepolia,
+    ...intentFactoryContract,
     functionName: "getUserIntentIds",
     args: [address as Address],
     query: {

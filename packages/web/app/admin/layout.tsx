@@ -1,7 +1,7 @@
 "use client";
 
 import { useConnection, useReadContract } from "wagmi";
-import { oracleContractSepolia } from "@/lib/constants";
+import { oracleContract } from "@/lib/constants";
 
 export default function AdminLayout({
   children,
@@ -11,7 +11,7 @@ export default function AdminLayout({
   const { address, isConnecting } = useConnection();
 
   const { data: ownerAddress, isLoading } = useReadContract({
-    ...oracleContractSepolia,
+    ...oracleContract,
     functionName: "owner",
   });
 

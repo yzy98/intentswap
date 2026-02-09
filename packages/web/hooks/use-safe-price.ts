@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { useReadContract } from "wagmi";
-import { oracleContractSepolia } from "@/lib/constants";
+import { oracleContract } from "@/lib/constants";
 
 /**
  * Hook to get the safe price for a token pair from the Oracle contract
@@ -8,7 +8,7 @@ import { oracleContractSepolia } from "@/lib/constants";
  */
 export function useSafePrice(tokenFrom?: Address, tokenTo?: Address) {
   return useReadContract({
-    ...oracleContractSepolia,
+    ...oracleContract,
     functionName: "getSafePrice",
     args: tokenFrom && tokenTo ? [tokenFrom, tokenTo] : undefined,
     query: {

@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { intentFactoryContractSepolia } from "@/lib/constants";
+import { intentFactoryContract } from "@/lib/constants";
 import type { IntentRow } from "@/lib/types";
 
 const BOT_API_URL =
@@ -72,7 +72,7 @@ export const RowActions = ({ row, refetch }: RowActionsProps) => {
     try {
       // Send cancel intent transaction
       const txHash = await mutateAsync({
-        ...intentFactoryContractSepolia,
+        ...intentFactoryContract,
         functionName: "cancelIntent",
         args: [intentId],
       });

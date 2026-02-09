@@ -18,9 +18,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { useCreateIntentForm } from "@/hooks/use-create-intent-form";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
 import {
-  intentExecutorContractSepolia,
-  intentFactoryContractSepolia,
-  oracleContractSepolia,
+  intentExecutorContract,
+  intentFactoryContract,
+  oracleContract,
 } from "@/lib/constants";
 import {
   type CreateIntentFormParsedValues,
@@ -61,7 +61,7 @@ export function CreateIntentCard() {
 
       // Check if price feed exists for this token pair
       const hasFeed = await readContract(config, {
-        ...oracleContractSepolia,
+        ...oracleContract,
         functionName: "hasFeed",
         args: [tokenFrom, tokenTo],
       });
@@ -80,7 +80,7 @@ export function CreateIntentCard() {
         abi: erc20Abi,
         address: tokenFrom,
         functionName: "allowance",
-        args: [address, intentExecutorContractSepolia.address],
+        args: [address, intentExecutorContract.address],
       });
 
       if (allowance < amount) {
@@ -88,7 +88,7 @@ export function CreateIntentCard() {
           abi: erc20Abi,
           address: tokenFrom,
           functionName: "approve",
-          args: [intentExecutorContractSepolia.address, amount],
+          args: [intentExecutorContract.address, amount],
         });
 
         const receipt = await waitForTransactionReceipt(config, {
@@ -101,7 +101,7 @@ export function CreateIntentCard() {
       }
 
       return mutateAsync({
-        ...intentFactoryContractSepolia,
+        ...intentFactoryContract,
         functionName: "createIntent",
         args: [tokenFrom, tokenTo, amount, priceThreshold, expiration],
       });

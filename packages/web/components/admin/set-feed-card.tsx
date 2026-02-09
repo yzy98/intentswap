@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import { oracleContractSepolia } from "@/lib/constants";
+import { oracleContract } from "@/lib/constants";
 import {
   type SetFeedFormParsedValues,
   type SetFeedFormValues,
@@ -54,7 +54,7 @@ export const SetFeedCard = () => {
       const feed = currentValues.feed;
 
       return mutateAsync({
-        ...oracleContractSepolia,
+        ...oracleContract,
         functionName: "setFeed",
         args: [tokenFrom, tokenTo, feed],
       });

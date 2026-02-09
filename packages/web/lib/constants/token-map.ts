@@ -1,16 +1,11 @@
 import type { Address } from "viem";
 import type { TokenInfo, TokenSymbol } from "../types";
 import { normalizeAddress } from "../utils";
-import {
-  SEPOLIA_BTC_TOKEN_ADDRESS,
-  SEPOLIA_LINK_TOKEN_ADDRESS,
-  SEPOLIA_WRAPPED_ETH_TOKEN_ADDRESS,
-} from "./addresses";
+import { LINK_TOKEN_ADDRESS, WRAPPED_ETH_TOKEN_ADDRESS } from "./addresses";
 
 export const bySymbol = {
-  BTC: { symbol: "BTC", address: SEPOLIA_BTC_TOKEN_ADDRESS },
-  WETH: { symbol: "WETH", address: SEPOLIA_WRAPPED_ETH_TOKEN_ADDRESS },
-  LINK: { symbol: "LINK", address: SEPOLIA_LINK_TOKEN_ADDRESS },
+  WETH: { symbol: "WETH", address: WRAPPED_ETH_TOKEN_ADDRESS },
+  LINK: { symbol: "LINK", address: LINK_TOKEN_ADDRESS },
 } as const satisfies Record<TokenSymbol, TokenInfo>;
 
 export const byAddress = Object.fromEntries(
