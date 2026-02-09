@@ -7,10 +7,10 @@
     "test": "hardhat test",
     "node": "hardhat node",
     "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
-    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
-    "create-pool:sepolia": "hardhat run scripts/create-v3-pool.ts --network sepolia",
-    "get-pool:sepolia": "hardhat run scripts/get-pool.ts --network sepolia",
-    "verify:sepolia": "hardhat verify --network sepolia"
+    "deploy:baseSepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "create-pool:baseSepolia": "hardhat run scripts/create-v3-pool.ts --network baseSepolia",
+    "get-pool:baseSepolia": "hardhat run scripts/get-pool.ts --network baseSepolia",
+    "verify:baseSepolia": "hardhat verify --network baseSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.6",

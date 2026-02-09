@@ -37,11 +37,6 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "IntentExecutor__ExecutionFeeTooHigh",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "IntentExecutor__InsufficientOutputAmount",
     type: "error",
   },
@@ -68,6 +63,11 @@ export const intentExecutorAbi = [
   {
     inputs: [],
     name: "IntentExecutor__PriceThresholdNotMet",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "IntentExecutor__TotalFeeTooHigh",
     type: "error",
   },
   {
@@ -119,17 +119,17 @@ export const intentExecutorAbi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "oldFee",
+        name: "oldReward",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "newFee",
+        name: "newReward",
         type: "uint256",
       },
     ],
-    name: "ExecutionFeeUpdated",
+    name: "ExecutorRewardUpdated",
     type: "event",
   },
   {
@@ -148,6 +148,12 @@ export const intentExecutorAbi = [
         type: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
+        name: "executor",
+        type: "address",
+      },
+      {
         indexed: false,
         internalType: "uint256",
         name: "amountOut",
@@ -156,7 +162,13 @@ export const intentExecutorAbi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "fee",
+        name: "protocolFee",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "executorReward",
         type: "uint256",
       },
     ],
@@ -258,6 +270,25 @@ export const intentExecutorAbi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "oldFee",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newFee",
+        type: "uint256",
+      },
+    ],
+    name: "ProtocolFeeUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "oldTolerance",
         type: "uint256",
       },
@@ -343,7 +374,7 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "MAX_EXECUTION_FEE",
+    name: "MAX_SLIPPAGE_TOLERANCE_BPS",
     outputs: [
       {
         internalType: "uint256",
@@ -356,7 +387,7 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "MAX_SLIPPAGE_TOLERANCE",
+    name: "MAX_TOTAL_FEE_BPS",
     outputs: [
       {
         internalType: "uint256",
@@ -382,7 +413,7 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "executionFee",
+    name: "executorRewardBps",
     outputs: [
       {
         internalType: "uint256",
@@ -414,18 +445,23 @@ export const intentExecutorAbi = [
       },
       {
         internalType: "uint256",
-        name: "_executionFee",
+        name: "_protocolFeeBps",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_executorRewardBps",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_slippageToleranceBps",
         type: "uint256",
       },
       {
         internalType: "uint24",
         name: "_poolFee",
         type: "uint24",
-      },
-      {
-        internalType: "uint256",
-        name: "_slippageTolerance",
-        type: "uint256",
       },
       {
         internalType: "bool",
@@ -510,6 +546,19 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
+    name: "protocolFeeBps",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "renounceOwnership",
     outputs: [],
     stateMutability: "nonpayable",
@@ -553,7 +602,7 @@ export const intentExecutorAbi = [
   },
   {
     inputs: [],
-    name: "slippageTolerance",
+    name: "slippageToleranceBps",
     outputs: [
       {
         internalType: "uint256",
@@ -601,11 +650,11 @@ export const intentExecutorAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_newFee",
+        name: "_newReward",
         type: "uint256",
       },
     ],
-    name: "updateExecutionFee",
+    name: "updateExecutorReward",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -645,6 +694,19 @@ export const intentExecutorAbi = [
       },
     ],
     name: "updatePoolFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_newFee",
+        type: "uint256",
+      },
+    ],
+    name: "updateProtocolFee",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

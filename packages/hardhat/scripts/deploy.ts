@@ -3,9 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { network } from "hardhat";
 
-// Uniswap V3 Contract Address in Sepolia (11155111)
-// SwapRouter02: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
-const SWAP_ROUTER_ADDRESS = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
+// Base Sepolia (8453)
+const SWAP_ROUTER_ADDRESS = "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +14,7 @@ async function main() {
   const { viem, networkName } = await network.connect();
   console.log("Network name: ", networkName);
 
-  const isSepolia = networkName === "sepolia";
+  const isBaseSepolia = networkName === "baseSepolia";
 
   // Get deployer account address
   const [deployer] = await viem.getWalletClients();
@@ -63,10 +62,10 @@ async function main() {
     intentFactory.address,
     oracle.address,
     swapper.address,
-    isSepolia,
+    isBaseSepolia,
   ]);
   console.log(
-    `IntentExecutor contract deployed with skipOraclePrice = ${isSepolia} and address: `,
+    `IntentExecutor contract deployed with skipOraclePrice = ${isBaseSepolia} and address: `,
     intentExecutor.address
   );
   // Generate TypeScript file with as const for type inference

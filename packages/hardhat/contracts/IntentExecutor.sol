@@ -26,14 +26,14 @@ import {UniswapV3Swapper} from "./UniswapV3Swapper.sol";
 contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   using SafeERC20 for IERC20;
 
-  /// @notice Maximum allowed execution fee (5% = 500/10000)
-  uint256 public constant MAX_EXECUTION_FEE = 500;
+  /// @notice Maximum allowed total fee in basis points (protocol fee + executor reward) (5% = 500/10000)
+  uint256 public constant MAX_TOTAL_FEE_BPS = 500;
 
   /// @notice Basis points denominator for fee calculations
   uint256 public constant FEE_DENOMINATOR = 10000;
 
-  /// @notice Maximum allowed slippage tolerance (50% = 5000/10000)
-  uint256 public constant MAX_SLIPPAGE_TOLERANCE = 5000;
+  /// @notice Maximum allowed slippage tolerance in basis points (50% = 5000/10000)
+  uint256 public constant MAX_SLIPPAGE_TOLERANCE_BPS = 5000;
 
   /// @notice Price normalization target (18 decimals)
   uint256 private constant PRICE_PRECISION = 1e18;
@@ -42,14 +42,17 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   Oracle public oracle;
   UniswapV3Swapper public swapper;
 
-  /// @notice Execution fee in basis points (default 0.3% = 30/10000)
-  uint256 public executionFee;
+  /// @notice Protocol fee in basis points (default 0.2% = 20/10000)
+  uint256 public protocolFeeBps;
+
+  /// @notice Executor reward in basis points (default 0.1% = 10/10000)
+  uint256 public executorRewardBps;
+
+  /// @notice Slippage tolerance in basis points (default 5% = 500/10000)
+  uint256 public slippageToleranceBps;
 
   /// @notice Uniswap V3 pool fee tier (default 0.3% = 3000)
   uint24 public poolFee;
-
-  /// @notice Slippage tolerance in basis points (default 5% = 500/10000)
-  uint256 public slippageTolerance;
 
   /// @notice Whether to skip oracle price for minimum output calculation (testnet only)
   /// @dev Set at deployment time and cannot be changed. NEVER set to true on mainnet!
@@ -58,10 +61,13 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   event IntentExecuted(
     uint256 indexed intentId,
     address indexed user,
+    address indexed executor,
     uint256 amountOut,
-    uint256 fee
+    uint256 protocolFee,
+    uint256 executorReward
   );
-  event ExecutionFeeUpdated(uint256 oldFee,uint256 newFee);
+  event ProtocolFeeUpdated(uint256 oldFee,uint256 newFee);
+  event ExecutorRewardUpdated(uint256 oldReward,uint256 newReward);
   event PoolFeeUpdated(uint24 oldFee, uint24 newFee);
   event SlippageToleranceUpdated(uint256 oldTolerance, uint256 newTolerance);
   event IntentFactoryUpdated(address oldFactory, address newFactory);
@@ -78,7 +84,7 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   error IntentExecutor__IntentAlreadyCancelled();
   error IntentExecutor__IntentExpired();
   error IntentExecutor__PriceThresholdNotMet();
-  error IntentExecutor__ExecutionFeeTooHigh();
+  error IntentExecutor__TotalFeeTooHigh();
   error IntentExecutor__InvalidSlippageTolerance();
   error IntentExecutor__ZeroAddress();
   error IntentExecutor__InsufficientOutputAmount();
@@ -106,9 +112,16 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
     oracle = Oracle(_oracle);
     swapper = UniswapV3Swapper(_swapper);
 
-    executionFee = 30; // 0.3%
+    protocolFeeBps = 20; // 20/10000 = 0.2%
+    executorRewardBps = 10; // 10/10000 = 0.1%
+    if (protocolFeeBps + executorRewardBps > MAX_TOTAL_FEE_BPS) {
+      revert IntentExecutor__TotalFeeTooHigh();
+    }
+    slippageToleranceBps = 500; // 500/10000 = 5%
+    if (slippageToleranceBps > MAX_SLIPPAGE_TOLERANCE_BPS) {
+      revert IntentExecutor__InvalidSlippageTolerance();
+    }
     poolFee = 3000; // 0.3% Uniswap pool
-    slippageTolerance = 500; // 5%
 
     skipOraclePrice = _skipOraclePrice;
   }
@@ -174,7 +187,7 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
     }
 
     uint256 expectedOutput = (_amountIn * _normalizedPrice) / PRICE_PRECISION;
-    uint256 minOutput = (expectedOutput * (FEE_DENOMINATOR - slippageTolerance)) / FEE_DENOMINATOR;
+    uint256 minOutput = (expectedOutput * (FEE_DENOMINATOR - slippageToleranceBps)) / FEE_DENOMINATOR;
     return minOutput;
   }
 
@@ -214,25 +227,32 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
   }
 
   /**
-   * @dev Distribute output tokens: fee to owner, remaining to user
+   * @dev Distribute output tokens: protocol fee to owner, executor reward to executor, remaining to user
    * @param _intent The intent being executed
    * @param _amountOut Total output from swap
-   * @return fee The fee amount taken
+   * @return protocolFee The protocol fee amount
+   * @return executorReward The executor reward amount
    */
   function _distributeTokens(
     IntentFactory.Intent memory _intent,
     uint256 _amountOut
-  ) internal returns (uint256 fee) {
-    // Calculate execution fee
-    fee = (_amountOut * executionFee) / FEE_DENOMINATOR;
+  ) internal returns (uint256 protocolFee, uint256 executorReward) {
+    // Calculate protocol fee and executor reward
+    protocolFee = (_amountOut * protocolFeeBps) / FEE_DENOMINATOR;
+    executorReward = (_amountOut * executorRewardBps) / FEE_DENOMINATOR;
 
-    // Transfer fee to owner (protocol revenue)
-    if (fee > 0) {
-      IERC20(_intent.tokenTo).safeTransfer(owner(), fee);
+    // Transfer protocol fee to contract owner
+    if (protocolFee > 0) {
+      IERC20(_intent.tokenTo).safeTransfer(owner(), protocolFee);
+    }
+
+    // Transfer executor reward to executor
+    if (executorReward > 0) {
+      IERC20(_intent.tokenTo).safeTransfer(msg.sender, executorReward);
     }
 
     // Transfer remaining tokens to user
-    IERC20(_intent.tokenTo).safeTransfer(_intent.user, _amountOut - fee);
+    IERC20(_intent.tokenTo).safeTransfer(_intent.user, _amountOut - protocolFee - executorReward);
   }
 
   /**
@@ -263,29 +283,52 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
     // Execute the swap
     uint256 amountOut = _executeSwap(intent, amountOutMinimum);
 
-    // Distribute tokens (fee to owner, remaining to user)
-    uint256 fee = _distributeTokens(intent, amountOut);
+    // Distribute tokens (protocol fee to owner, executor reward to executor, remaining to user)
+    (uint256 protocolFee, uint256 executorReward) = _distributeTokens(intent, amountOut);
 
     // Mark intent as executed in factory
     intentFactory.markExecuted(_intentId);
 
-    emit IntentExecuted(_intentId, intent.user, amountOut, fee);
+    emit IntentExecuted(
+      _intentId,
+      intent.user,
+      msg.sender,
+      amountOut,
+      protocolFee,
+      executorReward
+    );
   }
 
   /**
-   * @notice Update the execution fee 
-   * @param _newFee The new execution fee in basis points (max 500 = 500/10000 = 5%)
+   * @notice Update the protocol fee
+   * @param _newFee The new protocol fee in basis points (protocolFee + executorReward must <= MAX_TOTAL_FEE_BPS)
    * @dev Only callable by the contract owner
    */
-  function updateExecutionFee(uint256 _newFee) external onlyOwner {
-    if (_newFee > MAX_EXECUTION_FEE) {
-      revert IntentExecutor__ExecutionFeeTooHigh();
+  function updateProtocolFee(uint256 _newFee) external onlyOwner {
+    if (_newFee + executorRewardBps > MAX_TOTAL_FEE_BPS) {
+      revert IntentExecutor__TotalFeeTooHigh();
     }
 
-    uint256 oldFee = executionFee;
-    executionFee = _newFee;
+    uint256 oldFee = protocolFeeBps;
+    protocolFeeBps = _newFee;
 
-    emit ExecutionFeeUpdated(oldFee, _newFee);
+    emit ProtocolFeeUpdated(oldFee, _newFee);
+  }
+
+  /**
+   * @notice Update the executor reward
+   * @param _newReward The new executor reward in basis points (protocolFee + executorReward must <= MAX_TOTAL_FEE_BPS)
+   * @dev Only callable by the contract owner
+   */
+  function updateExecutorReward(uint256 _newReward) external onlyOwner {
+    if (_newReward + protocolFeeBps > MAX_TOTAL_FEE_BPS) {
+        revert IntentExecutor__TotalFeeTooHigh();
+    }
+
+    uint256 oldReward = executorRewardBps;
+    executorRewardBps = _newReward;
+
+    emit ExecutorRewardUpdated(oldReward, _newReward);
   }
 
   /**
@@ -306,12 +349,12 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
    * @dev Only callable by owner
    */
   function updateSlippageTolerance(uint256 _newTolerance) external onlyOwner {
-    if (_newTolerance > MAX_SLIPPAGE_TOLERANCE) {
+    if (_newTolerance > MAX_SLIPPAGE_TOLERANCE_BPS) {
       revert IntentExecutor__InvalidSlippageTolerance();
     }
 
-    uint256 oldTolerance = slippageTolerance;
-    slippageTolerance = _newTolerance;
+    uint256 oldTolerance = slippageToleranceBps;
+    slippageToleranceBps = _newTolerance;
 
     emit SlippageToleranceUpdated(oldTolerance, _newTolerance);
   }
@@ -408,9 +451,10 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
    * @return _intentFactory The intent factory address
    * @return _oracle The oracle address
    * @return _swapper The swapper address
-   * @return _executionFee The execution fee
+   * @return _protocolFeeBps The protocol fee in basis points
+   * @return _executorRewardBps The executor reward in basis points
+   * @return _slippageToleranceBps The slippage tolerance in basis points
    * @return _poolFee The pool fee
-   * @return _slippageTolerance The slippage tolerance
    * @return _skipOraclePrice Whether to skip oracle price for minimum output calculation (testnet only)
    */
   function getConfig()
@@ -420,18 +464,20 @@ contract IntentExecutor is Ownable, Pausable, ReentrancyGuard {
       address _intentFactory,
       address _oracle,
       address _swapper,
-      uint256 _executionFee,
+      uint256 _protocolFeeBps,
+      uint256 _executorRewardBps,
+      uint256 _slippageToleranceBps,
       uint24 _poolFee,
-      uint256 _slippageTolerance,
       bool _skipOraclePrice
     ) {
       return (
         address(intentFactory),
         address(oracle),
         address(swapper),
-        executionFee,
+        protocolFeeBps,
+        executorRewardBps,
+        slippageToleranceBps,
         poolFee,
-        slippageTolerance,
         skipOraclePrice
       );
     }
