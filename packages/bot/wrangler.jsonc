@@ -33,7 +33,7 @@
     }
   },
   "vars": {
-    "CORS_ORIGIN": "http://localhost:3000",
+    "CORS_ORIGIN": "https://intentswap.zyang.space",
     "CHAIN_ID": "84532",
     "RPC_URL": "https://base-sepolia.infura.io/v3/36ab41cc918b4d198e7d6f59730f4e52",
     "CONTRACT_ORACLE_ADDRESS": "0x95c6a5c43e3899e0c27443df13e948a39aa409d6",
