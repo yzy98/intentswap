@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "intentswap",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-02-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "NEXT_PUBLIC_PROJECT_ID": "a9d2a807b7a809074b13b7677bee5fe1",
+    "NEXT_PUBLIC_CONTRACT_ORACLE_ADDRESS": "0x95c6a5c43e3899e0c27443df13e948a39aa409d6",
+    "NEXT_PUBLIC_CONTRACT_SWAPPER_ADDRESS": "0xdfb0e023031ad1851557d3423e5fb3140cfe6bd2",
+    "NEXT_PUBLIC_CONTRACT_INTENT_FACTORY_ADDRESS": "0x4ee570d86719d19d07fa2eaaad3c74e52229edf3",
+    "NEXT_PUBLIC_CONTRACT_INTENT_EXECUTOR_ADDRESS": "0xe48fa354202ce0818cb794f01708ef9818ee0c23",
+    "NEXT_PUBLIC_WRAPPED_ETH_TOKEN_ADDRESS": "0x4200000000000000000000000000000000000006",
+    "NEXT_PUBLIC_LINK_TOKEN_ADDRESS": "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
+    "NEXT_PUBLIC_PRICE_FEED_CONTRACT_LINK_TO_ETH_ADDRESS": "0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69",
+    "NEXT_PUBLIC_BOT_API_URL": "https://bot.yz186337.workers.dev"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  }
+}

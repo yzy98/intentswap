@@ -1,4 +1,4 @@
-name: Deploy Bot
+name: Deploy
 
 on: 
   push: 
@@ -6,11 +6,31 @@ on:
       - master
     paths: 
       - 'packages/bot/**'
+      - 'packages/web/**'
 
 jobs:
-  deploy: 
+  changes:
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Detect changes
+    outputs:
+      bot: ${{ steps.filter.outputs.bot }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            bot:
+              - 'packages/bot/**'
+            web:
+              - 'packages/web/**'
+
+  deploy-bot: 
+    runs-on: ubuntu-latest
+    name: Deploy Bot
+    needs: changes
+    if: ${{ needs.changes.outputs.bot == 'true' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,8 +48,37 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Deploy
+      - name: Deploy Bot
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: packages/bot
+  
+  deploy-web:
+    runs-on: ubuntu-latest
+    name: Deploy web
+    needs: changes
+    if: ${{ needs.changes.outputs.web == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Deploy web
+        run: pnpm run deploy
+        working-directory: packages/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        
