@@ -55,6 +55,18 @@ importers:
         specifier: 'catalog:'
         version: 4.60.0(@cloudflare/workers-types@4.20260127.0)(bufferutil@4.1.0)(utf-8-validate@5.0.10)
 
+  packages/contract-deployments:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      viem:
+        specifier: 'catalog:'
+        version: 2.43.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+
   packages/hardhat:
     dependencies:
       '@chainlink/contracts':
