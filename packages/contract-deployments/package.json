@@ -2,22 +2,12 @@
   "name": "@packages/contract-deployments",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
   },
   "files": [
-    "dist",
-    "src/generated"
+    "src"
   ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "clean": "rm -rf dist"
-  },
   "peerDependencies": {
     "viem": "^2.43.3"
   },

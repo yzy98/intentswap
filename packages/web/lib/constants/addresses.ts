@@ -1,14 +1,5 @@
 import type { Address } from "viem";
 
-export const CONTRACT_ORACLE_ADDRESS = process.env
-  .NEXT_PUBLIC_CONTRACT_ORACLE_ADDRESS as Address;
-export const CONTRACT_SWAPPER_ADDRESS = process.env
-  .NEXT_PUBLIC_CONTRACT_SWAPPER_ADDRESS as Address;
-export const CONTRACT_INTENT_FACTORY_ADDRESS = process.env
-  .NEXT_PUBLIC_CONTRACT_INTENT_FACTORY_ADDRESS as Address;
-export const CONTRACT_INTENT_EXECUTOR_ADDRESS = process.env
-  .NEXT_PUBLIC_CONTRACT_INTENT_EXECUTOR_ADDRESS as Address;
-
 export const LINK_TOKEN_ADDRESS = process.env
   .NEXT_PUBLIC_LINK_TOKEN_ADDRESS as Address;
 export const WRAPPED_ETH_TOKEN_ADDRESS = process.env

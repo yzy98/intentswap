@@ -35,11 +35,6 @@
   "vars": {
     "CORS_ORIGIN": "https://intentswap.zyang.space",
     "CHAIN_ID": "84532",
-    "RPC_URL": "https://base-sepolia.infura.io/v3/36ab41cc918b4d198e7d6f59730f4e52",
-    "CONTRACT_ORACLE_ADDRESS": "0x95c6a5c43e3899e0c27443df13e948a39aa409d6",
-    "CONTRACT_SWAPPER_ADDRESS": "0xdfb0e023031ad1851557d3423e5fb3140cfe6bd2",
-    "CONTRACT_INTENT_FACTORY_ADDRESS": "0x4ee570d86719d19d07fa2eaaad3c74e52229edf3",
-    "CONTRACT_INTENT_EXECUTOR_ADDRESS": "0xe48fa354202ce0818cb794f01708ef9818ee0c23"
   }
   // "compatibility_flags": ["nodejs_compat"],
   // "vars": {

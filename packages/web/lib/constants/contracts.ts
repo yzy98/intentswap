@@ -1,30 +1,29 @@
-import { intentExecutorAbi } from "@/abis/intentExecutor";
-import { intentFactoryAbi } from "@/abis/intentFactory";
-import { oracleAbi } from "@/abis/oracle";
-import { swapperAbi } from "@/abis/swapper";
 import {
-  CONTRACT_INTENT_EXECUTOR_ADDRESS,
-  CONTRACT_INTENT_FACTORY_ADDRESS,
-  CONTRACT_ORACLE_ADDRESS,
-  CONTRACT_SWAPPER_ADDRESS,
-} from "./addresses";
+  getDeployment,
+  intentExecutorAbi,
+  intentFactoryAbi,
+  oracleAbi,
+  swapperAbi,
+} from "@packages/contract-deployments";
+
+const d = getDeployment(Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? "84532"));
 
 export const oracleContract = {
-  address: CONTRACT_ORACLE_ADDRESS,
+  address: d.contracts.oracle,
   abi: oracleAbi,
 } as const;
 
 export const swapperContract = {
-  address: CONTRACT_SWAPPER_ADDRESS,
+  address: d.contracts.swapper,
   abi: swapperAbi,
 } as const;
 
 export const intentFactoryContract = {
-  address: CONTRACT_INTENT_FACTORY_ADDRESS,
+  address: d.contracts.intentFactory,
   abi: intentFactoryAbi,
 } as const;
 
 export const intentExecutorContract = {
-  address: CONTRACT_INTENT_EXECUTOR_ADDRESS,
+  address: d.contracts.intentExecutor,
   abi: intentExecutorAbi,
 } as const;

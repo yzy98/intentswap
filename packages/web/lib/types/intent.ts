@@ -1,5 +1,5 @@
-import type { ReadContractReturnType } from "viem";
-import type { intentFactoryContract } from "@/lib/constants";
+import type { intentFactoryAbi } from "@packages/contract-deployments";
+import type { Address, ReadContractReturnType } from "viem";
 
 const intentStatusMap = {
   0: "Active",
@@ -11,8 +11,16 @@ export type IntentStatusNumber = keyof typeof intentStatusMap;
 
 export type IntentStatusString = (typeof intentStatusMap)[IntentStatusNumber];
 
+export type IntentIds =
+  | ReadContractReturnType<
+      typeof intentFactoryAbi,
+      "getUserIntentIds",
+      readonly [Address]
+    >
+  | undefined;
+
 export type Intent = ReadContractReturnType<
-  typeof intentFactoryContract.abi,
+  typeof intentFactoryAbi,
   "getIntent",
   readonly [bigint]
 >;

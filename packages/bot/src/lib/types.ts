@@ -14,10 +14,6 @@ export interface Bindings {
   CHAIN_ID: string;
   RPC_URL: string;
   PRIVATE_KEY: Hex;
-  CONTRACT_ORACLE_ADDRESS: Address;
-  CONTRACT_SWAPPER_ADDRESS: Address;
-  CONTRACT_INTENT_FACTORY_ADDRESS: Address;
-  CONTRACT_INTENT_EXECUTOR_ADDRESS: Address;
 }
 
 export interface Variables {

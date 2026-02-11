@@ -4,8 +4,11 @@ import type {
   KVNamespaceListKey,
   ScheduledController,
 } from "@cloudflare/workers-types";
-import { intentExecutorAbi } from "@packages/web/abis/intentExecutor";
-import { intentFactoryAbi } from "@packages/web/abis/intentFactory";
+import {
+  getDeployment,
+  intentExecutorAbi,
+  intentFactoryAbi,
+} from "@packages/contract-deployments";
 import {
   type Account,
   type Address,
@@ -125,9 +128,16 @@ const validateIntentsBatch = async ({
   // Step 1: Batch get all intents in a single multicall
   console.log(`Batch fetching ${subscriptions.length} intents...`);
 
+  const intentFactoryAddress = getDeployment(
+    publicClient.chain?.id ?? Number(env.CHAIN_ID)
+  ).contracts.intentFactory;
+  const intentExecutorAddress = getDeployment(
+    publicClient.chain?.id ?? Number(env.CHAIN_ID)
+  ).contracts.intentExecutor;
+
   const intentContracts = subscriptions.map((sub) => ({
-    address: env.CONTRACT_INTENT_FACTORY_ADDRESS,
     abi: intentFactoryAbi,
+    address: intentFactoryAddress,
     functionName: "getIntent" as const,
     args: [BigInt(sub.subscription.intentId)] as const,
   }));
@@ -212,7 +222,7 @@ const validateIntentsBatch = async ({
       address: intent.tokenFrom,
       abi: erc20Abi,
       functionName: "allowance",
-      args: [intent.user, env.CONTRACT_INTENT_EXECUTOR_ADDRESS],
+      args: [intent.user, intentExecutorAddress],
     });
   }
 
@@ -312,7 +322,8 @@ const executeIntent = async ({
   const { request } = await publicClient.simulateContract({
     account,
     abi: intentExecutorAbi,
-    address: env.CONTRACT_INTENT_EXECUTOR_ADDRESS,
+    address: getDeployment(publicClient.chain?.id ?? Number(env.CHAIN_ID))
+      .contracts.intentExecutor,
     functionName: "executeIntent",
     args: [intentId],
   });

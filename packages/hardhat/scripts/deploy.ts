@@ -17,7 +17,7 @@ interface DeploymentRecord {
 
 type DeploymentsJson = Record<string, DeploymentRecord>;
 
-// Base Sepolia (8453)
+// Base Sepolia (84532)
 const SWAP_ROUTER_ADDRESS = "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4";
 
 const __filename = fileURLToPath(import.meta.url);
