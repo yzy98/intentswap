@@ -2,61 +2,140 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { network } from "hardhat";
+import { baseSepolia } from "viem/chains";
 
-// Base Sepolia (8453)
+interface DeploymentRecord {
+  chainId: number;
+  networkName: string;
+  contracts: {
+    oracle: string;
+    swapper: string;
+    intentFactory: string;
+    intentExecutor: string;
+  };
+}
+
+type DeploymentsJson = Record<string, DeploymentRecord>;
+
+// Base Sepolia (84532)
 const SWAP_ROUTER_ADDRESS = "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const generatedDir = path.join(
+  __dirname,
+  "../../contract-deployments/src/generated"
+);
+const abiDir = path.join(generatedDir, "abis");
+const deploymentsJsonPath = path.join(generatedDir, "deployments.json");
+const deploymentsTsPath = path.join(generatedDir, "deployments.ts");
+
+function ensureGeneratedDirs() {
+  fs.mkdirSync(abiDir, { recursive: true });
+}
+
+function writeAbiTs(fileName: string, exportName: string, abi: unknown) {
+  fs.writeFileSync(
+    path.join(abiDir, fileName),
+    `export const ${exportName} = ${JSON.stringify(abi, null, 2)} as const;\n`
+  );
+}
+
+function loadDeploymentsJson(): DeploymentsJson {
+  if (!fs.existsSync(deploymentsJsonPath)) {
+    return {};
+  }
+
+  const raw = fs.readFileSync(deploymentsJsonPath, "utf8").trim();
+  if (!raw) {
+    return {};
+  }
+  return JSON.parse(raw) as DeploymentsJson;
+}
+
+function writeDeploymentsJson(data: DeploymentsJson) {
+  fs.writeFileSync(deploymentsJsonPath, `${JSON.stringify(data, null, 2)}\n`);
+}
+
+function writeDeploymentsTs(data: DeploymentsJson) {
+  const entries = Object.entries(data)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([chainId, dep]) => {
+      return `  ${chainId}: {
+    chainId: ${dep.chainId},
+    networkName: ${JSON.stringify(dep.networkName)},
+    contracts: {
+      oracle: ${JSON.stringify(dep.contracts.oracle)} as Address,
+      swapper: ${JSON.stringify(dep.contracts.swapper)} as Address,
+      intentFactory: ${JSON.stringify(dep.contracts.intentFactory)} as Address,
+      intentExecutor: ${JSON.stringify(dep.contracts.intentExecutor)} as Address,
+    },
+  }`;
+    })
+    .join(",\n");
+
+  const source = `// GENERATED FILE. DO NOT EDIT.
+
+import type { Address } from "viem";
+
+export const deployments = {
+${entries}
+} as const;
+
+export type SupportedChainId = keyof typeof deployments;
+export type Deployment = (typeof deployments)[SupportedChainId];
+
+export function getDeployment(chainId: number): Deployment {
+  const d = (deployments as Record<number, Deployment>)[chainId];
+  if (!d) {
+    throw new Error(\`Unsupported chainId: \${chainId}\`);
+  }
+  return d;
+}
+`;
+
+  fs.writeFileSync(deploymentsTsPath, source);
+}
 
 async function main() {
   // Initialize Viem
   const { viem, networkName } = await network.connect();
   console.log("Network name: ", networkName);
 
-  const isBaseSepolia = networkName === "baseSepolia";
-
   // Get deployer account address
   const [deployer] = await viem.getWalletClients();
   console.log("Deployer account address: ", deployer.account.address);
 
-  // Store the ABIs in the web/abis directory
-  const abiDir = path.join(__dirname, "../../web/abis");
-  fs.mkdirSync(abiDir, { recursive: true });
+  const publicClient = await viem.getPublicClient();
+  const chainId = publicClient.chain.id;
 
-  // Deploy Oracle contract
+  const isBaseSepolia = chainId === baseSepolia.id;
+
+  // Ensure generated directories exist
+  ensureGeneratedDirs();
+
+  // Deploy Oracle
   console.log("Deploying Oracle contract...");
   const oracle = await viem.deployContract("Oracle");
-  console.log("Oracle contract deployed to: ", oracle.address);
-  // Generate TypeScript file with as const for type inference
-  fs.writeFileSync(
-    path.join(abiDir, "oracle.ts"),
-    `export const oracleAbi = ${JSON.stringify(oracle.abi, null, 2)} as const;`
-  );
+  console.log("Oracle deployed: ", oracle.address);
+  writeAbiTs("oracle.ts", "oracleAbi", oracle.abi);
 
-  // Deploy UniswapV3Swapper contract
+  // Deploy UniswapV3Swapper
   console.log("Deploying UniswapV3Swapper contract...");
   const swapper = await viem.deployContract("UniswapV3Swapper", [
     SWAP_ROUTER_ADDRESS,
   ]);
-  console.log("UniswapV3Swapper contract deployed to: ", swapper.address);
-  // Generate TypeScript file with as const for type inference
-  fs.writeFileSync(
-    path.join(abiDir, "swapper.ts"),
-    `export const swapperAbi = ${JSON.stringify(swapper.abi, null, 2)} as const;`
-  );
+  console.log("UniswapV3Swapper deployed: ", swapper.address);
+  writeAbiTs("swapper.ts", "swapperAbi", swapper.abi);
 
-  // Deploy IntentFactory contract
+  // Deploy IntentFactory
   console.log("Deploying IntentFactory contract...");
   const intentFactory = await viem.deployContract("IntentFactory");
-  console.log("IntentFactory contract deployed to: ", intentFactory.address);
-  // Generate TypeScript file with as const for type inference
-  fs.writeFileSync(
-    path.join(abiDir, "intentFactory.ts"),
-    `export const intentFactoryAbi = ${JSON.stringify(intentFactory.abi, null, 2)} as const;`
-  );
+  console.log("IntentFactory deployed: ", intentFactory.address);
+  writeAbiTs("intentFactory.ts", "intentFactoryAbi", intentFactory.abi);
 
-  // Deploy IntentExecutor contract
+  // Deploy IntentExecutor
   console.log("Deploying IntentExecutor contract...");
   const intentExecutor = await viem.deployContract("IntentExecutor", [
     intentFactory.address,
@@ -65,22 +144,48 @@ async function main() {
     isBaseSepolia,
   ]);
   console.log(
-    `IntentExecutor contract deployed with skipOraclePrice = ${isBaseSepolia} and address: `,
+    `IntentExecutor deployed (skipOraclePrice=${isBaseSepolia}): `,
     intentExecutor.address
   );
-  // Generate TypeScript file with as const for type inference
-  fs.writeFileSync(
-    path.join(abiDir, "intentExecutor.ts"),
-    `export const intentExecutorAbi = ${JSON.stringify(intentExecutor.abi, null, 2)} as const;`
-  );
+  writeAbiTs("intentExecutor.ts", "intentExecutorAbi", intentExecutor.abi);
 
+  // Post-deploy actions
   // Transfer ownership of IntentFactory to IntentExecutor
-  await intentFactory.write.transferOwnership([intentExecutor.address]);
-  console.log("Ownership of IntentFactory transferred to IntentExecutor");
+  const txHash = await intentFactory.write.transferOwnership([
+    intentExecutor.address,
+  ]);
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  console.log("Transferred IntentFactory ownership to IntentExecutor");
 
   // Authorize IntentExecutor as Swapper executor
-  await swapper.write.authorizeExecutor([intentExecutor.address]);
-  console.log("IntentExecutor authorized as Swapper executor");
+  const txHash1 = await swapper.write.authorizeExecutor([
+    intentExecutor.address,
+  ]);
+  await publicClient.waitForTransactionReceipt({ hash: txHash1 });
+  console.log("Authorized IntentExecutor on Swapper");
+
+  // Merge/update deployments by chainId
+  const deployments = loadDeploymentsJson();
+  deployments[String(chainId)] = {
+    chainId,
+    networkName,
+    contracts: {
+      oracle: oracle.address,
+      swapper: swapper.address,
+      intentFactory: intentFactory.address,
+      intentExecutor: intentExecutor.address,
+    },
+  };
+
+  writeDeploymentsJson(deployments);
+  writeDeploymentsTs(deployments);
+
+  console.log(
+    `Updated deployments: chainId=${chainId} -> ${path.relative(
+      process.cwd(),
+      deploymentsTsPath
+    )}`
+  );
 }
 
 main().catch((error) => {

@@ -11,7 +11,7 @@
   "dependencies": {
     "hono": "^4.11.6",
     "viem": "catalog:",
-    "@packages/web": "workspace:*"
+    "@packages/contract-deployments": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260127.0",

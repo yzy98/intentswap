@@ -1,4 +1,7 @@
-import { intentFactoryAbi } from "@packages/web/abis/intentFactory";
+import {
+  getDeployment,
+  intentFactoryAbi,
+} from "@packages/contract-deployments";
 import type { Next } from "hono";
 import type { AppContext, SubscribeBody } from "../lib/types";
 import {
@@ -23,7 +26,7 @@ export const validateSubscription = async (c: AppContext, next: Next) => {
 
     const intent = await publicClient.readContract({
       abi: intentFactoryAbi,
-      address: c.env.CONTRACT_INTENT_FACTORY_ADDRESS,
+      address: getDeployment(publicClient.chain.id).contracts.intentFactory,
       functionName: "getIntent",
       args: [BigInt(body.intentId)],
     });

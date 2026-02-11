@@ -1,0 +1,19 @@
+{
+  "name": "@packages/contract-deployments",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "viem": "^2.43.3"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "viem": "catalog:"
+  }
+}
