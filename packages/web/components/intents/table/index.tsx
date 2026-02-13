@@ -6,18 +6,11 @@ import { useMemo, useState } from "react";
 import { erc20Abi } from "viem";
 import { useBlock, useChainId, useReadContracts } from "wagmi";
 import { DataTable } from "@/components/intents/table/data-table";
+import { fetchBotStatusBatch } from "@/lib/api/bot";
 import { intentExecutorContract, intentFactoryContract } from "@/lib/constants";
 import type { IntentRow } from "@/lib/types";
 import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
 import { columns } from "./columns";
-
-const BOT_API_URL =
-  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
-
-interface BotStatusBatchResponse {
-  ok: boolean;
-  statuses: Record<string, boolean>; // { intentId: subscribed }
-}
 
 interface Props {
   intentIds: readonly bigint[];
@@ -89,33 +82,11 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
   });
 
   // Bot statuses of current page intents
-  const { data: botStatuses, refetch: refetchBotStatuses } =
-    useQuery<BotStatusBatchResponse>({
-      queryKey: ["bot-status-batch", currentPageIntentIds.join(","), chainId],
-      queryFn: async () => {
-        if (currentPageIntentIds.length === 0) {
-          return {
-            ok: true,
-            statuses: {},
-          };
-        }
-
-        const params = new URLSearchParams({
-          intentIds: currentPageIntentIds.join(","),
-          chainId: chainId.toString(),
-        });
-
-        const response = await fetch(`${BOT_API_URL}/status/batch?${params}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error ?? "Failed to get bot statuses");
-        }
-
-        return data;
-      },
-      enabled: !!currentPageIntentIds.length,
-    });
+  const { data: botStatuses, refetch: refetchBotStatuses } = useQuery({
+    queryKey: ["bot-status-batch", currentPageIntentIds.join(","), chainId],
+    queryFn: () => fetchBotStatusBatch(currentPageIntentIds, chainId),
+    enabled: !!currentPageIntentIds.length,
+  });
 
   const currentPageData: IntentRow[] = useMemo(() => {
     if (

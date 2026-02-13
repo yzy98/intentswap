@@ -1,19 +1,21 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { erc20Abi, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
 import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+  ResponsiveDialog,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/components/ui/responsive-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateIntentForm } from "@/hooks/use-create-intent-form";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
@@ -29,7 +31,13 @@ import {
 import { getTokenByAddress } from "@/lib/utils";
 import { CreateIntentForm } from "./form";
 
-export function CreateIntentCard() {
+interface CreateIntentDialogProps {
+  triggerButton: React.ReactNode;
+}
+
+export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
+  const [open, setOpen] = useState(false);
+
   const formValuesRef = useRef<CreateIntentFormParsedValues | undefined>(
     undefined
   );
@@ -118,6 +126,7 @@ export function CreateIntentCard() {
     onSuccess: () => {
       form.reset();
       formValuesRef.current = undefined;
+      setOpen(false);
     },
   });
 
@@ -128,30 +137,43 @@ export function CreateIntentCard() {
     },
   });
 
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (!nextOpen) {
+        form.reset();
+        formValuesRef.current = undefined;
+      }
+    },
+    [form]
+  );
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Create Intent</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CreateIntentForm form={form} />
-      </CardContent>
-      <CardFooter>
-        <Field className="w-full justify-end" orientation="horizontal">
-          <Button
-            disabled={isPending}
-            onClick={() => form.reset()}
-            type="button"
-            variant="outline"
-          >
-            Reset
-          </Button>
+    <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
+      <ResponsiveDialogTrigger asChild>{triggerButton}</ResponsiveDialogTrigger>
+      <ResponsiveDialogContent className="md:max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Create Intent</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Set up a new swap intent with your desired tokens, amount, price
+            threshold, and expiration.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <div className="overflow-y-auto px-4 md:px-0">
+          <CreateIntentForm form={form} />
+        </div>
+        <ResponsiveDialogFooter>
+          <ResponsiveDialogClose asChild>
+            <Button disabled={isPending} type="button" variant="outline">
+              Cancel
+            </Button>
+          </ResponsiveDialogClose>
           <Button disabled={isPending} form="create-intent-form" type="submit">
             {isPending && <Spinner />}
-            Create Intent
+            Create
           </Button>
-        </Field>
-      </CardFooter>
-    </Card>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

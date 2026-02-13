@@ -77,7 +77,7 @@ export const QueryPriceCard = () => {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" variant="glass">
       <CardHeader>
         <CardTitle>Query Price Feed</CardTitle>
       </CardHeader>

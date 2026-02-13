@@ -84,7 +84,7 @@ export const SetFeedCard = () => {
   });
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" variant="glass">
       <CardHeader>
         <CardTitle>Set Price Feed</CardTitle>
       </CardHeader>

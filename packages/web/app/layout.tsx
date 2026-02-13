@@ -36,9 +36,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="grid h-svh grid-rows-[auto_1fr]">
+          <div className="relative grid h-svh grid-rows-[auto_1fr]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(800px_circle_at_20%_-10%,theme(colors.violet.500/.18),transparent_60%)] dark:bg-[radial-gradient(800px_circle_at_20%_-10%,theme(colors.violet.500/.12),transparent_60%)]"
+            />
             <Header />
-            <main className="container mx-auto max-w-7xl p-4">{children}</main>
+            <main className="container mx-auto max-w-6xl p-4">{children}</main>
             <Toaster />
           </div>
         </Providers>

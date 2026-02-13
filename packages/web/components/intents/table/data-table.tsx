@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CreateIntentDialog } from "../create-intent-dialog";
 import { DataTablePagination } from "./data-table-pagination";
 
 interface DataTableProps<TData, TValue> {
@@ -118,7 +120,15 @@ export function DataTable<TData, TValue>({
                     className="h-24 text-center"
                     colSpan={columns.length}
                   >
-                    No intents found. Create your first intent.
+                    No intents found.{" "}
+                    <CreateIntentDialog
+                      triggerButton={
+                        <Button className="px-0" variant="link">
+                          Create
+                        </Button>
+                      }
+                    />{" "}
+                    your first intent.
                   </TableCell>
                 </TableRow>
               );

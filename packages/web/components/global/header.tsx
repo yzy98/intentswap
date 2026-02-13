@@ -1,8 +1,11 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useConnection, useReadContract } from "wagmi";
+import { CreateIntentDialog } from "@/components/intents/create-intent-dialog";
+import { Button } from "@/components/ui/button";
 import { oracleContract } from "@/lib/constants";
 import { ModeToggle } from "./mode-toggle";
 
@@ -29,6 +32,16 @@ export function Header() {
           >
             Admin
           </Link>
+        )}
+        {address && (
+          <CreateIntentDialog
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Create Intent
+              </Button>
+            }
+          />
         )}
         <ConnectButton chainStatus="icon" showBalance={false} />
         <ModeToggle />

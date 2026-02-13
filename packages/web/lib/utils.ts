@@ -75,3 +75,17 @@ export const getExecutionBlockReason = (
   }
   return undefined;
 };
+
+export function shortAddress(
+  address?: string,
+  opts: { start?: number; end?: number } = {}
+) {
+  if (!address) {
+    return "";
+  }
+  const { start = 4, end = 4 } = opts;
+  if (address.length <= 2 + start + end) {
+    return address;
+  } // too short to shorten
+  return `${address.slice(0, 2 + start)}…${address.slice(-end)}`;
+}
