@@ -1,6 +1,6 @@
 # IntentSwap
 
-A decentralized intent-based swap protocol that enables users to create conditional token swaps executed automatically when price conditions are met.
+An **on-chain conditional intent swap** project: users create swap intents with a price threshold + expiry, and a **permissionless executor** can execute them when conditions are met (with an on-chain reward).
 
 ## Overview
 
@@ -8,7 +8,9 @@ IntentSwap allows users to:
 
 - Create swap intents with specific price thresholds
 - Set expiration dates for their intents
-- Have swaps automatically executed by a bot when conditions are satisfied
+- Have intents executed when conditions are satisfied
+  - **Current implementation**: `packages/bot` (Cloudflare Worker scheduled event handler) runs as the default executor
+  - **Protocol design**: execution is permissionless — any executor can call the on-chain entrypoint
 - Use Chainlink oracles for reliable price feeds
 - Swap tokens via Uniswap V3 with slippage protection
 
@@ -36,7 +38,7 @@ IntentSwap allows users to:
 | Contract | Description |
 |----------|-------------|
 | `IntentFactory` | Creates and manages swap intents |
-| `IntentExecutor` | Validates conditions and executes swaps |
+| `IntentExecutor` | Validates conditions and executes swaps; pays protocol fee + executor reward |
 | `Oracle` | Manages Chainlink price feed mappings |
 | `UniswapV3Swapper` | Handles Uniswap V3 swap execution |
 
@@ -44,16 +46,17 @@ IntentSwap allows users to:
 
 1. **User creates intent** via `IntentFactory.createIntent()`
    - Specifies token pair, amount, price threshold, expiration
-   - Approves `IntentExecutor` to spend tokens
+   - User approves `IntentExecutor` to spend `tokenFrom` (standard ERC20 allowance model)
 
-2. **Bot monitors intents** via Cloudflare Worker cron job
-   - Subscribes to active intents
-   - Checks price conditions against Chainlink oracles
+2. **Bot monitors intents** via Cloudflare Worker cron job (current executor)
+   - Watches for active intents and checks price conditions against Chainlink oracles
+   - When an intent is fillable, the bot sends a transaction calling `IntentExecutor.executeIntent(intentId)`
+   - Note: this is **permissionless** — the bot is not special; any executor can do the same
 
 3. **Execution** when conditions are met
-   - `IntentExecutor` validates price threshold
-   - Swaps via Uniswap V3 with slippage protection
-   - Deducts execution fee and sends tokens to user
+   - `IntentExecutor` validates: active status, expiry, oracle price threshold, slippage limit
+   - Swaps via Uniswap V3 (single-hop exact input)
+   - Distributes output: protocol fee → owner, executor reward → executor, remainder → user
 
 ## Getting Started
 
@@ -187,6 +190,12 @@ intentswap/
 |---------|----------|--------|
 | baseSepolia | 84532 | Testnet |
 | Base    | 8453     | Mainnet (planned) |
+
+## Security notes (assumptions & design choices)
+
+- **Permissionless execution by design**: anyone can call `executeIntent`. Liveness comes from the executor incentive (`executorRewardBps`).
+- **Swapper access control**: `UniswapV3Swapper` only accepts calls from authorized executors (the deployed `IntentExecutor` is authorized post-deploy).
+- **Emergency controls**: `IntentExecutor` is `Pausable` and uses `ReentrancyGuard`.
 
 ## Scripts
 
