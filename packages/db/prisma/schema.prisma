@@ -7,18 +7,37 @@ datasource db {
   provider = "postgresql"
 }
 
-model User { 
-  id    Int     @id @default(autoincrement()) 
-  email String  @unique
-  name  String?
-  posts Post[]
-} 
+enum IntentStatus {
+  ACTIVE
+  EXECUTED
+  CANCELLED
+}
 
-model Post { 
-  id        Int     @id @default(autoincrement()) 
-  title     String
-  content   String?
-  published Boolean @default(false) 
-  author    User    @relation(fields: [authorId], references: [id]) 
-  authorId  Int
-} 
+model Intent {
+  id               BigInt            @id
+  user             String            @db.VarChar(42)
+  tokenFrom        String            @db.VarChar(42)
+  tokenTo          String            @db.VarChar(42)
+  amount           String            // uint256 -> string
+  priceThreshold   String            // uint256 -> string
+  expiration       BigInt
+  status           IntentStatus
+
+  createdTxHash    String?  @db.VarChar(66)
+  createdBlock     BigInt?
+  updatedBlock     BigInt?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([user])
+  @@index([status])
+  @@index([tokenFrom, tokenTo])
+  @@index([expiration])
+}
+
+model IndexerState {
+  id             Int     @id @default(1)
+  lastBlock      BigInt
+  updatedAt      DateTime @updatedAt
+}
