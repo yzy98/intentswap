@@ -4,9 +4,6 @@
     "moduleResolution": "bundler",
     "target": "ES2023",
     "strict": true,
-    "esModuleInterop": true,
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "esModuleInterop": true
   }
 }

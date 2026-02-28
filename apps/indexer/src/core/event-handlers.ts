@@ -24,16 +24,50 @@ type IntentCancelledLog = Extract<
   { eventName: "IntentCancelled" }
 >;
 
-export const handleIntentCreated = (log: IntentCreatedLog) => {
-  const { intentId, user } = log.args;
-  // [TODO] Insert intent into database
-  console.log(`Intent created: ${intentId} by ${user}`);
+export const handleIntentCreated = async (log: IntentCreatedLog) => {
+  console.log("--handleIntentCreated", log);
+  const {
+    intentId,
+    user,
+    tokenFrom,
+    tokenTo,
+    amount,
+    priceThreshold,
+    expiration,
+  } = log.args;
+
+  if (
+    intentId === undefined ||
+    user === undefined ||
+    tokenFrom === undefined ||
+    tokenTo === undefined ||
+    amount === undefined ||
+    priceThreshold === undefined ||
+    expiration === undefined
+  ) {
+    return;
+  }
+
+  await dbClient.intent.create({
+    data: {
+      id: intentId,
+      user,
+      tokenFrom,
+      tokenTo,
+      amount: amount.toString(),
+      priceThreshold: priceThreshold.toString(),
+      expiration,
+      status: IntentStatus.ACTIVE,
+      createdTxHash: log.transactionHash,
+      createdBlock: log.blockNumber,
+    },
+  });
 };
 
 export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
   const { intentId, newPriceThreshold } = log.args;
 
-  if (!(intentId && newPriceThreshold)) {
+  if (intentId === undefined || newPriceThreshold === undefined) {
     return;
   }
 
@@ -51,7 +85,7 @@ export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
 export const handleIntentExecuted = async (log: IntentExecutedLog) => {
   const { intentId, user } = log.args;
 
-  if (!(intentId && user)) {
+  if (intentId === undefined || user === undefined) {
     return;
   }
 
@@ -69,7 +103,7 @@ export const handleIntentExecuted = async (log: IntentExecutedLog) => {
 export const handleIntentCancelled = async (log: IntentCancelledLog) => {
   const { intentId, user } = log.args;
 
-  if (!(intentId && user)) {
+  if (intentId === undefined || user === undefined) {
     return;
   }
 
