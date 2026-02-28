@@ -46,7 +46,15 @@ contract IntentFactory is Ownable {
   Intent[] public intents;
   mapping (address => uint256[]) public userIntentIds;
 
-  event IntentCreated(uint256 indexed intentId, address indexed user);
+  event IntentCreated(
+    uint256 indexed intentId,
+    address indexed user,
+    address tokenFrom,
+    address tokenTo,
+    uint256 amount,
+    uint256 priceThreshold,
+    uint256 expiration
+  );
   event IntentCancelled(uint256 indexed intentId, address indexed user);
   event IntentExecuted(uint256 indexed intentId, address indexed user);
   event IntentUpdated(
@@ -155,7 +163,15 @@ contract IntentFactory is Ownable {
     intentId = intents.length - 1;
     userIntentIds[msg.sender].push(intentId);
 
-    emit IntentCreated(intentId, msg.sender);
+    emit IntentCreated(
+      intentId,
+      msg.sender,
+      _tokenFrom,
+      _tokenTo,
+      _amount,
+      _priceThreshold,
+      _expiration
+    );
   }
 
   /**
