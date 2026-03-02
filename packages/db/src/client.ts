@@ -1,7 +1,10 @@
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../prisma/generated/prisma/client";
+/** biome-ignore-all lint/performance/noNamespaceImport: we need to import the schema as a namespace */
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
 
 export const createDbClient = (databaseUrl: string) => {
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
-  return new PrismaClient({ adapter });
+  return drizzle(databaseUrl, {
+    schema,
+    casing: "snake_case",
+  });
 };

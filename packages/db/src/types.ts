@@ -1,6 +1,6 @@
-export type {
-  IndexerState,
-  Intent,
-} from "../prisma/generated/prisma/client";
-// biome-ignore lint/performance/noBarrelFile: IntentStatus is an enum
-export { IntentStatus } from "../prisma/generated/prisma/client";
+import type { indexerState, intent } from "./schema";
+
+export type Intent = typeof intent.$inferSelect;
+export type NewIntent = typeof intent.$inferInsert;
+export type IndexerState = typeof indexerState.$inferSelect;
+export type NewIndexerState = typeof indexerState.$inferInsert;
