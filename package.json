@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev:indexer": "pnpm --filter @apps/indexer dev",
+    "dev:api": "pnpm --filter @apps/api dev",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"

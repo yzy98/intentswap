@@ -1,15 +1,10 @@
 import "dotenv/config";
+import { z } from "zod";
 
-const requireEnv = (name: string): string => {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Environment variable ${name} is not set`);
-  }
-  return value;
-};
+const envSchema = z.object({
+  DATABASE_URL: z.url(),
+  RPC_URL: z.url(),
+  INTENT_FACTORY_ADDRESS: z.string().startsWith("0x").length(42),
+});
 
-export const ENV = {
-  DATABASE_URL: requireEnv("DATABASE_URL"),
-  RPC_URL: requireEnv("RPC_URL"),
-  INTENT_FACTORY_ADDRESS: requireEnv("INTENT_FACTORY_ADDRESS"),
-} as const;
+export const ENV = envSchema.parse(process.env);
