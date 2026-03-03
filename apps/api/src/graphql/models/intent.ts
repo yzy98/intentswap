@@ -1,7 +1,7 @@
 import { type Intent, intentStatusEnum } from "@packages/db";
 import { builder } from "@/graphql/builder";
 
-const IntentStatusGql = builder.enumType("IntentStatus", {
+export const IntentStatusGql = builder.enumType("IntentStatus", {
   values: intentStatusEnum.enumValues,
 });
 

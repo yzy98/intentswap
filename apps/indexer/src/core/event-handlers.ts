@@ -33,7 +33,6 @@ const IntentStatus = {
 } as const satisfies Record<string, IntentStatusValue>;
 
 export const handleIntentCreated = async (log: IntentCreatedLog) => {
-  console.log("--handleIntentCreated", log);
   const {
     intentId,
     user,

@@ -1,10 +1,11 @@
 {
   "name": "intentswap-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev:indexer": "pnpm --filter @apps/indexer dev",
     "dev:api": "pnpm --filter @apps/api dev",
+    "db:studio": "pnpm --filter @packages/db db:studio",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
