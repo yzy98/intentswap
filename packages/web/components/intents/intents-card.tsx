@@ -3,7 +3,6 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { PlusIcon } from "lucide-react";
 import { useConnection } from "wagmi";
-import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,7 +15,6 @@ import { CreateIntentDialog } from "./create-intent-dialog";
 import { IntentsTable } from "./table-new";
 
 export function IntentsCard() {
-  const { intentIds, isLoadingIntentIds } = useIntentIds();
   const { address } = useConnection();
   const { openConnectModal } = useConnectModal();
 
