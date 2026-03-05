@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateIntentDialog } from "./create-intent-dialog";
-import { IntentsTable } from "./table-new";
+import { IntentsTable } from "./table";
 
 export function IntentsCard() {
   const { address } = useConnection();

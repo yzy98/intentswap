@@ -1,157 +1,91 @@
-/** biome-ignore-all lint/style/noNestedTernary: Ignore */
-
 import { useQuery } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
+import { readFragment } from "gql.tada";
 import { useMemo, useState } from "react";
-import { erc20Abi } from "viem";
-import { useBlock, useChainId, useReadContracts } from "wagmi";
-import { DataTable } from "@/components/intents/table/data-table";
+import type { Address } from "viem";
+import { useBlock, useChainId } from "wagmi";
+import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
+import { useIntentsQuery } from "@/hooks/user-intents-query";
 import { fetchBotStatusBatch } from "@/lib/api/bot";
-import { intentExecutorContract, intentFactoryContract } from "@/lib/constants";
-import type { IntentRow } from "@/lib/types";
-import { getExecutionBlockReason, getReadContractsResult } from "@/lib/utils";
+import { IntentItem_Fragment } from "@/lib/api/gql";
 import { columns } from "./columns";
+import { DataTable } from "./data-table";
 
-interface Props {
-  intentIds: readonly bigint[];
-  isLoadingIntentIds: boolean;
+interface IntentsTableProps {
+  user: Address;
 }
 
-export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
+export const IntentsTable = ({ user }: IntentsTableProps) => {
+  const chainId = useChainId();
+  const { data: block } = useBlock();
+  const chainBlockTimestamp = block?.timestamp;
+
+  // Table pagination state
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
 
-  const chainId = useChainId();
-  const { data: block } = useBlock();
-  const chainBlockTimestamp = block?.timestamp;
-
-  // Slice current page intent ids
-  const currentPageIntentIds = useMemo(() => {
-    return intentIds.slice(
-      pagination.pageIndex * pagination.pageSize,
-      (pagination.pageIndex + 1) * pagination.pageSize
-    );
-  }, [intentIds, pagination.pageIndex, pagination.pageSize]);
-
-  // Get current page all intents data
+  // Intents count
   const {
-    data: currentPageIntents,
-    isLoading: isLoadingIntents,
-    refetch: refetchCurrentPageIntents,
-  } = useReadContracts({
-    contracts: currentPageIntentIds.map((intentId) => ({
-      ...intentFactoryContract,
-      functionName: "getIntent" as const,
-      args: [intentId] as const,
-    })),
-    allowFailure: false,
+    data: intentsCount,
+    fetching: isFetchingIntentsCount,
+    reExecuteQuery: refetchIntentsCount,
+  } = useIntentsCountQuery({
+    user,
   });
 
-  // Balances of tokenFrom of current page intents
+  // Intents, with pagination
   const {
-    data: currentPageTokenFromBalances,
-    isLoading: isLoadingBalances,
-    refetch: refetchCurrentPageTokenFromBalances,
-  } = useReadContracts({
-    contracts:
-      currentPageIntents?.map((intent) => ({
-        abi: erc20Abi,
-        address: intent.tokenFrom,
-        functionName: "balanceOf" as const,
-        args: [intent.user] as const,
-      })) ?? [],
-    query: { enabled: !!currentPageIntents?.length },
+    data: intents,
+    fetching: isFetchingIntents,
+    reExecuteQuery: refetchIntents,
+  } = useIntentsQuery({
+    user,
+    limit: pagination.pageSize,
+    offset: pagination.pageIndex * pagination.pageSize,
   });
 
-  // Allowances of tokenFrom of current page intents
-  const {
-    data: currentPageTokenFromAllowances,
-    isLoading: isLoadingAllowances,
-    refetch: refetchCurrentPageTokenFromAllowances,
-  } = useReadContracts({
-    contracts:
-      currentPageIntents?.map((intent) => ({
-        abi: erc20Abi,
-        address: intent.tokenFrom,
-        functionName: "allowance" as const,
-        args: [intent.user, intentExecutorContract.address] as const,
-      })) ?? [],
-    query: { enabled: !!currentPageIntents?.length },
-  });
+  const currentPageIntentIds =
+    intents?.userIntents?.map((intent) => intent.id as bigint) ?? [];
 
-  // Bot statuses of current page intents
+  // Bot statuses
   const { data: botStatuses, refetch: refetchBotStatuses } = useQuery({
     queryKey: ["bot-status-batch", currentPageIntentIds.join(","), chainId],
     queryFn: () => fetchBotStatusBatch(currentPageIntentIds, chainId),
     enabled: !!currentPageIntentIds.length,
   });
 
-  const currentPageData: IntentRow[] = useMemo(() => {
-    if (
-      !(
-        currentPageIntents &&
-        currentPageTokenFromBalances &&
-        currentPageTokenFromAllowances
-      )
-    ) {
+  const currentPageData = useMemo(() => {
+    if (!intents?.userIntents) {
       return [];
     }
-
-    return currentPageIntentIds.map((intentId, i) => {
-      const intent = currentPageIntents[i];
-      const balanceEntry = currentPageTokenFromBalances[i];
-      const allowanceEntry = currentPageTokenFromAllowances[i];
-      const balance = getReadContractsResult(balanceEntry);
-      const allowance = getReadContractsResult(allowanceEntry);
-
-      const isActive = intent.status === 0;
+    return intents.userIntents.map((intent) => {
+      const botSubscribed = intent.id
+        ? (botStatuses?.statuses?.[intent.id.toString()] ?? false)
+        : false;
+      const intentItemData = readFragment(IntentItem_Fragment, intent);
+      const isActive = intentItemData.status === "ACTIVE";
       const isExpired =
         isActive &&
         chainBlockTimestamp !== undefined &&
-        intent.expiration <= chainBlockTimestamp;
-      const hasBalance = balance !== undefined && balance >= intent.amount;
-      const hasAllowance =
-        allowance !== undefined && allowance >= intent.amount;
-      const canExecute = isActive && !isExpired && hasBalance && hasAllowance;
-      const executionBlockReason = getExecutionBlockReason(
-        isActive,
-        isExpired,
-        hasBalance,
-        hasAllowance,
-        balanceEntry?.status,
-        allowanceEntry?.status
-      );
-      const botSubscribed =
-        botStatuses?.statuses?.[intentId.toString()] ?? false;
+        intentItemData.expiration !== null &&
+        intentItemData.expiration <= chainBlockTimestamp;
 
       return {
-        intentId,
-        intent,
+        intent: intentItemData,
+        intentId: intent.id ?? BigInt(0),
         isActive,
         isExpired,
-        hasBalance,
-        hasAllowance,
-        canExecute,
-        executionBlockReason,
         botSubscribed,
       };
     });
-  }, [
-    currentPageIntentIds,
-    currentPageIntents,
-    currentPageTokenFromBalances,
-    currentPageTokenFromAllowances,
-    chainBlockTimestamp,
-    botStatuses,
-  ]);
+  }, [intents?.userIntents, botStatuses, chainBlockTimestamp]);
 
   const refetchPage = () =>
     Promise.all([
-      refetchCurrentPageIntents(),
-      refetchCurrentPageTokenFromBalances(),
-      refetchCurrentPageTokenFromAllowances(),
+      refetchIntentsCount(),
+      refetchIntents(),
       refetchBotStatuses(),
     ]);
 
@@ -159,15 +93,10 @@ export const IntentsTable = ({ intentIds, isLoadingIntentIds }: Props) => {
     <DataTable
       columns={columns}
       data={currentPageData}
-      isLoading={
-        isLoadingIntentIds ||
-        isLoadingIntents ||
-        isLoadingBalances ||
-        isLoadingAllowances
-      }
+      isLoading={isFetchingIntents || isFetchingIntentsCount}
       pagination={pagination}
       refetchPage={refetchPage}
-      rowCount={intentIds.length}
+      rowCount={intentsCount?.total ?? 0}
       setPagination={setPagination}
     />
   );

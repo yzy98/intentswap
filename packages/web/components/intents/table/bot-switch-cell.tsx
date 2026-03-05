@@ -1,21 +1,26 @@
 import { useMutation } from "@tanstack/react-query";
-import type { Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { useChainId, useConnection } from "wagmi";
 import { Switch } from "@/components/ui/switch";
-import type { IntentRow } from "@/lib/types";
 
 const BOT_API_URL =
   process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
 interface BotSwitchCellProps {
-  row: Row<IntentRow>;
+  intentId: bigint;
+  isActive: boolean;
+  isExpired: boolean;
+  botSubscribed: boolean;
   refetch?: () => Promise<unknown>;
 }
 
-export const BotSwitchCell = ({ row, refetch }: BotSwitchCellProps) => {
-  const { intentId, isActive, canExecute, botSubscribed } = row.original;
-
+export const BotSwitchCell = ({
+  intentId,
+  isActive,
+  isExpired,
+  botSubscribed,
+  refetch,
+}: BotSwitchCellProps) => {
   const { address } = useConnection();
   const chainId = useChainId();
 
@@ -49,7 +54,7 @@ export const BotSwitchCell = ({ row, refetch }: BotSwitchCellProps) => {
     onSuccess: refetch,
   });
 
-  if (!(isActive && canExecute)) {
+  if (!isActive || isExpired) {
     return (
       <Switch
         aria-label="Bot auto-execution disabled"

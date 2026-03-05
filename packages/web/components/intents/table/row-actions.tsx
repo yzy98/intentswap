@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import type { Row } from "@tanstack/react-table";
 import { MoreVerticalIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,19 +15,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { intentFactoryContract } from "@/lib/constants";
-import type { IntentRow } from "@/lib/types";
 
 const BOT_API_URL =
   process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
 interface RowActionsProps {
-  row: Row<IntentRow>;
+  intentId: bigint;
+  isActive: boolean;
+  botSubscribed: boolean;
   refetch?: () => Promise<unknown>;
 }
 
-export const RowActions = ({ row, refetch }: RowActionsProps) => {
-  const { intentId, isActive, botSubscribed } = row.original;
-
+export const RowActions = ({
+  intentId,
+  isActive,
+  botSubscribed,
+  refetch,
+}: RowActionsProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
