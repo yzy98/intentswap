@@ -1,4 +1,3 @@
-import type { ResultOf } from "@graphql-typed-document-node/core";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
@@ -12,8 +11,7 @@ import {
 } from "lucide-react";
 import { type Address, formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
-import { IntentStatus } from "@/gql/graphql";
-import type { IntentItem_Fragment } from "@/lib/api/gql";
+import type { IntentItemFragmentResult } from "@/hooks/user-intents-query";
 import { getTokenByAddress } from "@/lib/utils";
 import { BotSwitchCell } from "./bot-switch-cell";
 import { ColumnHeader } from "./column-header";
@@ -21,7 +19,7 @@ import { PriceThresholdCell } from "./price-threshold-cell";
 import { RowActions } from "./row-actions";
 
 export interface IntentRow {
-  intent: ResultOf<typeof IntentItem_Fragment>;
+  intent: IntentItemFragmentResult;
   intentId: bigint;
   isActive: boolean;
   isExpired: boolean;
@@ -93,9 +91,9 @@ export const columns: ColumnDef<IntentRow>[] = [
     cell: ({ row }) => {
       const statusText = row.original.intent.status;
       let variant: "active" | "default" | "secondary" | "destructive";
-      if (statusText === IntentStatus.Active) {
+      if (statusText === "ACTIVE") {
         variant = "default";
-      } else if (statusText === IntentStatus.Executed) {
+      } else if (statusText === "EXECUTED") {
         variant = "active";
       } else {
         variant = "secondary";

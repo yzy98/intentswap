@@ -1,4 +1,4 @@
-import { graphql } from "@/gql";
+import { graphql } from "@/graphql";
 
 export const GetUserIntentsCount_Query = graphql(`
   query GetUserIntentsCount($user: String!) {
@@ -20,7 +20,8 @@ export const IntentItem_Fragment = graphql(`
   }
 `);
 
-export const GetUserIntents_Query = graphql(`
+export const GetUserIntents_Query = graphql(
+  `
   query GetUserIntents($user: String!, $status: IntentStatus, $limit: Int, $offset: Int) {
     userIntents(user: $user, status: $status, limit: $limit, offset: $offset) {
       id
@@ -32,5 +33,7 @@ export const GetUserIntents_Query = graphql(`
       updatedAt
       ...IntentItem
     }
-  }  
-`);
+  }
+`,
+  [IntentItem_Fragment]
+);

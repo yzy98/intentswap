@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
+import { readFragment } from "gql.tada";
 import { useMemo, useState } from "react";
 import type { Address } from "viem";
 import { useBlock, useChainId } from "wagmi";
-import { getFragmentData } from "@/gql";
-import { IntentStatus } from "@/gql/graphql";
 import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
 import { useIntentsQuery } from "@/hooks/user-intents-query";
 import { fetchBotStatusBatch } from "@/lib/api/bot";
@@ -62,18 +61,20 @@ export const IntentsTable = ({ user }: IntentsTableProps) => {
       return [];
     }
     return intents.userIntents.map((intent) => {
-      const botSubscribed =
-        botStatuses?.statuses?.[(intent.id as bigint).toString()] ?? false;
-      const intentItemData = getFragmentData(IntentItem_Fragment, intent);
-      const isActive = intentItemData.status === IntentStatus.Active;
+      const botSubscribed = intent.id
+        ? (botStatuses?.statuses?.[intent.id.toString()] ?? false)
+        : false;
+      const intentItemData = readFragment(IntentItem_Fragment, intent);
+      const isActive = intentItemData.status === "ACTIVE";
       const isExpired =
         isActive &&
         chainBlockTimestamp !== undefined &&
-        (intentItemData.expiration as bigint) <= chainBlockTimestamp;
+        intentItemData.expiration !== null &&
+        intentItemData.expiration <= chainBlockTimestamp;
 
       return {
         intent: intentItemData,
-        intentId: intent.id as bigint,
+        intentId: intent.id ?? BigInt(0),
         isActive,
         isExpired,
         botSubscribed,

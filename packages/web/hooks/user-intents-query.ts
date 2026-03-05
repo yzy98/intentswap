@@ -1,21 +1,19 @@
+import type { ResultOf, VariablesOf } from "gql.tada";
 import { useQuery } from "urql";
-import type { Address } from "viem";
-import type { GetUserIntentsQuery, IntentStatus } from "@/gql/graphql";
-import { GetUserIntents_Query } from "@/lib/api/gql";
+import { GetUserIntents_Query, type IntentItem_Fragment } from "@/lib/api/gql";
 
-interface UseIntentsQueryArgs {
-  user?: Address;
-  status?: IntentStatus;
-  limit?: number;
-  offset?: number;
-}
+type GetUserIntentsQueryVariables = VariablesOf<typeof GetUserIntents_Query>;
+
+export type GetUserIntentsQueryResult = ResultOf<typeof GetUserIntents_Query>;
+
+export type IntentItemFragmentResult = ResultOf<typeof IntentItem_Fragment>;
 
 export const useIntentsQuery = ({
   user,
   status,
   limit,
   offset,
-}: UseIntentsQueryArgs) => {
+}: GetUserIntentsQueryVariables) => {
   const [{ data, fetching, error }, reExecuteQuery] = useQuery({
     query: GetUserIntents_Query,
     variables: {
@@ -34,7 +32,3 @@ export const useIntentsQuery = ({
     reExecuteQuery,
   };
 };
-
-export type IntentData = NonNullable<
-  GetUserIntentsQuery["userIntents"]
->[number];
