@@ -1,0 +1,36 @@
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.
+"""
+scalar BigInt
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+type Intent {
+  amount: String
+  createdAt: Date
+  createdBlock: BigInt
+  createdTxHash: String
+  expiration: BigInt
+  id: BigInt
+  priceThreshold: String
+  status: IntentStatus
+  tokenFrom: String
+  tokenTo: String
+  updatedAt: Date
+  updatedBlock: BigInt
+  user: String
+}
+
+enum IntentStatus {
+  ACTIVE
+  CANCELLED
+  EXECUTED
+}
+
+type Query {
+  userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: String!): [Intent!]
+  userIntentsCount(status: IntentStatus, user: String!): Int
+}

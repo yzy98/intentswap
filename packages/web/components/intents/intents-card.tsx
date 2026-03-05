@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateIntentDialog } from "./create-intent-dialog";
-import { IntentsTable } from "./table";
+import { IntentsTable } from "./table-new";
 
 export function IntentsCard() {
   const { intentIds, isLoadingIntentIds } = useIntentIds();
@@ -38,10 +38,7 @@ export function IntentsCard() {
       </CardHeader>
       <CardContent>
         {address ? (
-          <IntentsTable
-            intentIds={intentIds ?? []}
-            isLoadingIntentIds={isLoadingIntentIds}
-          />
+          <IntentsTable user={address} />
         ) : (
           <div className="py-8 text-center text-muted-foreground">
             <Button

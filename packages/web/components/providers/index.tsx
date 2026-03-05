@@ -2,6 +2,7 @@
 
 import { IntentIdsProvider } from "./intent-ids-provider";
 import { ThemeProvider } from "./theme-provider";
+import { UrqlProvider } from "./urql-provider";
 import { WalletProvider } from "./wallet-provider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
     >
       <WalletProvider>
-        <IntentIdsProvider>{children}</IntentIdsProvider>
+        <UrqlProvider>
+          <IntentIdsProvider>{children}</IntentIdsProvider>
+        </UrqlProvider>
       </WalletProvider>
     </ThemeProvider>
   );

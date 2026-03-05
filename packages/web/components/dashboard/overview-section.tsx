@@ -1,37 +1,44 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useChainId } from "wagmi";
-import { useIntentIds } from "@/components/providers/intent-ids-provider";
+import { useConnection } from "wagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchBotSubscriptionCount } from "@/lib/api/bot";
+import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
 
 export const OverviewSection = () => {
-  const chainId = useChainId();
-  const { intentIds, isLoadingIntentIds } = useIntentIds();
-
-  const {
-    data: botAutoExecutionCount,
-    isLoading: isLoadingBotAutoExecutionCount,
-  } = useQuery({
-    queryKey: ["bot-subscription-count", intentIds?.length, chainId],
-    queryFn: () => fetchBotSubscriptionCount(intentIds ?? [], chainId),
-    enabled: !!intentIds && intentIds.length > 0,
+  const { address } = useConnection();
+  const { data, fetching: isLoading } = useIntentsCountQuery({
+    user: address,
   });
 
   return (
-    <section className="grid gap-3 sm:grid-cols-2">
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <OverviewSectionCard
-        isLoading={isLoadingIntentIds || intentIds === undefined}
+        isLoading={isLoading}
         title="Total intents"
-        value={intentIds?.length ?? 0}
+        value={data?.total ?? 0}
       />
       <OverviewSectionCard
+        isLoading={isLoading}
+        title="Active"
+        value={data?.active ?? 0}
+      />
+      <OverviewSectionCard
+        isLoading={isLoading}
+        title="Executed"
+        value={data?.executed ?? 0}
+      />
+      <OverviewSectionCard
+        isLoading={isLoading}
+        title="Cancelled"
+        value={data?.cancelled ?? 0}
+      />
+      {/* [TODO] Add bot auto-execution count */}
+      {/* <OverviewSectionCard
         isLoading={isLoadingBotAutoExecutionCount}
         title="Bot Auto-Execution"
         value={botAutoExecutionCount ?? 0}
-      />
+      /> */}
     </section>
   );
 };
