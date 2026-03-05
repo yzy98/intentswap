@@ -5,7 +5,10 @@ import { useMemo, useState } from "react";
 import type { Address } from "viem";
 import { useBlock, useChainId } from "wagmi";
 import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
-import { useIntentsQuery } from "@/hooks/user-intents-query";
+import {
+  type IntentStatusType,
+  useIntentsQuery,
+} from "@/hooks/user-intents-query";
 import { fetchBotStatusBatch } from "@/lib/api/bot";
 import { IntentItem_Fragment } from "@/lib/api/gql";
 import { columns } from "./columns";
@@ -26,6 +29,11 @@ export const IntentsTable = ({ user }: IntentsTableProps) => {
     pageSize: 5,
   });
 
+  // Table status filter state
+  const [statusFilter, setStatusFilter] = useState<
+    IntentStatusType | undefined
+  >();
+
   // Intents count
   const {
     data: intentsCount,
@@ -42,6 +50,7 @@ export const IntentsTable = ({ user }: IntentsTableProps) => {
     reExecuteQuery: refetchIntents,
   } = useIntentsQuery({
     user,
+    status: statusFilter,
     limit: pagination.pageSize,
     offset: pagination.pageIndex * pagination.pageSize,
   });
@@ -98,6 +107,8 @@ export const IntentsTable = ({ user }: IntentsTableProps) => {
       refetchPage={refetchPage}
       rowCount={intentsCount?.total ?? 0}
       setPagination={setPagination}
+      setStatusFilter={setStatusFilter}
+      statusFilter={statusFilter}
     />
   );
 };

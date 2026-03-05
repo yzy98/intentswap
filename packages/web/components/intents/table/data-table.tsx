@@ -18,8 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { IntentStatusType } from "@/hooks/user-intents-query";
 import { CreateIntentDialog } from "../create-intent-dialog";
 import { DataTablePagination } from "./data-table-pagination";
+import { StatusFilter } from "./status-filter";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -27,6 +29,8 @@ interface DataTableProps<TData, TValue> {
   rowCount: number;
   pagination: PaginationState;
   setPagination: Dispatch<SetStateAction<PaginationState>>;
+  statusFilter: IntentStatusType | undefined;
+  setStatusFilter: Dispatch<SetStateAction<IntentStatusType | undefined>>;
   isLoading?: boolean;
   refetchPage: () => Promise<unknown>;
 }
@@ -37,6 +41,8 @@ export function DataTable<TData, TValue>({
   rowCount,
   pagination,
   setPagination,
+  statusFilter,
+  setStatusFilter,
   isLoading = false,
   refetchPage,
 }: DataTableProps<TData, TValue>) {
@@ -50,6 +56,7 @@ export function DataTable<TData, TValue>({
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
+    manualFiltering: true,
     meta: {
       refetchPage,
     },
@@ -57,6 +64,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
+      <StatusFilter
+        setStatusFilter={setStatusFilter}
+        statusFilter={statusFilter}
+      />
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>

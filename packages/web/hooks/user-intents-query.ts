@@ -1,8 +1,12 @@
-import type { ResultOf, VariablesOf } from "gql.tada";
+import type { graphql, ResultOf, VariablesOf } from "gql.tada";
 import { useQuery } from "urql";
 import { GetUserIntents_Query, type IntentItem_Fragment } from "@/lib/api/gql";
 
 type GetUserIntentsQueryVariables = VariablesOf<typeof GetUserIntents_Query>;
+
+export type IntentStatusType = ReturnType<
+  typeof graphql.scalar<"IntentStatus">
+>;
 
 export type GetUserIntentsQueryResult = ResultOf<typeof GetUserIntents_Query>;
 
