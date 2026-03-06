@@ -1,16 +1,17 @@
-import { createServer } from "node:http";
+import { createDbClient } from "@packages/db";
 import { createYoga } from "graphql-yoga";
-import { ENV } from "@/env";
 import { schema } from "@/graphql/schema";
+import type { Env } from "./env";
 
-const port = ENV.PORT;
-
-const yoga = createYoga({
+const yoga = createYoga<Env>({
   schema,
+  context: (ctx) => {
+    return {
+      db: createDbClient(ctx.DATABASE_URL),
+    };
+  },
 });
 
-const server = createServer(yoga);
-
-server.listen(port, () => {
-  console.log(`GraphQL Server is running on http://localhost:${port}/graphql`);
-});
+export default {
+  fetch: yoga.fetch,
+} satisfies ExportedHandler<Env>;

@@ -6,30 +6,18 @@ settings:
 
 catalogs:
   default:
-    '@types/node':
-      specifier: ^22.19.3
-      version: 22.19.3
-    dotenv:
-      specifier: ^17.3.1
-      version: 17.3.1
+    '@cloudflare/workers-types':
+      specifier: ^4.2
+      version: 4.20260127.0
     drizzle-orm:
       specifier: ^0.45.1
       version: 0.45.1
-    tsx:
-      specifier: ^4.21.0
-      version: 4.21.0
     typescript:
       specifier: ^5.5.4
       version: 5.9.3
-    viem:
-      specifier: ^2.43.3
-      version: 2.43.3
     wrangler:
       specifier: ^4.4.0
       version: 4.60.0
-    zod:
-      specifier: ^4.3.6
-      version: 4.3.6
 
 importers:
 
@@ -59,9 +47,6 @@ importers:
       '@pothos/core':
         specifier: ^4.12.0
         version: 4.12.0(graphql@16.13.1)
-      dotenv:
-        specifier: 'catalog:'
-        version: 17.3.1
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.1(@cloudflare/workers-types@4.20260127.0)(@neondatabase/serverless@1.0.2)(@types/pg@8.18.0)
@@ -74,19 +59,16 @@ importers:
       graphql-yoga:
         specifier: ^5.18.0
         version: 5.18.0(graphql@16.13.1)
-      zod:
-        specifier: 'catalog:'
-        version: 4.3.6
     devDependencies:
-      '@types/node':
+      '@cloudflare/workers-types':
         specifier: 'catalog:'
-        version: 22.19.3
-      tsx:
-        specifier: 'catalog:'
-        version: 4.21.0
+        version: 4.20260127.0
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      wrangler:
+        specifier: 'catalog:'
+        version: 4.60.0(@cloudflare/workers-types@4.20260127.0)(bufferutil@4.1.0)(utf-8-validate@5.0.10)
 
   apps/bot:
     dependencies:
@@ -101,7 +83,7 @@ importers:
         version: 2.43.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6)
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260127.0
+        specifier: 'catalog:'
         version: 4.20260127.0
       wrangler:
         specifier: 'catalog:'

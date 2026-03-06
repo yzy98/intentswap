@@ -1,6 +1,5 @@
 import { intent } from "@packages/db";
 import { and, count, eq } from "drizzle-orm";
-import { db } from "@/clients/db-client";
 import { builder } from "@/graphql/builder";
 import { IntentRef, IntentStatusGql } from "@/graphql/models/intent";
 
@@ -15,12 +14,12 @@ builder.queryField("userIntentsCount", (t) =>
         required: false,
       }),
     },
-    resolve: async (_, { user, status }) => {
+    resolve: async (_, { user, status }, ctx) => {
       const whereClause = status
         ? and(eq(intent.user, user), eq(intent.status, status))
         : eq(intent.user, user);
 
-      const [result] = await db
+      const [result] = await ctx.db
         .select({ count: count() })
         .from(intent)
         .where(whereClause);
@@ -43,8 +42,8 @@ builder.queryField("userIntents", (t) =>
       limit: t.arg.int({ defaultValue: 5, required: false }),
       offset: t.arg.int({ defaultValue: 0, required: false }),
     },
-    resolve: async (_, { user, status, limit, offset }) =>
-      db.query.intent.findMany({
+    resolve: async (_, { user, status, limit, offset }, ctx) =>
+      ctx.db.query.intent.findMany({
         where: (intent, { eq, and }) =>
           status
             ? and(eq(intent.user, user), eq(intent.status, status))
