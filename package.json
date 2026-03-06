@@ -2,17 +2,12 @@
   "name": "intentswap",
   "version": "1.0.2",
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "build": "pnpm --filter @packages/hardhat build",
-    "test": "pnpm --filter @packages/hardhat test",
-    "node": "pnpm --filter @packages/hardhat node",
-    "deploy:localhost": "pnpm --filter @packages/hardhat deploy:localhost",
-    "deploy:baseSepolia": "pnpm --filter @packages/hardhat deploy:baseSepolia",
-    "dev:web": "pnpm --filter @packages/web dev",
-    "dev:bot": "pnpm --filter @packages/bot dev",
+    "dev:all": "mprocs",
+    "dev:api": "pnpm --filter @apps/api dev",
+    "dev:indexer": "pnpm --filter @apps/indexer dev",
+    "dev:bot": "pnpm --filter @apps/bot dev",
+    "dev:web": "pnpm --filter @apps/web dev",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
@@ -21,6 +16,7 @@
     "@biomejs/biome": "2.3.10",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "mprocs": "^0.8.3",
     "ultracite": "6.5.0"
   },
   "keywords": [],
