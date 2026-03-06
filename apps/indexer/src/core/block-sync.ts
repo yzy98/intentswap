@@ -1,5 +1,7 @@
-import type { Address } from "viem";
-import { intentFactoryAbi } from "@/abis/intent-factory";
+import {
+  getDeployment,
+  intentFactoryAbi,
+} from "@packages/contract-deployments";
 import { publicClient } from "@/clients/public-client";
 import { CONFIG } from "@/config";
 import { getLastBlock, setLastBlock } from "@/core/state";
@@ -10,6 +12,13 @@ import {
   handleIntentExecuted,
   handleIntentUpdated,
 } from "./event-handlers";
+
+const intentFactoryAddress = getDeployment(ENV.CHAIN_ID).contracts
+  .intentFactory;
+
+const intentFactoryEvents = intentFactoryAbi.filter(
+  (item) => item.type === "event"
+);
 
 export const syncBlocks = async () => {
   let fromBlock = await getLastBlock();
@@ -31,10 +40,10 @@ export const syncBlocks = async () => {
 
     console.log(`Syncing blocks from ${fromBlock} to ${toBlock}`);
     const logs = await publicClient.getLogs({
-      address: ENV.INTENT_FACTORY_ADDRESS as Address,
+      address: intentFactoryAddress,
       fromBlock,
       toBlock,
-      events: intentFactoryAbi,
+      events: intentFactoryEvents,
     });
     console.log(`Found ${logs.length} logs`);
 
