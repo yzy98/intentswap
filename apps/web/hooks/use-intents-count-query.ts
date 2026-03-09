@@ -2,7 +2,7 @@
 
 import { useQuery } from "urql";
 import type { Address } from "viem";
-import { GetUserIntentsCount_Query } from "@/lib/api/gql";
+import { PersistedGetUserIntentsCount_Query } from "@/lib/api/gql";
 
 interface UseIntentsCountQueryArgs {
   user?: Address;
@@ -10,7 +10,7 @@ interface UseIntentsCountQueryArgs {
 
 export const useIntentsCountQuery = ({ user }: UseIntentsCountQueryArgs) => {
   const [{ data, fetching, error }, reExecuteQuery] = useQuery({
-    query: GetUserIntentsCount_Query,
+    query: PersistedGetUserIntentsCount_Query,
     variables: {
       user: user as string,
     },

@@ -20,7 +20,8 @@
       {
         "name": "gql.tada/ts-plugin",
         "schema": "./schema.graphql",
-        "tadaOutputLocation": "./graphql/graphql-env.d.ts"
+        "tadaOutputLocation": "./graphql/graphql-env.d.ts",
+        "tadaPersistedLocation": "../../packages/graphql-artifacts/persisted-manifests/persisted.json"
       }
     ],
     "paths": {

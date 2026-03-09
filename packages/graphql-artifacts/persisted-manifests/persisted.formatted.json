@@ -1,0 +1,4 @@
+{
+  "10f7cb2c582c2aa7fc366fd22da695b86e2954c069133f3f90f195d53e1dd436": "query GetUserIntentsCount($user: String!) {\n  total: userIntentsCount(user: $user)\n  active: userIntentsCount(user: $user, status: ACTIVE)\n  executed: userIntentsCount(user: $user, status: EXECUTED)\n  cancelled: userIntentsCount(user: $user, status: CANCELLED)\n}",
+  "4a081ce12b6c7015d883c1d264f4b7a17ee6e31391a014516db36d2c92694bb7": "query GetUserIntents($user: String!, $status: IntentStatus, $limit: Int, $offset: Int) {\n  userIntents(user: $user, status: $status, limit: $limit, offset: $offset) {\n    id\n    user\n    createdTxHash\n    createdBlock\n    updatedBlock\n    createdAt\n    updatedAt\n    ...IntentItem\n    __typename\n  }\n}\n\nfragment IntentItem on Intent {\n  tokenFrom\n  tokenTo\n  amount\n  priceThreshold\n  status\n  expiration\n  __typename\n}"
+}

@@ -1,3 +1,7 @@
-node_modules
+# deps
+node_modules/
+.wrangler
+
+
 # Keep environment variables out of version control
 .env
