@@ -3,6 +3,8 @@ import { and, count, eq } from "drizzle-orm";
 import { builder } from "@/graphql/builder";
 import { IntentRef, IntentStatusGql } from "@/graphql/models/intent";
 
+const MAX_LIMIT = 50;
+
 // Query the count of intents for a user
 builder.queryField("userIntentsCount", (t) =>
   t.field({
@@ -42,14 +44,19 @@ builder.queryField("userIntents", (t) =>
       limit: t.arg.int({ defaultValue: 5, required: false }),
       offset: t.arg.int({ defaultValue: 0, required: false }),
     },
-    resolve: async (_, { user, status, limit, offset }, ctx) =>
-      ctx.db.query.intent.findMany({
+    resolve: async (_, { user, status, limit, offset }, ctx) => {
+      const safeLimit = Math.min(Math.max(limit ?? 5, 1), MAX_LIMIT);
+      const safeOffset = Math.max(offset ?? 0, 0);
+      const result = await ctx.db.query.intent.findMany({
         where: (intent, { eq, and }) =>
           status
             ? and(eq(intent.user, user), eq(intent.status, status))
             : eq(intent.user, user),
-        limit: limit ?? undefined,
-        offset: offset ?? undefined,
-      }),
+        limit: safeLimit,
+        offset: safeOffset,
+      });
+
+      return result;
+    },
   })
 );
