@@ -11,6 +11,10 @@ export interface Env {
 
 const yoga = createYoga<Env>({
   schema,
+  cors: (_request, env) => ({
+    origin: (env as Env).CORS_ORIGIN,
+    methods: ["GET", "POST"],
+  }),
   context: (ctx) => {
     return {
       db: createDbClient(ctx.DATABASE_URL),
