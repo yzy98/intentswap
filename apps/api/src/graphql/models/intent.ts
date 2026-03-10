@@ -13,9 +13,15 @@ IntentRef.implement({
     id: t.expose("id", {
       type: "BigInt",
     }),
-    user: t.exposeString("user"),
-    tokenFrom: t.exposeString("tokenFrom"),
-    tokenTo: t.exposeString("tokenTo"),
+    user: t.expose("user", {
+      type: "EthAddress",
+    }),
+    tokenFrom: t.expose("tokenFrom", {
+      type: "EthAddress",
+    }),
+    tokenTo: t.expose("tokenTo", {
+      type: "EthAddress",
+    }),
     amount: t.exposeString("amount"),
     priceThreshold: t.exposeString("priceThreshold"),
     expiration: t.expose("expiration", {

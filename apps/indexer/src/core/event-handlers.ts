@@ -1,9 +1,10 @@
 import type { intentFactoryAbi } from "@packages/contract-deployments";
 import type { IntentStatusValue } from "@packages/db";
 import { intent } from "@packages/db/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { ParseEventLogsReturnType } from "viem";
 import { db } from "@/clients/db-client";
+import { normalizeAddress } from "@/utils";
 
 type IntentFactoryLog = ParseEventLogsReturnType<
   typeof intentFactoryAbi
@@ -57,9 +58,9 @@ export const handleIntentCreated = async (log: IntentCreatedLog) => {
 
   await db.insert(intent).values({
     id: intentId,
-    user,
-    tokenFrom,
-    tokenTo,
+    user: normalizeAddress(user),
+    tokenFrom: normalizeAddress(tokenFrom),
+    tokenTo: normalizeAddress(tokenTo),
     amount: amount.toString(),
     priceThreshold: priceThreshold.toString(),
     expiration,
@@ -70,13 +71,9 @@ export const handleIntentCreated = async (log: IntentCreatedLog) => {
 };
 
 export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
-  const { intentId, user, newPriceThreshold } = log.args;
+  const { intentId, newPriceThreshold } = log.args;
 
-  if (
-    intentId === undefined ||
-    user === undefined ||
-    newPriceThreshold === undefined
-  ) {
+  if (intentId === undefined || newPriceThreshold === undefined) {
     return;
   }
 
@@ -86,13 +83,13 @@ export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
       priceThreshold: newPriceThreshold.toString(),
       updatedBlock: log.blockNumber,
     })
-    .where(and(eq(intent.id, intentId), eq(intent.user, user)));
+    .where(eq(intent.id, intentId));
 };
 
 export const handleIntentExecuted = async (log: IntentExecutedLog) => {
-  const { intentId, user } = log.args;
+  const { intentId } = log.args;
 
-  if (intentId === undefined || user === undefined) {
+  if (intentId === undefined) {
     return;
   }
 
@@ -102,13 +99,13 @@ export const handleIntentExecuted = async (log: IntentExecutedLog) => {
       status: IntentStatus.EXECUTED,
       updatedBlock: log.blockNumber,
     })
-    .where(and(eq(intent.id, intentId), eq(intent.user, user)));
+    .where(eq(intent.id, intentId));
 };
 
 export const handleIntentCancelled = async (log: IntentCancelledLog) => {
-  const { intentId, user } = log.args;
+  const { intentId } = log.args;
 
-  if (intentId === undefined || user === undefined) {
+  if (intentId === undefined) {
     return;
   }
 
@@ -118,5 +115,5 @@ export const handleIntentCancelled = async (log: IntentCancelledLog) => {
       status: IntentStatus.CANCELLED,
       updatedBlock: log.blockNumber,
     })
-    .where(and(eq(intent.id, intentId), eq(intent.user, user)));
+    .where(eq(intent.id, intentId));
 };

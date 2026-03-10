@@ -10,7 +10,10 @@ builder.queryField("userIntentsCount", (t) =>
   t.field({
     type: "Int",
     args: {
-      user: t.arg.string({ required: true }),
+      user: t.arg({
+        type: "EthAddress",
+        required: true,
+      }),
       status: t.arg({
         type: IntentStatusGql,
         required: false,
@@ -36,7 +39,10 @@ builder.queryField("userIntents", (t) =>
   t.field({
     type: [IntentRef],
     args: {
-      user: t.arg.string({ required: true }),
+      user: t.arg({
+        type: "EthAddress",
+        required: true,
+      }),
       status: t.arg({
         type: IntentStatusGql,
         required: false,

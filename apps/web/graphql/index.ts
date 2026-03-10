@@ -8,6 +8,7 @@ export const graphql = initGraphQLTada<{
   scalars: {
     Date: Date;
     BigInt: bigint;
+    EthAddress: string;
   };
 }>();
 

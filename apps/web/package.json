@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
+    "generate-schema": "gql-tada generate schema 'http://localhost:4000/graphql'",
     "persisted": "gql-tada generate persisted && pnpm --filter @packages/graphql-artifacts format",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
