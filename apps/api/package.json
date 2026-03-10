@@ -8,6 +8,7 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@graphql-yoga/plugin-disable-introspection": "^2.19.1",
     "@graphql-yoga/plugin-persisted-operations": "^3.18.1",
     "@packages/db": "workspace:^",
     "@packages/graphql-artifacts": "workspace:^",

@@ -11,6 +11,7 @@
     }
   },
   "vars": {
-    "CORS_ORIGIN": "https://intentswap.zyang.space"
+    "CORS_ORIGIN": "https://intentswap.zyang.space",
+    "ENVIRONMENT": "production"
   }
 }
