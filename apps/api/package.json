@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev --port 4000 --inspector-port 9230",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@graphql-yoga/plugin-disable-introspection": "^2.19.1",

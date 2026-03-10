@@ -5,6 +5,7 @@ export type introspection_types = {
   BigInt: unknown;
   Boolean: unknown;
   Date: unknown;
+  EthAddress: unknown;
   Int: unknown;
   Intent: {
     kind: "OBJECT";
@@ -44,11 +45,11 @@ export type introspection_types = {
       };
       tokenFrom: {
         name: "tokenFrom";
-        type: { kind: "SCALAR"; name: "String"; ofType: null };
+        type: { kind: "SCALAR"; name: "EthAddress"; ofType: null };
       };
       tokenTo: {
         name: "tokenTo";
-        type: { kind: "SCALAR"; name: "String"; ofType: null };
+        type: { kind: "SCALAR"; name: "EthAddress"; ofType: null };
       };
       updatedAt: {
         name: "updatedAt";
@@ -60,7 +61,7 @@ export type introspection_types = {
       };
       user: {
         name: "user";
-        type: { kind: "SCALAR"; name: "String"; ofType: null };
+        type: { kind: "SCALAR"; name: "EthAddress"; ofType: null };
       };
     };
   };

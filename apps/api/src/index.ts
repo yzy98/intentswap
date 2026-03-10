@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection";
 import { usePersistedOperations } from "@graphql-yoga/plugin-persisted-operations";
 import { createDbClient } from "@packages/db";
@@ -28,6 +29,7 @@ const yoga = createYoga<Env>({
       getPersistedOperation(key: string) {
         return (persistedOperations as Record<string, string>)[key] ?? null;
       },
+      allowArbitraryOperations: env.ENVIRONMENT === "development",
     }),
     useDisableIntrospection({
       isDisabled: (_req, ctx) =>
