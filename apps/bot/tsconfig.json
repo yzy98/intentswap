@@ -7,6 +7,10 @@
     "skipLibCheck": true,
     "lib": ["ESNext", "WebWorker"],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["@cloudflare/workers-types"]
   }
 }

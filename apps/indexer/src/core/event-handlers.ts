@@ -1,8 +1,8 @@
+import type { intentFactoryAbi } from "@packages/contract-deployments";
 import type { IntentStatusValue } from "@packages/db";
 import { intent } from "@packages/db/schema";
 import { and, eq } from "drizzle-orm";
 import type { ParseEventLogsReturnType } from "viem";
-import type { intentFactoryAbi } from "@/abis/intent-factory";
 import { db } from "@/clients/db-client";
 
 type IntentFactoryLog = ParseEventLogsReturnType<

@@ -54,6 +54,7 @@ builder.queryField("userIntents", (t) =>
             : eq(intent.user, user),
         limit: safeLimit,
         offset: safeOffset,
+        orderBy: (intent, { desc }) => desc(intent.createdAt),
       });
 
       return result;
