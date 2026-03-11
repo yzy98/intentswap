@@ -10,6 +10,7 @@ export interface Env {
   DATABASE_URL: string;
   CORS_ORIGIN: string;
   ENVIRONMENT: "development" | "production";
+  GRAPHQL_API_RATE_LIMITER: RateLimit;
 }
 
 const yoga = createYoga<Env>({
@@ -39,5 +40,12 @@ const yoga = createYoga<Env>({
 });
 
 export default {
-  fetch: yoga.fetch,
+  async fetch(request, env): Promise<Response> {
+    const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+    const { success } = await env.GRAPHQL_API_RATE_LIMITER.limit({ key: ip });
+    if (!success) {
+      return new Response("Rate limit exceeded", { status: 429 });
+    }
+    return yoga.fetch(request, env);
+  },
 } satisfies ExportedHandler<Env>;
