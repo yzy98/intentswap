@@ -1,5 +1,6 @@
 import { intent } from "@packages/db";
 import { and, count, eq } from "drizzle-orm";
+import { GraphQLError } from "graphql";
 import { builder } from "@/graphql/builder";
 import { IntentRef, IntentStatusGql } from "@/graphql/models/intent";
 
@@ -20,6 +21,23 @@ builder.queryField("userIntentsCount", (t) =>
       }),
     },
     resolve: async (_, { user, status }, ctx) => {
+      // Check if authenticated
+      if (!ctx.user) {
+        throw new GraphQLError("Authorization required", {
+          extensions: {
+            code: "UNAUTHORIZED",
+          },
+        });
+      }
+      // Check if user is the same as the authenticated user
+      if (ctx.user.toLowerCase() !== user.toLowerCase()) {
+        throw new GraphQLError("Forbidden: cannot query other user's intents", {
+          extensions: {
+            code: "FORBIDDEN",
+          },
+        });
+      }
+
       const whereClause = status
         ? and(eq(intent.user, user), eq(intent.status, status))
         : eq(intent.user, user);
@@ -51,6 +69,23 @@ builder.queryField("userIntents", (t) =>
       offset: t.arg.int({ defaultValue: 0, required: false }),
     },
     resolve: async (_, { user, status, limit, offset }, ctx) => {
+      // Check if authenticated
+      if (!ctx.user) {
+        throw new GraphQLError("Authorization required", {
+          extensions: {
+            code: "UNAUTHORIZED",
+          },
+        });
+      }
+      // Check if user is the same as the authenticated user
+      if (ctx.user.toLowerCase() !== user.toLowerCase()) {
+        throw new GraphQLError("Forbidden: cannot query other user's intents", {
+          extensions: {
+            code: "FORBIDDEN",
+          },
+        });
+      }
+
       const safeLimit = Math.min(Math.max(limit ?? 5, 1), MAX_LIMIT);
       const safeOffset = Math.max(offset ?? 0, 0);
       const result = await ctx.db.query.intent.findMany({

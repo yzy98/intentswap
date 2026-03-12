@@ -1,5 +1,6 @@
 import type { graphql, ResultOf, VariablesOf } from "gql.tada";
 import { useQuery } from "urql";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
   type IntentItem_Fragment,
   PersistedGetUserIntents_Query,
@@ -25,6 +26,8 @@ export const useIntentsQuery = ({
   limit,
   offset,
 }: GetUserIntentsQueryVariables) => {
+  const { isAuthenticated } = useAuth();
+
   const [{ data, fetching, error }, reExecuteQuery] = useQuery({
     query: PersistedGetUserIntents_Query,
     variables: {
@@ -33,7 +36,7 @@ export const useIntentsQuery = ({
       limit,
       offset,
     },
-    pause: !user,
+    pause: !(user && isAuthenticated),
   });
 
   return {

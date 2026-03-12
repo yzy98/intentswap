@@ -1,10 +1,12 @@
 import type { createDbClient } from "@packages/db";
 import SchemaBuilder from "@pothos/core";
 import { BigIntResolver, DateResolver } from "graphql-scalars";
+import type { Address } from "viem";
 import { EthAddressResolver } from "./scalars/eth-address";
 
 export interface Context {
   db: ReturnType<typeof createDbClient>;
+  user: Address | null;
 }
 
 export const builder = new SchemaBuilder<{
