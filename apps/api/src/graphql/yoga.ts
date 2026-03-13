@@ -4,32 +4,24 @@ import { usePersistedOperations } from "@graphql-yoga/plugin-persisted-operation
 import { createDbClient } from "@packages/db";
 import persistedOperations from "@packages/graphql-artifacts/persisted-formatted-manifests";
 import { createYoga } from "graphql-yoga";
-import { jwtVerify } from "jose";
-import type { Address } from "viem";
 import type { Env } from "@/env";
+import type { Services } from "@/services";
 import { schema } from "./schema";
 
-export const yoga = createYoga<Env>({
+interface YogaContext extends Env {
+  auth: Services["auth"];
+}
+
+export const yoga = createYoga<YogaContext>({
   schema,
   context: async (ctx) => {
-    let user: Address | null = null;
-
-    // Extract JWT from Authorization header
-    const authHeader = ctx.request.headers.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      try {
-        const token = authHeader.slice(7);
-        const secret = new TextEncoder().encode(ctx.JWT_SECRET);
-        const { payload } = await jwtVerify(token, secret);
-        user = (payload.address as Address) ?? null;
-      } catch {
-        user = null;
-      }
-    }
+    const session = await ctx.auth.api.getSession({
+      headers: ctx.request.headers,
+    });
 
     return {
       db: createDbClient(ctx.DATABASE_URL),
-      user,
+      user: session?.user ?? null,
     };
   },
   cors: (_req, ctx) => ({

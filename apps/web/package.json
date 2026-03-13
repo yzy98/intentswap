@@ -16,6 +16,7 @@
     "@base-ui/react": "^1.0.0",
     "@metamask/sdk": "~0.33.1",
     "@opennextjs/cloudflare": "^1.16.3",
+    "@packages/auth": "workspace:^",
     "@packages/contract-deployments": "workspace:*",
     "@packages/graphql-artifacts": "workspace:^",
     "@rainbow-me/rainbowkit": "^2.2.10",

@@ -10,6 +10,7 @@
   "dependencies": {
     "@graphql-yoga/plugin-disable-introspection": "^2.19.1",
     "@graphql-yoga/plugin-persisted-operations": "^3.18.1",
+    "@packages/auth": "workspace:^",
     "@packages/db": "workspace:^",
     "@packages/graphql-artifacts": "workspace:^",
     "@pothos/core": "^4.12.0",
@@ -17,7 +18,6 @@
     "graphql": "^16.13.1",
     "graphql-scalars": "^1.25.0",
     "graphql-yoga": "^5.18.0",
-    "jose": "^6.2.1",
     "viem": "catalog:"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { PlusIcon } from "lucide-react";
+import { LogOutIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useConnection, useReadContract } from "wagmi";
 import { CreateIntentDialog } from "@/components/intents/create-intent-dialog";
@@ -12,7 +12,7 @@ import { ModeToggle } from "./mode-toggle";
 
 export function Header() {
   const { address } = useConnection();
-  const { isAuthenticated, isAuthenticating, signIn } = useAuth();
+  const { isAuthenticated, isAuthenticating, signIn, signOut } = useAuth();
 
   const { data: ownerAddress } = useReadContract({
     ...oracleContract,
@@ -48,6 +48,12 @@ export function Header() {
         {address && !isAuthenticated && (
           <Button disabled={isAuthenticating} onClick={signIn}>
             {isAuthenticating ? "Signing in..." : "Sign in"}
+          </Button>
+        )}
+        {address && isAuthenticated && (
+          <Button onClick={signOut}>
+            <LogOutIcon />
+            Sign Out
           </Button>
         )}
         <ConnectButton chainStatus="icon" showBalance={false} />
