@@ -5,12 +5,14 @@ import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useConnection, useReadContract } from "wagmi";
 import { CreateIntentDialog } from "@/components/intents/create-intent-dialog";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { oracleContract } from "@/lib/constants";
 import { ModeToggle } from "./mode-toggle";
 
 export function Header() {
   const { address } = useConnection();
+  const { isAuthenticated, isAuthenticating, signIn } = useAuth();
 
   const { data: ownerAddress } = useReadContract({
     ...oracleContract,
@@ -33,7 +35,7 @@ export function Header() {
             Admin
           </Link>
         )}
-        {address && (
+        {address && isAuthenticated && (
           <CreateIntentDialog
             triggerButton={
               <Button>
@@ -42,6 +44,11 @@ export function Header() {
               </Button>
             }
           />
+        )}
+        {address && !isAuthenticated && (
+          <Button disabled={isAuthenticating} onClick={signIn}>
+            {isAuthenticating ? "Signing in..." : "Sign in"}
+          </Button>
         )}
         <ConnectButton chainStatus="icon" showBalance={false} />
         <ModeToggle />

@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-27",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "ratelimits": [
+    {
+      "name": "API_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": {
+        "limit": 100,
+        "period": 60
+      }
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "INTENTSWAP_AUTH_NONCE",
+      "id": "226b806164a54000a0f292198c93319a",
+      "remote": true
+    }
+  ],
+  "vars": {
+    "CORS_ORIGIN": "https://intentswap.zyang.space",
+    "ENVIRONMENT": "production",
+    "CHAIN_ID": "84532"
+  }
+}

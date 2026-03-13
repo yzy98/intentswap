@@ -8,6 +8,9 @@ A date string, such as 2007-12-03, compliant with the `full-date` format outline
 """
 scalar Date
 
+"""An Ethereum address, validated and normalized to lowercase"""
+scalar EthAddress
+
 type Intent {
   amount: String
   createdAt: Date
@@ -17,11 +20,11 @@ type Intent {
   id: BigInt
   priceThreshold: String
   status: IntentStatus
-  tokenFrom: String
-  tokenTo: String
+  tokenFrom: EthAddress
+  tokenTo: EthAddress
   updatedAt: Date
   updatedBlock: BigInt
-  user: String
+  user: EthAddress
 }
 
 enum IntentStatus {
@@ -31,6 +34,6 @@ enum IntentStatus {
 }
 
 type Query {
-  userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: String!): [Intent!]
-  userIntentsCount(status: IntentStatus, user: String!): Int
+  userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: EthAddress!): [Intent!]
+  userIntentsCount(status: IntentStatus, user: EthAddress!): Int
 }

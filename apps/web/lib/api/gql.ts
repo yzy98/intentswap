@@ -1,13 +1,18 @@
 import { graphql } from "@/graphql";
 
-export const GetUserIntentsCount_Query = graphql(`
-  query GetUserIntentsCount($user: String!) {
+const GetUserIntentsCount_Query = graphql(`
+  query GetUserIntentsCount($user: EthAddress!) {
     total: userIntentsCount(user: $user)
     active: userIntentsCount(user: $user, status: ACTIVE)
     executed: userIntentsCount(user: $user, status: EXECUTED)
     cancelled: userIntentsCount(user: $user, status: CANCELLED)
   }
 `);
+
+export const PersistedGetUserIntentsCount_Query = graphql.persisted(
+  "GET_USER_INTENTS_COUNT",
+  GetUserIntentsCount_Query
+);
 
 export const IntentItem_Fragment = graphql(`
   fragment IntentItem on Intent {
@@ -20,9 +25,9 @@ export const IntentItem_Fragment = graphql(`
   }
 `);
 
-export const GetUserIntents_Query = graphql(
+const GetUserIntents_Query = graphql(
   `
-  query GetUserIntents($user: String!, $status: IntentStatus, $limit: Int, $offset: Int) {
+  query GetUserIntents($user: EthAddress!, $status: IntentStatus, $limit: Int, $offset: Int) {
     userIntents(user: $user, status: $status, limit: $limit, offset: $offset) {
       id
       user
@@ -36,4 +41,9 @@ export const GetUserIntents_Query = graphql(
   }
 `,
   [IntentItem_Fragment]
+);
+
+export const PersistedGetUserIntents_Query = graphql.persisted(
+  "GET_USER_INTENTS",
+  GetUserIntents_Query
 );

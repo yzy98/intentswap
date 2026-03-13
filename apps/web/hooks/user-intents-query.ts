@@ -1,14 +1,22 @@
 import type { graphql, ResultOf, VariablesOf } from "gql.tada";
 import { useQuery } from "urql";
-import { GetUserIntents_Query, type IntentItem_Fragment } from "@/lib/api/gql";
+import { useAuth } from "@/components/providers/auth-provider";
+import {
+  type IntentItem_Fragment,
+  PersistedGetUserIntents_Query,
+} from "@/lib/api/gql";
 
-type GetUserIntentsQueryVariables = VariablesOf<typeof GetUserIntents_Query>;
+type GetUserIntentsQueryVariables = VariablesOf<
+  typeof PersistedGetUserIntents_Query
+>;
 
 export type IntentStatusType = ReturnType<
   typeof graphql.scalar<"IntentStatus">
 >;
 
-export type GetUserIntentsQueryResult = ResultOf<typeof GetUserIntents_Query>;
+export type GetUserIntentsQueryResult = ResultOf<
+  typeof PersistedGetUserIntents_Query
+>;
 
 export type IntentItemFragmentResult = ResultOf<typeof IntentItem_Fragment>;
 
@@ -18,15 +26,17 @@ export const useIntentsQuery = ({
   limit,
   offset,
 }: GetUserIntentsQueryVariables) => {
+  const { isAuthenticated } = useAuth();
+
   const [{ data, fetching, error }, reExecuteQuery] = useQuery({
-    query: GetUserIntents_Query,
+    query: PersistedGetUserIntents_Query,
     variables: {
       user: user as string,
       status,
       limit,
       offset,
     },
-    pause: !user,
+    pause: !(user && isAuthenticated),
   });
 
   return {

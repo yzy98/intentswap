@@ -1,4 +1,3 @@
-import type { KVNamespace, RateLimit } from "@cloudflare/workers-types";
 import type { Context } from "hono";
 import type { Address, Hex, PublicClient, WalletClient } from "viem";
 

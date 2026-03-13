@@ -1,9 +1,4 @@
 /** biome-ignore-all lint/complexity/noExcessiveCognitiveComplexity: big function */
-import type {
-  ExecutionContext,
-  KVNamespaceListKey,
-  ScheduledController,
-} from "@cloudflare/workers-types";
 import {
   getDeployment,
   intentExecutorAbi,
