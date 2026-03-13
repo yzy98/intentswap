@@ -1,10 +1,36 @@
-import { intent } from "@packages/db";
+import { intent, walletAddress } from "@packages/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { GraphQLError } from "graphql";
-import { builder } from "@/graphql/builder";
+import { builder, type Context } from "@/graphql/builder";
 import { IntentRef, IntentStatusGql } from "@/graphql/models/intent";
 
 const MAX_LIMIT = 50;
+
+const getAuthenticatedWalletAddress = async (ctx: Context) => {
+  if (!ctx.user) {
+    throw new GraphQLError("Authorization required", {
+      extensions: { code: "UNAUTHORIZED" },
+    });
+  }
+
+  const [result] = await ctx.db
+    .select({ address: walletAddress.address })
+    .from(walletAddress)
+    .where(
+      and(
+        eq(walletAddress.userId, ctx.user.id),
+        eq(walletAddress.isPrimary, true)
+      )
+    );
+
+  if (!result) {
+    throw new GraphQLError("No wallet address found", {
+      extensions: { code: "NOT_FOUND" },
+    });
+  }
+
+  return result.address.toLowerCase();
+};
 
 // Query the count of intents for a user
 builder.queryField("userIntentsCount", (t) =>
@@ -21,16 +47,11 @@ builder.queryField("userIntentsCount", (t) =>
       }),
     },
     resolve: async (_, { user, status }, ctx) => {
-      // Check if authenticated
-      if (!ctx.user) {
-        throw new GraphQLError("Authorization required", {
-          extensions: {
-            code: "UNAUTHORIZED",
-          },
-        });
-      }
-      // Check if user is the same as the authenticated user
-      if (ctx.user.toLowerCase() !== user.toLowerCase()) {
+      // Fetch authenticated user's wallet address
+      const address = await getAuthenticatedWalletAddress(ctx);
+
+      // Check if user is the same as the authenticated user's address
+      if (address.toLowerCase() !== user.toLowerCase()) {
         throw new GraphQLError("Forbidden: cannot query other user's intents", {
           extensions: {
             code: "FORBIDDEN",
@@ -39,8 +60,8 @@ builder.queryField("userIntentsCount", (t) =>
       }
 
       const whereClause = status
-        ? and(eq(intent.user, user), eq(intent.status, status))
-        : eq(intent.user, user);
+        ? and(eq(intent.user, address), eq(intent.status, status))
+        : eq(intent.user, address);
 
       const [result] = await ctx.db
         .select({ count: count() })
@@ -69,16 +90,11 @@ builder.queryField("userIntents", (t) =>
       offset: t.arg.int({ defaultValue: 0, required: false }),
     },
     resolve: async (_, { user, status, limit, offset }, ctx) => {
-      // Check if authenticated
-      if (!ctx.user) {
-        throw new GraphQLError("Authorization required", {
-          extensions: {
-            code: "UNAUTHORIZED",
-          },
-        });
-      }
-      // Check if user is the same as the authenticated user
-      if (ctx.user.toLowerCase() !== user.toLowerCase()) {
+      // Fetch authenticated user's wallet address
+      const address = await getAuthenticatedWalletAddress(ctx);
+
+      // Check if user is the same as the authenticated user's address
+      if (address.toLowerCase() !== user.toLowerCase()) {
         throw new GraphQLError("Forbidden: cannot query other user's intents", {
           extensions: {
             code: "FORBIDDEN",
@@ -91,8 +107,8 @@ builder.queryField("userIntents", (t) =>
       const result = await ctx.db.query.intent.findMany({
         where: (intent, { eq, and }) =>
           status
-            ? and(eq(intent.user, user), eq(intent.status, status))
-            : eq(intent.user, user),
+            ? and(eq(intent.user, address), eq(intent.status, status))
+            : eq(intent.user, address),
         limit: safeLimit,
         offset: safeOffset,
         orderBy: (intent, { desc }) => desc(intent.createdAt),

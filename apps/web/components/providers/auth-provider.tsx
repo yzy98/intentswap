@@ -1,21 +1,12 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import type { Address } from "viem";
+import { createContext, useCallback, useContext, useState } from "react";
 import { createSiweMessage } from "viem/siwe";
 import { useChainId, useConfig, useConnection } from "wagmi";
 import { signMessage } from "wagmi/actions";
-import { fetchNonce, verifyAuth } from "@/lib/api/auth";
+import { authClient, useSession } from "@/lib/client/auth";
 
 interface AuthContextValue {
-  token: string | null;
   isAuthenticated: boolean;
   isAuthenticating: boolean;
   signIn: () => Promise<void>;
@@ -25,34 +16,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-
-  const previousAddressRef = useRef<Address | undefined>(undefined);
-
-  const { address, isConnected } = useConnection();
+  const { address } = useConnection();
   const chainId = useChainId();
   const config = useConfig();
 
-  // Clear JWT token when user disconnects
-  useEffect(() => {
-    if (!isConnected) {
-      setToken(null);
-    }
-  }, [isConnected]);
-
-  // When user address changes, clear JWT token and update previous address
-  useEffect(() => {
-    if (
-      previousAddressRef.current &&
-      address &&
-      previousAddressRef.current.toLowerCase() !== address.toLowerCase()
-    ) {
-      setToken(null);
-    }
-
-    previousAddressRef.current = address;
-  }, [address]);
+  const { data, refetch } = useSession();
 
   const signIn = useCallback(async () => {
     if (!(address && chainId)) {
@@ -61,14 +30,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     setIsAuthenticating(true);
     try {
-      // Step 1: Fetch nonce
-      const nonce = await fetchNonce();
+      // Step 1: Generate nonce
+      const { data: nonceData, error: nonceError } =
+        await authClient.siwe.nonce({
+          walletAddress: address,
+          chainId,
+        });
+
+      if (nonceError) {
+        throw new Error(nonceError.message);
+      }
 
       // Step 2: Create SIWE message
       const message = createSiweMessage({
         address,
         chainId,
-        nonce,
+        nonce: nonceData.nonce,
         domain: window.location.host,
         uri: window.location.origin,
         version: "1",
@@ -81,25 +58,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         message,
       });
 
-      // Step 4: Verify authentication
-      const jwt = await verifyAuth(message, signature);
-      setToken(jwt);
+      // Step 4: Verify SIWE
+      const { data: verifyData, error: verifyError } =
+        await authClient.siwe.verify({
+          message,
+          signature,
+          walletAddress: address,
+          chainId,
+        });
+
+      if (verifyError) {
+        throw new Error(verifyError.message);
+      }
+
+      if (verifyData.success) {
+        refetch();
+        return;
+      }
+
+      throw new Error("Authentication failed");
     } catch (error) {
       console.error("SIWE sign-in failed:", error);
-      setToken(null);
     } finally {
       setIsAuthenticating(false);
     }
-  }, [address, chainId, config]);
+  }, [address, chainId, config, refetch]);
 
-  const signOut = () => setToken(null);
+  const signOut = () => authClient.signOut();
 
   return (
     <AuthContext
       value={{
-        token,
-        isAuthenticated: !!token,
         isAuthenticating,
+        isAuthenticated: !!data?.session,
         signIn,
         signOut,
       }}

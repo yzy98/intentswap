@@ -27,5 +27,10 @@
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
       "pnpm fix --"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "drizzle-orm": "catalog:"
+    }
   }
 }

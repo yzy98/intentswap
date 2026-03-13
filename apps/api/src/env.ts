@@ -1,10 +1,10 @@
 export interface Env {
-  INTENTSWAP_AUTH_NONCE: KVNamespace;
   API_RATE_LIMITER: RateLimit;
   DATABASE_URL: string;
-  JWT_SECRET: string;
+  BETTER_AUTH_SECRET: string;
   CORS_ORIGIN: string;
   ENVIRONMENT: string;
+  API_BASE_URL: string;
   CHAIN_ID: string;
   RPC_URL: string;
 }
