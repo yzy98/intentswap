@@ -9,9 +9,9 @@
     "trigger-cron": "curl http://localhost:8787/cdn-cgi/handler/scheduled"
   },
   "dependencies": {
-    "hono": "^4.11.6",
-    "viem": "catalog:",
-    "@packages/contract-deployments": "workspace:*"
+    "@packages/contract-deployments": "workspace:*",
+    "hono": "catalog:",
+    "viem": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",

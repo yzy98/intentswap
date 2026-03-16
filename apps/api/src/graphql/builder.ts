@@ -1,10 +1,8 @@
 import type { createDbClient } from "@packages/db";
 import SchemaBuilder from "@pothos/core";
 import { BigIntResolver, DateResolver } from "graphql-scalars";
-import type { Services } from "@/services";
+import type { User } from "@/lib/types";
 import { EthAddressResolver } from "./scalars/eth-address";
-
-type User = Services["auth"]["$Infer"]["Session"]["user"];
 
 export interface Context {
   db: ReturnType<typeof createDbClient>;

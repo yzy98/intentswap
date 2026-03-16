@@ -1,48 +1,34 @@
-import { yoga } from "@/graphql/yoga";
-import type { Env } from "./env";
-import { createServices } from "./services";
+import { Hono } from "hono";
+import { logger } from "hono/logger";
+import { getYogaApp } from "@/graphql/yoga";
+import { getAuth } from "@/lib/auth";
+import type { AppEnv } from "@/lib/types";
+import { authCorsMiddleware } from "@/middlewares/cors";
+import { rateLimiterMiddleware } from "@/middlewares/rate-limiter";
+import { sessionMiddleware } from "@/middlewares/session";
 
-export default {
-  async fetch(request, env): Promise<Response> {
-    // Get URL
-    const url = new URL(request.url);
+const app = new Hono<AppEnv>();
 
-    // Handle CORS preflight for auth routes
-    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/auth/")) {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Allow-Credentials": "true",
-          "Access-Control-Max-Age": "86400",
-        },
-      });
-    }
+// Middlewares
+app.use(logger());
+app.use("*", rateLimiterMiddleware);
+app.use("/api/auth/*", authCorsMiddleware);
+app.use("/graphql", sessionMiddleware);
 
-    // Rate limiting
-    const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
-    const { success } = await env.API_RATE_LIMITER.limit({ key: ip });
-    if (!success) {
-      return new Response("Rate limit exceeded", {
-        status: 429,
-      });
-    }
+// Auth route
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
+  const auth = getAuth(c.env);
+  return auth.handler(c.req.raw);
+});
 
-    // Services
-    const { auth } = createServices(env);
+// GraphQL route
+app.all("/graphql", (c) => {
+  const yoga = getYogaApp(c.env);
+  return yoga.fetch(c.req.raw, {
+    ...c.env,
+    user: c.get("user"),
+    session: c.get("session"),
+  });
+});
 
-    // Handle auth routes
-    if (url.pathname.startsWith("/api/auth/")) {
-      const res = await auth.handler(request);
-      // Append CORS headers to auth handler responses
-      const headers = new Headers(res.headers);
-      headers.set("Access-Control-Allow-Origin", env.CORS_ORIGIN);
-      headers.set("Access-Control-Allow-Credentials", "true");
-      return new Response(res.body, { status: res.status, headers });
-    }
-
-    return yoga.fetch(request, { ...env, auth });
-  },
-} satisfies ExportedHandler<Env>;
+export default app;
