@@ -9,6 +9,18 @@ catalogs:
     '@cloudflare/workers-types':
       specifier: ^4.2
       version: 4.20260127.0
+    '@types/node':
+      specifier: ^22.19.3
+      version: 22.19.3
+    dotenv:
+      specifier: ^17.3.1
+      version: 17.3.1
+    hono:
+      specifier: ^4.11.6
+      version: 4.11.6
+    tsx:
+      specifier: ^4.21.0
+      version: 4.21.0
     typescript:
       specifier: ^5.5.4
       version: 5.9.3
@@ -18,6 +30,9 @@ catalogs:
     wrangler:
       specifier: ^4.4.0
       version: 4.60.0
+    zod:
+      specifier: ^4.3.6
+      version: 4.3.6
 
 overrides:
   drizzle-orm: ^0.45.1
@@ -74,6 +89,12 @@ importers:
       graphql-yoga:
         specifier: ^5.18.0
         version: 5.18.0(graphql@16.13.1)
+      hono:
+        specifier: 'catalog:'
+        version: 4.11.6
+      hono-rate-limiter:
+        specifier: ^0.5.3
+        version: 0.5.3(hono@4.11.6)
       viem:
         specifier: 'catalog:'
         version: 2.43.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6)
@@ -94,7 +115,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/contract-deployments
       hono:
-        specifier: ^4.11.6
+        specifier: 'catalog:'
         version: 4.11.6
       viem:
         specifier: 'catalog:'
@@ -5196,6 +5217,15 @@ packages:
 
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
+
+  hono-rate-limiter@0.5.3:
+    resolution: {integrity: sha512-M0DxbVMpPELEzLi0AJg1XyBHLGJXz7GySjsPoK+gc5YeeBsdGDGe+2RvVuCAv8ydINiwlbxqYMNxUEyYfRji/A==}
+    peerDependencies:
+      hono: ^4.10.8
+      unstorage: ^1.17.3
+    peerDependenciesMeta:
+      unstorage:
+        optional: true
 
   hono@4.11.6:
     resolution: {integrity: sha512-ofIiiHyl34SV6AuhE3YT2mhO5HRWokce+eUYE82TsP6z0/H3JeJcjVWEMSIAiw2QkjDOEpES/lYsg8eEbsLtdw==}
@@ -12944,6 +12974,10 @@ snapshots:
       hash.js: 1.1.7
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
+
+  hono-rate-limiter@0.5.3(hono@4.11.6):
+    dependencies:
+      hono: 4.11.6
 
   hono@4.11.6: {}
 

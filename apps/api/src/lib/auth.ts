@@ -2,7 +2,7 @@ import { createAuth } from "@packages/auth/server";
 import { createDbClient } from "@packages/db";
 import { type Chain, createPublicClient, http } from "viem";
 import { base, baseSepolia } from "viem/chains";
-import type { Env } from "./env";
+import type { Env } from "./types";
 
 const chains: Record<number, Chain> = {
   [baseSepolia.id]: baseSepolia,
@@ -17,13 +17,13 @@ const getChain = (chainId: string): Chain => {
   return chain;
 };
 
-export const createServices = (env: Env) => {
+export const getAuth = (env: Env) => {
   const publicClient = createPublicClient({
     chain: getChain(env.CHAIN_ID),
     transport: http(env.RPC_URL),
   });
 
-  const auth = createAuth({
+  return createAuth({
     db: createDbClient(env.DATABASE_URL),
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.API_BASE_URL,
@@ -37,11 +37,4 @@ export const createServices = (env: Env) => {
       });
     },
   });
-
-  return {
-    publicClient,
-    auth,
-  };
 };
-
-export type Services = ReturnType<typeof createServices>;
