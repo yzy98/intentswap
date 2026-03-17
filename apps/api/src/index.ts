@@ -16,8 +16,8 @@ app.use("/api/auth/*", authCorsMiddleware);
 app.use("/graphql", sessionMiddleware);
 
 // Auth route
-app.on(["POST", "GET"], "/api/auth/*", (c) => {
-  const auth = getAuth(c.env);
+app.on(["POST", "GET"], "/api/auth/*", async (c) => {
+  const auth = await getAuth(c.env);
   return auth.handler(c.req.raw);
 });
 

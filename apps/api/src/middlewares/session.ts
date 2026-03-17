@@ -6,7 +6,7 @@ export const sessionMiddleware: MiddlewareHandler<AppEnv> = async (
   c: AppContext,
   next: Next
 ) => {
-  const auth = getAuth(c.env);
+  const auth = await getAuth(c.env);
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
   });

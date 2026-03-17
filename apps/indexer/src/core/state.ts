@@ -1,5 +1,5 @@
+import { eq } from "@packages/db/helper";
 import { indexerState } from "@packages/db/schema";
-import { eq } from "drizzle-orm";
 import { db } from "@/clients/db-client";
 import { CONFIG } from "@/config";
 

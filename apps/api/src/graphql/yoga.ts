@@ -1,6 +1,6 @@
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection";
 import { usePersistedOperations } from "@graphql-yoga/plugin-persisted-operations";
-import { createDbClient } from "@packages/db";
+import { createWorkerDbClient } from "@packages/db/worker";
 import persistedOperations from "@packages/graphql-artifacts/persisted-formatted-manifests";
 import { createYoga } from "graphql-yoga";
 import type { Env, Session, User } from "@/lib/types";
@@ -14,10 +14,15 @@ interface YogaContext extends Env {
 const createYogaApp = (env: Env) =>
   createYoga<YogaContext>({
     schema,
-    context: (ctx) => {
+    context: async (ctx) => {
+      const db = await createWorkerDbClient(
+        ctx.INTENT_SWAP_API_HYPERDRIVE.connectionString
+      );
+      const { user } = ctx;
+
       return {
-        db: createDbClient(ctx.DATABASE_URL),
-        user: ctx.user,
+        db,
+        user,
       };
     },
     cors: {

@@ -1,5 +1,5 @@
 import { createAuth } from "@packages/auth/server";
-import { createDbClient } from "@packages/db";
+import { createWorkerDbClient } from "@packages/db/worker";
 import { type Chain, createPublicClient, http } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import type { Env } from "./types";
@@ -17,14 +17,20 @@ const getChain = (chainId: string): Chain => {
   return chain;
 };
 
-export const getAuth = (env: Env) => {
+export const getAuth = async (env: Env) => {
+  // Create a worker db client
+  const db = await createWorkerDbClient(
+    env.INTENT_SWAP_API_HYPERDRIVE.connectionString
+  );
+
+  // Create a public client for verifying SIWE messages
   const publicClient = createPublicClient({
     chain: getChain(env.CHAIN_ID),
     transport: http(env.RPC_URL),
   });
 
   return createAuth({
-    db: createDbClient(env.DATABASE_URL),
+    db,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.API_BASE_URL,
     trustedOrigins: [env.CORS_ORIGIN],

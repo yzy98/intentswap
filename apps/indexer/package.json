@@ -1,6 +1,6 @@
 {
   "name": "@apps/indexer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts"
@@ -14,7 +14,6 @@
     "@packages/contract-deployments": "workspace:^",
     "@packages/db": "workspace:^",
     "dotenv": "catalog:",
-    "drizzle-orm": "catalog:",
     "viem": "catalog:",
     "zod": "catalog:"
   }
