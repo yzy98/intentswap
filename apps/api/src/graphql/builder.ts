@@ -1,11 +1,11 @@
-import type { createDbClient } from "@packages/db";
+import type { WorkerDbClient } from "@packages/db/worker";
 import SchemaBuilder from "@pothos/core";
 import { BigIntResolver, DateResolver } from "graphql-scalars";
 import type { User } from "@/lib/types";
 import { EthAddressResolver } from "./scalars/eth-address";
 
 export interface Context {
-  db: ReturnType<typeof createDbClient>;
+  db: WorkerDbClient;
   user: User | null;
 }
 

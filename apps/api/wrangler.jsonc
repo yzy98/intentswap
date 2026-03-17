@@ -2,8 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api",
   "main": "src/index.ts",
-  "compatibility_date": "2026-01-27",
+  "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
+  "hyperdrive": [
+    {
+      "binding": "INTENT_SWAP_API_HYPERDRIVE",
+      "id": "e809e11046144cb786f6c8c63dfeceb9"
+    }
+  ],
   "observability": {
     "logs": {
       "enabled": true,
@@ -22,6 +28,7 @@
   ],
   "vars": {
     "CORS_ORIGIN": "https://intentswap.zyang.space",
+    "API_BASE_URL": "",
     "ENVIRONMENT": "production",
     "CHAIN_ID": "84532"
   }

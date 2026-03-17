@@ -9,8 +9,8 @@ export interface AppEnv {
 }
 
 export interface Env {
+  INTENT_SWAP_API_HYPERDRIVE: Hyperdrive;
   API_RATE_LIMITER: RateLimit;
-  DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;
   CORS_ORIGIN: string;
   ENVIRONMENT: string;
@@ -24,6 +24,6 @@ export interface Vars {
   session: Session | null;
 }
 
-export type AuthInstance = ReturnType<typeof getAuth>;
+export type AuthInstance = Awaited<ReturnType<typeof getAuth>>;
 export type User = AuthInstance["$Infer"]["Session"]["user"];
 export type Session = AuthInstance["$Infer"]["Session"]["session"];

@@ -1,7 +1,7 @@
 import type { intentFactoryAbi } from "@packages/contract-deployments";
-import type { IntentStatusValue } from "@packages/db";
+import { eq } from "@packages/db/helper";
+import type { IntentStatusValue } from "@packages/db/schema";
 import { intent } from "@packages/db/schema";
-import { eq } from "drizzle-orm";
 import type { ParseEventLogsReturnType } from "viem";
 import { db } from "@/clients/db-client";
 import { normalizeAddress } from "@/utils";
