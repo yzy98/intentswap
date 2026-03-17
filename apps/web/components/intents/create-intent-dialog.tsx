@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { erc20Abi, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
-import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveDialog,
@@ -43,7 +42,6 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
   );
 
   const { mutateAsync } = useWriteContract();
-  const { refetchIntentIds } = useIntentIds();
   const { address } = useConnection();
   const config = useConfig();
 
@@ -122,7 +120,6 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
         ? `Intent created successfully for ${getTokenByAddress(formValuesRef.current.tokenFrom)?.symbol ?? "token"}/${getTokenByAddress(formValuesRef.current.tokenTo)?.symbol ?? "token"}`
         : "Intent created successfully",
     },
-    refetch: refetchIntentIds,
     onSuccess: () => {
       form.reset();
       formValuesRef.current = undefined;
