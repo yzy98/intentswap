@@ -6,6 +6,7 @@ import { EthAddressResolver } from "./scalars/eth-address";
 
 export interface Context {
   db: WorkerDbClient;
+  dbNoCache: WorkerDbClient;
   user: User | null;
 }
 

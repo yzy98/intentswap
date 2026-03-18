@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useClient } from "urql";
 import { erc20Abi, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
@@ -18,6 +19,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateIntentForm } from "@/hooks/use-create-intent-form";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
+import { PersistedGetIntentByCreatedTxHash_Query } from "@/lib/api/gql";
 import {
   intentExecutorContract,
   intentFactoryContract,
@@ -27,7 +29,7 @@ import {
   type CreateIntentFormParsedValues,
   createIntentFormSchema,
 } from "@/lib/types";
-import { getTokenByAddress } from "@/lib/utils";
+import { getTokenByAddress, pollUntil } from "@/lib/utils";
 import { CreateIntentForm } from "./form";
 
 interface CreateIntentDialogProps {
@@ -44,6 +46,32 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
   const { mutateAsync } = useWriteContract();
   const { address } = useConnection();
   const config = useConfig();
+  const client = useClient();
+
+  const waitForIndexed = async (txHash: `0x${string}`) => {
+    await pollUntil({
+      fn: async () => {
+        const res = await client.query(
+          PersistedGetIntentByCreatedTxHash_Query,
+          {
+            txHash,
+          },
+          {
+            requestPolicy: "network-only",
+          }
+        );
+
+        if (res.error) {
+          throw res.error;
+        }
+
+        return res.data?.intentByCreatedTxHash ?? null;
+      },
+      validate: (intent) => Boolean(intent?.id),
+      interval: 2000,
+      timeout: 45_000,
+    });
+  };
 
   const { execute, isPending } = useMyWriteContract({
     mutateAsyncFn: async () => {
@@ -112,10 +140,11 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
         args: [tokenFrom, tokenTo, amount, priceThreshold, expiration],
       });
     },
+    waitForIndexed,
     messages: {
       sending: "Creating intent...",
       waiting: "Waiting for transaction to be confirmed...",
-      refetching: "Transaction confirmed, refetching intents data...",
+      indexing: "Waiting for created intent to be indexed...",
       success: formValuesRef.current
         ? `Intent created successfully for ${getTokenByAddress(formValuesRef.current.tokenFrom)?.symbol ?? "token"}/${getTokenByAddress(formValuesRef.current.tokenTo)?.symbol ?? "token"}`
         : "Intent created successfully",

@@ -8,6 +8,10 @@
     {
       "binding": "INTENT_SWAP_API_HYPERDRIVE",
       "id": "e809e11046144cb786f6c8c63dfeceb9"
+    },
+    {
+      "binding": "INTENT_SWAP_API_HYPERDRIVE_CACHE_DISABLED",
+      "id": "c67bd7d6fcb547d59ac811adab640f60"
     }
   ],
   "observability": {

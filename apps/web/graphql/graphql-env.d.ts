@@ -73,6 +73,10 @@ export type introspection_types = {
     kind: "OBJECT";
     name: "Query";
     fields: {
+      intentByCreatedTxHash: {
+        name: "intentByCreatedTxHash";
+        type: { kind: "OBJECT"; name: "Intent"; ofType: null };
+      };
       userIntents: {
         name: "userIntents";
         type: {

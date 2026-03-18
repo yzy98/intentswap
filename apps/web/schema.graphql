@@ -34,6 +34,7 @@ enum IntentStatus {
 }
 
 type Query {
+  intentByCreatedTxHash(txHash: String!): Intent
   userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: EthAddress!): [Intent!]
   userIntentsCount(status: IntentStatus, user: EthAddress!): Int
 }

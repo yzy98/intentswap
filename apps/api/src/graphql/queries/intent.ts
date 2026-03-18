@@ -118,3 +118,30 @@ builder.queryField("userIntents", (t) =>
     },
   })
 );
+
+// Query a created intent by its transaction hash
+builder.queryField("intentByCreatedTxHash", (t) =>
+  t.field({
+    type: IntentRef,
+    nullable: true,
+    args: {
+      txHash: t.arg.string({ required: true }),
+    },
+    resolve: async (_, { txHash }, ctx) => {
+      const address = await getAuthenticatedWalletAddress(ctx);
+
+      const [result] = await ctx.dbNoCache
+        .select()
+        .from(intent)
+        .where(
+          and(
+            eq(intent.user, address),
+            eq(intent.createdTxHash, txHash.toLowerCase())
+          )
+        )
+        .limit(1);
+
+      return result ?? null;
+    },
+  })
+);

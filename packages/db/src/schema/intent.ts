@@ -41,6 +41,7 @@ export const intent = pgTable(
     index("intent_status_idx").on(table.status),
     index("intent_token_pair_idx").on(table.tokenFrom, table.tokenTo),
     index("intent_expiration_idx").on(table.expiration),
+    index("intent_created_tx_hash_idx").on(table.createdTxHash),
   ]
 );
 
