@@ -34,9 +34,13 @@ import { CreateIntentForm } from "./form";
 
 interface CreateIntentDialogProps {
   triggerButton: React.ReactNode;
+  onIndexed?: () => Promise<unknown>;
 }
 
-export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
+export function CreateIntentDialog({
+  triggerButton,
+  onIndexed,
+}: CreateIntentDialogProps) {
   const [open, setOpen] = useState(false);
 
   const formValuesRef = useRef<CreateIntentFormParsedValues | undefined>(
@@ -149,7 +153,8 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
         ? `Intent created successfully for ${getTokenByAddress(formValuesRef.current.tokenFrom)?.symbol ?? "token"}/${getTokenByAddress(formValuesRef.current.tokenTo)?.symbol ?? "token"}`
         : "Intent created successfully",
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await onIndexed?.();
       form.reset();
       formValuesRef.current = undefined;
       setOpen(false);

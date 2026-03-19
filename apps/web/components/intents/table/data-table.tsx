@@ -4,10 +4,8 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
-  type PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
-import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -18,38 +16,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { IntentStatusType } from "@/hooks/user-intents-query";
 import { CreateIntentDialog } from "../create-intent-dialog";
+import { useIntentsData } from "../intents-data-provider";
 import { DataTablePagination } from "./data-table-pagination";
 import { StatusFilter } from "./status-filter";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  rowCount: number;
-  pagination: PaginationState;
-  setPagination: Dispatch<SetStateAction<PaginationState>>;
-  statusFilter: IntentStatusType | undefined;
-  setStatusFilter: Dispatch<SetStateAction<IntentStatusType | undefined>>;
-  isLoading?: boolean;
-  refetchPage: () => Promise<unknown>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  rowCount,
-  pagination,
-  setPagination,
-  statusFilter,
-  setStatusFilter,
-  isLoading = false,
-  refetchPage,
 }: DataTableProps<TData, TValue>) {
+  const {
+    totalRowCount,
+    pagination,
+    setPagination,
+    refetch,
+    isLoading,
+    statusFilter,
+    setStatusFilter,
+  } = useIntentsData();
+
   const table = useReactTable({
     data,
     columns,
-    rowCount,
+    rowCount: totalRowCount,
     state: {
       pagination,
     },
@@ -58,7 +52,7 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     manualFiltering: true,
     meta: {
-      refetchPage,
+      refetchPage: refetch,
     },
   });
 
@@ -133,6 +127,7 @@ export function DataTable<TData, TValue>({
                   >
                     No intents found.{" "}
                     <CreateIntentDialog
+                      onIndexed={refetch}
                       triggerButton={
                         <Button className="px-0" variant="link">
                           Create

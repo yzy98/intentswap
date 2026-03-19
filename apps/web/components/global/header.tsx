@@ -1,10 +1,9 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { LogOutIcon, PlusIcon } from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { useConnection, useReadContract } from "wagmi";
-import { CreateIntentDialog } from "@/components/intents/create-intent-dialog";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { oracleContract } from "@/lib/constants";
@@ -27,23 +26,13 @@ export function Header() {
         <h1 className="font-bold text-2xl">IntentSwap</h1>
       </Link>
       <div className="flex items-center gap-2">
-        {isOwner && (
+        {isOwner && isAuthenticated && (
           <Link
             className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/admin"
           >
             Admin
           </Link>
-        )}
-        {address && isAuthenticated && (
-          <CreateIntentDialog
-            triggerButton={
-              <Button>
-                <PlusIcon />
-                Create Intent
-              </Button>
-            }
-          />
         )}
         {address && !isAuthenticated && (
           <Button disabled={isAuthenticating} onClick={signIn}>
