@@ -18,10 +18,18 @@ const createYogaApp = (env: Env) =>
       const db = await createWorkerDbClient(
         ctx.INTENT_SWAP_API_HYPERDRIVE.connectionString
       );
+
+      // https://developers.cloudflare.com/hyperdrive/concepts/query-caching/#default-cache-settings
+      // Create a separate cache-disabled db client for polling-related queries to ensure always get fresh data
+      const dbNoCache = await createWorkerDbClient(
+        ctx.INTENT_SWAP_API_HYPERDRIVE_CACHE_DISABLED.connectionString
+      );
+
       const { user } = ctx;
 
       return {
         db,
+        dbNoCache,
         user,
       };
     },

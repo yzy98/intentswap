@@ -42,7 +42,7 @@ export function DashboardGate() {
     );
   }
 
-  return <DashboardContent />;
+  return <DashboardContent address={address} />;
 }
 
 function GateCard({

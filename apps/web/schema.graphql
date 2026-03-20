@@ -27,13 +27,41 @@ type Intent {
   user: EthAddress
 }
 
+type IntentEvent {
+  actor: String
+  blockNumber: BigInt
+  blockTimestamp: BigInt
+  chainId: Int
+  createdAt: Date
+  eventType: IntentEventType
+  id: BigInt
+  intentId: BigInt
+  logIndex: Int
+  payload: JSON
+  txHash: String
+}
+
+enum IntentEventType {
+  CANCELLED
+  CREATED
+  EXECUTED
+  UPDATED
+}
+
 enum IntentStatus {
   ACTIVE
   CANCELLED
   EXECUTED
 }
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type Query {
+  intentEventByTxHash(chainId: Int, eventType: IntentEventType!, txHash: String!): IntentEvent
+  intentEventsByIntentId(eventType: IntentEventType, intentId: BigInt!, limit: Int = 20, offset: Int = 0): [IntentEvent!]
   userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: EthAddress!): [Intent!]
   userIntentsCount(status: IntentStatus, user: EthAddress!): Int
 }

@@ -1,36 +1,9 @@
 import { and, count, eq } from "@packages/db/helper";
-import { intent, walletAddress } from "@packages/db/schema";
+import { intent } from "@packages/db/schema";
 import { GraphQLError } from "graphql";
-import { builder, type Context } from "@/graphql/builder";
+import { builder } from "@/graphql/builder";
 import { IntentRef, IntentStatusGql } from "@/graphql/models/intent";
-
-const MAX_LIMIT = 50;
-
-const getAuthenticatedWalletAddress = async (ctx: Context) => {
-  if (!ctx.user) {
-    throw new GraphQLError("Authorization required", {
-      extensions: { code: "UNAUTHORIZED" },
-    });
-  }
-
-  const [result] = await ctx.db
-    .select({ address: walletAddress.address })
-    .from(walletAddress)
-    .where(
-      and(
-        eq(walletAddress.userId, ctx.user.id),
-        eq(walletAddress.isPrimary, true)
-      )
-    );
-
-  if (!result) {
-    throw new GraphQLError("No wallet address found", {
-      extensions: { code: "NOT_FOUND" },
-    });
-  }
-
-  return result.address.toLowerCase();
-};
+import { getAuthenticatedWalletAddress, getSafeLimitAndOffset } from "./utils";
 
 // Query the count of intents for a user
 builder.queryField("userIntentsCount", (t) =>
@@ -102,8 +75,12 @@ builder.queryField("userIntents", (t) =>
         });
       }
 
-      const safeLimit = Math.min(Math.max(limit ?? 5, 1), MAX_LIMIT);
-      const safeOffset = Math.max(offset ?? 0, 0);
+      const { safeLimit, safeOffset } = getSafeLimitAndOffset({
+        limit,
+        offset,
+        defaultLimit: 5,
+      });
+
       const result = await ctx.db.query.intent.findMany({
         where: (intent, { eq, and }) =>
           status

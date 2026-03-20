@@ -89,3 +89,31 @@ export function shortAddress(
   } // too short to shorten
   return `${address.slice(0, 2 + start)}…${address.slice(-end)}`;
 }
+
+export async function pollUntil<T>({
+  fn,
+  validate,
+  interval = 1500,
+  timeout = 30_000,
+}: {
+  fn: () => Promise<T>;
+  validate: (value: T) => boolean;
+  interval?: number;
+  timeout?: number;
+}): Promise<T> {
+  const start = Date.now();
+
+  while (true) {
+    const result = await fn();
+
+    if (validate(result)) {
+      return result;
+    }
+
+    if (Date.now() - start >= timeout) {
+      throw new Error("Timeout while polling");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+}

@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IndexingTimeoutError } from "@/hooks/use-my-write-contract";
+import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
 import { intentFactoryContract } from "@/lib/constants";
 
 const BOT_API_URL =
@@ -68,50 +70,87 @@ export const RowActions = ({
     },
   });
 
+  const { waitForIndexed } = useWaitForIndexed({ eventType: "CANCELLED" });
+
+  const mutateAsyncFn = async () => {
+    return await mutateAsync({
+      ...intentFactoryContract,
+      functionName: "cancelIntent",
+      args: [intentId],
+    });
+  };
+
+  const waitForConfirmedTransaction = async (
+    txHash: `0x${string}`,
+    toastId: string | number
+  ) => {
+    toast.loading("Waiting for transaction to be confirmed...", {
+      id: toastId,
+    });
+
+    const receipt = await waitForTransactionReceipt(config, {
+      hash: txHash,
+    });
+
+    if (receipt.status === "reverted") {
+      throw new Error("Transaction reverted");
+    }
+  };
+
+  const waitForIndexedData = async (
+    txHash: `0x${string}`,
+    toastId: string | number
+  ) => {
+    toast.loading("Waiting for cancelled intent to be indexed...", {
+      id: toastId,
+    });
+    try {
+      await waitForIndexed(txHash, chainId);
+    } catch (error) {
+      throw new IndexingTimeoutError(
+        error instanceof Error ? error.message : "Indexing timeout"
+      );
+    }
+  };
+
+  const disableBot = async (toastId: string | number) => {
+    if (!botSubscribed) {
+      return;
+    }
+
+    toast.loading("Disabling bot auto-execution...", { id: toastId });
+    await unsubscribe();
+  };
+
+  const handleExecutionError = (error: unknown, toastId: string | number) => {
+    // Transaction succeeded but indexing failed or timed out
+    if (error instanceof IndexingTimeoutError) {
+      toast.error(
+        "Transaction confirmed on-chain, but indexing is delayed. Please refresh in a moment.",
+        { id: toastId }
+      );
+      return;
+    }
+
+    // Transaction failed or was reverted
+    toast.error(error instanceof Error ? error.message : "Failed to cancel", {
+      id: toastId,
+    });
+  };
+
   const handleCancelIntent = async () => {
     setIsPending(true);
     const toastId = toast.loading("Sending cancel transaction...");
 
     try {
-      // Send cancel intent transaction
-      const txHash = await mutateAsync({
-        ...intentFactoryContract,
-        functionName: "cancelIntent",
-        args: [intentId],
-      });
-
-      // Wait for transaction confirmation
-      toast.loading("Waiting for transaction to be confirmed...", {
-        id: toastId,
-      });
-
-      const receipt = await waitForTransactionReceipt(config, {
-        hash: txHash,
-      });
-
-      if (receipt.status === "reverted") {
-        throw new Error("Transaction reverted");
-      }
-
-      // If bot auto-execution is enabled, unsubscribe from the intent
-      if (botSubscribed) {
-        toast.loading("Disabling bot auto-execution...", { id: toastId });
-        await unsubscribe();
-      }
-
-      // If refetch function is provided, refetch the intent data
-      if (refetch) {
-        toast.loading("Transaction confirmed, refetching intent data...", {
-          id: toastId,
-        });
-        await refetch();
-      }
-
+      const txHash = await mutateAsyncFn();
+      await waitForConfirmedTransaction(txHash, toastId);
+      await disableBot(toastId);
+      await waitForIndexedData(txHash, toastId);
       toast.success("Intent cancelled successfully", { id: toastId });
+      refetch?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to cancel", {
-        id: toastId,
-      });
+      handleExecutionError(error, toastId);
     } finally {
       setIsPending(false);
     }

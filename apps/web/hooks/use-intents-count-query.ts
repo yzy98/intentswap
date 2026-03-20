@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { PersistedGetUserIntentsCount_Query } from "@/lib/api/gql";
 
 interface UseIntentsCountQueryArgs {
-  user?: Address;
+  user: Address;
 }
 
 export const useIntentsCountQuery = ({ user }: UseIntentsCountQueryArgs) => {
@@ -26,3 +26,7 @@ export const useIntentsCountQuery = ({ user }: UseIntentsCountQueryArgs) => {
     reExecuteQuery,
   };
 };
+
+export type UseIntentsCountQueryResult = ReturnType<
+  typeof useIntentsCountQuery
+>;

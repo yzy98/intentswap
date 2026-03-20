@@ -1,15 +1,9 @@
-"use client";
-
-import { useConnection } from "wagmi";
+import { useIntentsCount } from "@/components/dashboard/intents-count-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
 
 export const OverviewSection = () => {
-  const { address } = useConnection();
-  const { data, fetching: isLoading } = useIntentsCountQuery({
-    user: address,
-  });
+  const { data, fetching: isLoading } = useIntentsCount();
 
   return (
     <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">

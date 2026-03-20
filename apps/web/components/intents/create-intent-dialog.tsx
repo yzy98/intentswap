@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { erc20Abi, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
-import { useIntentIds } from "@/components/providers/intent-ids-provider";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveDialog,
@@ -19,6 +18,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateIntentForm } from "@/hooks/use-create-intent-form";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
+import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
 import {
   intentExecutorContract,
   intentFactoryContract,
@@ -33,9 +33,13 @@ import { CreateIntentForm } from "./form";
 
 interface CreateIntentDialogProps {
   triggerButton: React.ReactNode;
+  onIndexed?: () => Promise<unknown>;
 }
 
-export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
+export function CreateIntentDialog({
+  triggerButton,
+  onIndexed,
+}: CreateIntentDialogProps) {
   const [open, setOpen] = useState(false);
 
   const formValuesRef = useRef<CreateIntentFormParsedValues | undefined>(
@@ -43,9 +47,10 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
   );
 
   const { mutateAsync } = useWriteContract();
-  const { refetchIntentIds } = useIntentIds();
   const { address } = useConnection();
   const config = useConfig();
+
+  const { waitForIndexed } = useWaitForIndexed({ eventType: "CREATED" });
 
   const { execute, isPending } = useMyWriteContract({
     mutateAsyncFn: async () => {
@@ -114,16 +119,17 @@ export function CreateIntentDialog({ triggerButton }: CreateIntentDialogProps) {
         args: [tokenFrom, tokenTo, amount, priceThreshold, expiration],
       });
     },
+    waitForIndexed,
     messages: {
       sending: "Creating intent...",
       waiting: "Waiting for transaction to be confirmed...",
-      refetching: "Transaction confirmed, refetching intents data...",
+      indexing: "Waiting for created intent to be indexed...",
       success: formValuesRef.current
         ? `Intent created successfully for ${getTokenByAddress(formValuesRef.current.tokenFrom)?.symbol ?? "token"}/${getTokenByAddress(formValuesRef.current.tokenTo)?.symbol ?? "token"}`
         : "Intent created successfully",
     },
-    refetch: refetchIntentIds,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await onIndexed?.();
       form.reset();
       formValuesRef.current = undefined;
       setOpen(false);

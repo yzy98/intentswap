@@ -11,20 +11,12 @@ import {
 } from "lucide-react";
 import { type Address, formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
-import type { IntentItemFragmentResult } from "@/hooks/user-intents-query";
 import { getTokenByAddress } from "@/lib/utils";
+import type { IntentRow } from "../intents-data-provider";
 import { BotSwitchCell } from "./bot-switch-cell";
 import { ColumnHeader } from "./column-header";
 import { PriceThresholdCell } from "./price-threshold-cell";
 import { RowActions } from "./row-actions";
-
-export interface IntentRow {
-  intent: IntentItemFragmentResult;
-  intentId: bigint;
-  isActive: boolean;
-  isExpired: boolean;
-  botSubscribed: boolean;
-}
 
 export const columns: ColumnDef<IntentRow>[] = [
   {

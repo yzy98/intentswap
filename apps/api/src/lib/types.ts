@@ -10,6 +10,7 @@ export interface AppEnv {
 
 export interface Env {
   INTENT_SWAP_API_HYPERDRIVE: Hyperdrive;
+  INTENT_SWAP_API_HYPERDRIVE_CACHE_DISABLED: Hyperdrive;
   API_RATE_LIMITER: RateLimit;
   BETTER_AUTH_SECRET: string;
   CORS_ORIGIN: string;

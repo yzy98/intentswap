@@ -47,3 +47,15 @@ export const PersistedGetUserIntents_Query = graphql.persisted(
   "GET_USER_INTENTS",
   GetUserIntents_Query
 );
+
+const GetIntentEventByTxHash_Query = graphql(`
+  query GetIntentEventByTxHash($txHash: String!, $eventType: IntentEventType!, $chainId: Int) {
+    intentEventByTxHash(txHash: $txHash, eventType: $eventType, chainId: $chainId) {
+      id
+    }
+  }`);
+
+export const PersistedGetIntentEventByTxHash_Query = graphql.persisted(
+  "GET_INTENT_EVENT_BY_TX_HASH",
+  GetIntentEventByTxHash_Query
+);

@@ -1,16 +1,17 @@
 "use client";
 
-import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useChainId, useChains, useConnection } from "wagmi";
+import type { Address } from "viem";
+import { useChainId, useChains } from "wagmi";
 import { Badge } from "@/components/ui/badge";
 import { shortAddress } from "@/lib/utils";
-import { Button } from "../ui/button";
 
-export const TopSection = () => {
+interface TopSectionProps {
+  address: Address;
+}
+
+export const TopSection = ({ address }: TopSectionProps) => {
   const chains = useChains();
   const chainId = useChainId();
-  const { address } = useConnection();
-  const { openConnectModal } = useConnectModal();
 
   const chain = chains.find((c) => c.id === chainId);
 
@@ -31,19 +32,8 @@ export const TopSection = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        {address ? (
-          <>
-            <Badge variant="outline">{shortAddress(address)}</Badge>
-            {!chain && <Badge variant="destructive">Wrong network</Badge>}
-          </>
-        ) : (
-          <>
-            <Badge variant="outline">Wallet required</Badge>
-            <Button className="px-0" onClick={openConnectModal} variant="link">
-              Connect
-            </Button>
-          </>
-        )}
+        <Badge variant="outline">{shortAddress(address)}</Badge>
+        {!chain && <Badge variant="destructive">Wrong network</Badge>}
       </div>
     </section>
   );

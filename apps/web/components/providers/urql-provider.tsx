@@ -13,7 +13,7 @@ const client = createClient({
   exchanges: [
     cacheExchange,
     persistedExchange({
-      // biome-ignore lint/suspicious/useAwait: <explanation>
+      // biome-ignore lint/suspicious/useAwait: no await here
       generateHash: async (_, document) => {
         const documentId = (document as TadaPersistedDocumentNode).documentId;
         return (idToHash as Record<string, string>)[documentId] ?? documentId;

@@ -11,6 +11,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
+import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
 import { intentFactoryContract } from "@/lib/constants";
 
 interface PriceThresholdCellProps {
@@ -43,6 +44,10 @@ export const PriceThresholdCell = ({
     }
   }, [priceThreshold, isEditing]);
 
+  const { waitForIndexed } = useWaitForIndexed({
+    eventType: "UPDATED",
+  });
+
   const { execute: handleSaveEditing, isPending: isUpdatingPriceThreshold } =
     useMyWriteContract({
       mutateAsyncFn: () => {
@@ -61,12 +66,15 @@ export const PriceThresholdCell = ({
           args: [intentId, parseEther(trimmed)],
         });
       },
-      refetch,
+      waitForIndexed,
       messages: {
         sending: "Sending transaction...",
         waiting: "Waiting for transaction to be confirmed...",
-        refetching: "Transaction confirmed, refetching intent data...",
+        indexing: "Waiting for updated intent to be indexed...",
         success: "Intent data updated successfully",
+      },
+      onSuccess: async () => {
+        await refetch?.();
       },
       onFinally: () => {
         setNewPriceThreshold(formatEther(priceThreshold));
