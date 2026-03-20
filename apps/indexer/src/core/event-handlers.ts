@@ -45,12 +45,14 @@ const IntentEventType = {
 } as const satisfies Record<string, IntentEventTypeValue>;
 
 const persistIntentEvent = async ({
+  dbExecutor = db,
   log,
   intentId,
   eventType,
   actor,
   payload,
 }: {
+  dbExecutor?: Pick<typeof db, "insert">;
   log: IntentFactoryLog;
   intentId: bigint;
   eventType: IntentEventTypeValue;
@@ -61,7 +63,7 @@ const persistIntentEvent = async ({
     return;
   }
 
-  await db
+  await dbExecutor
     .insert(intentEvent)
     .values({
       chainId: ENV.CHAIN_ID,
@@ -101,31 +103,39 @@ export const handleIntentCreated = async (log: IntentCreatedLog) => {
     return;
   }
 
-  await db.insert(intent).values({
-    id: intentId,
-    user: normalizeAddress(user),
-    tokenFrom: normalizeAddress(tokenFrom),
-    tokenTo: normalizeAddress(tokenTo),
-    amount: amount.toString(),
-    priceThreshold: priceThreshold.toString(),
-    expiration,
-    status: IntentStatus.ACTIVE,
-    createdTxHash: log.transactionHash.toLowerCase(),
-    createdBlock: log.blockNumber,
-  });
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(intent)
+      .values({
+        id: intentId,
+        user: normalizeAddress(user),
+        tokenFrom: normalizeAddress(tokenFrom),
+        tokenTo: normalizeAddress(tokenTo),
+        amount: amount.toString(),
+        priceThreshold: priceThreshold.toString(),
+        expiration,
+        status: IntentStatus.ACTIVE,
+        createdTxHash: log.transactionHash.toLowerCase(),
+        createdBlock: log.blockNumber,
+      })
+      .onConflictDoNothing({
+        target: [intent.id],
+      });
 
-  await persistIntentEvent({
-    log,
-    intentId,
-    eventType: IntentEventType.CREATED,
-    actor: user,
-    payload: {
-      tokenFrom: normalizeAddress(tokenFrom),
-      tokenTo: normalizeAddress(tokenTo),
-      amount: amount.toString(),
-      priceThreshold: priceThreshold.toString(),
-      expiration: expiration.toString(),
-    },
+    await persistIntentEvent({
+      dbExecutor: tx,
+      log,
+      intentId,
+      eventType: IntentEventType.CREATED,
+      actor: user,
+      payload: {
+        tokenFrom: normalizeAddress(tokenFrom),
+        tokenTo: normalizeAddress(tokenTo),
+        amount: amount.toString(),
+        priceThreshold: priceThreshold.toString(),
+        expiration: expiration.toString(),
+      },
+    });
   });
 };
 
@@ -136,23 +146,26 @@ export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
     return;
   }
 
-  await db
-    .update(intent)
-    .set({
-      priceThreshold: newPriceThreshold.toString(),
-      updatedBlock: log.blockNumber,
-    })
-    .where(eq(intent.id, intentId));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(intent)
+      .set({
+        priceThreshold: newPriceThreshold.toString(),
+        updatedBlock: log.blockNumber,
+      })
+      .where(eq(intent.id, intentId));
 
-  await persistIntentEvent({
-    log,
-    intentId,
-    eventType: IntentEventType.UPDATED,
-    actor: user,
-    payload: {
-      oldPriceThreshold: oldPriceThreshold?.toString(),
-      newPriceThreshold: newPriceThreshold.toString(),
-    },
+    await persistIntentEvent({
+      dbExecutor: tx,
+      log,
+      intentId,
+      eventType: IntentEventType.UPDATED,
+      actor: user,
+      payload: {
+        oldPriceThreshold: oldPriceThreshold?.toString(),
+        newPriceThreshold: newPriceThreshold.toString(),
+      },
+    });
   });
 };
 
@@ -163,19 +176,22 @@ export const handleIntentExecuted = async (log: IntentExecutedLog) => {
     return;
   }
 
-  await db
-    .update(intent)
-    .set({
-      status: IntentStatus.EXECUTED,
-      updatedBlock: log.blockNumber,
-    })
-    .where(eq(intent.id, intentId));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(intent)
+      .set({
+        status: IntentStatus.EXECUTED,
+        updatedBlock: log.blockNumber,
+      })
+      .where(eq(intent.id, intentId));
 
-  await persistIntentEvent({
-    log,
-    intentId,
-    eventType: IntentEventType.EXECUTED,
-    actor: user,
+    await persistIntentEvent({
+      dbExecutor: tx,
+      log,
+      intentId,
+      eventType: IntentEventType.EXECUTED,
+      actor: user,
+    });
   });
 };
 
@@ -186,18 +202,21 @@ export const handleIntentCancelled = async (log: IntentCancelledLog) => {
     return;
   }
 
-  await db
-    .update(intent)
-    .set({
-      status: IntentStatus.CANCELLED,
-      updatedBlock: log.blockNumber,
-    })
-    .where(eq(intent.id, intentId));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(intent)
+      .set({
+        status: IntentStatus.CANCELLED,
+        updatedBlock: log.blockNumber,
+      })
+      .where(eq(intent.id, intentId));
 
-  await persistIntentEvent({
-    log,
-    intentId,
-    eventType: IntentEventType.CANCELLED,
-    actor: user,
+    await persistIntentEvent({
+      dbExecutor: tx,
+      log,
+      intentId,
+      eventType: IntentEventType.CANCELLED,
+      actor: user,
+    });
   });
 };
