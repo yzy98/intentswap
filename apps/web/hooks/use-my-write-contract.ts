@@ -8,6 +8,8 @@ import {
   waitForTransactionReceipt,
 } from "wagmi/actions";
 
+type Awaitable<T> = T | PromiseLike<T>;
+
 export class IndexingTimeoutError extends Error {
   constructor(message = "Indexing timeout") {
     super(message);
@@ -25,9 +27,9 @@ export interface UseMyWriteContractOptions {
     success?: string;
     error?: string | ((error: unknown) => string);
   };
-  onSuccess?: () => void;
-  onError?: (error: unknown) => void;
-  onFinally?: () => void;
+  onSuccess?: () => Awaitable<void>;
+  onError?: (error: unknown) => Awaitable<void>;
+  onFinally?: () => Awaitable<void>;
 }
 
 export function useMyWriteContract({
@@ -85,14 +87,17 @@ export function useMyWriteContract({
     }
   };
 
-  const handleExecutionError = (error: unknown, toastId: string | number) => {
+  const handleExecutionError = async (
+    error: unknown,
+    toastId: string | number
+  ) => {
     // Transaction succeeded but indexing failed or timed out
     if (error instanceof IndexingTimeoutError) {
       toast.error(
         "Transaction confirmed on-chain, but indexing is delayed. Please refresh in a moment.",
         { id: toastId }
       );
-      onError?.(error);
+      await onError?.(error);
       return;
     }
 
@@ -102,7 +107,7 @@ export function useMyWriteContract({
         ? defaultMessages.error(error)
         : defaultMessages.error || "Transaction failed";
     toast.error(errorMessage, { id: toastId });
-    onError?.(error);
+    await onError?.(error);
   };
 
   const execute = async () => {
@@ -114,12 +119,12 @@ export function useMyWriteContract({
       await waitForConfirmedTransaction(txHash, toastId);
       await waitForIndexedData(txHash, toastId);
       toast.success(defaultMessages.success, { id: toastId });
-      onSuccess?.();
+      await onSuccess?.();
     } catch (error) {
-      handleExecutionError(error, toastId);
+      await handleExecutionError(error, toastId);
     } finally {
       setIsPending(false);
-      onFinally?.();
+      await onFinally?.();
     }
   };
 

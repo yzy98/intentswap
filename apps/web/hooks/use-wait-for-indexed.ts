@@ -13,23 +13,27 @@ export const useWaitForIndexed = ({
   const waitForIndexed = async (txHash: `0x${string}`, chainId?: number) => {
     await pollUntil({
       fn: async () => {
-        const res = await client.query(
-          PersistedGetIntentEventByTxHash_Query,
-          {
-            txHash,
-            eventType,
-            chainId,
-          },
-          {
-            requestPolicy: "network-only",
+        try {
+          const res = await client.query(
+            PersistedGetIntentEventByTxHash_Query,
+            {
+              txHash,
+              eventType,
+              chainId,
+            },
+            {
+              requestPolicy: "network-only",
+            }
+          );
+
+          if (res.error) {
+            return null;
           }
-        );
 
-        if (res.error) {
-          throw res.error;
+          return res.data?.intentEventByTxHash ?? null;
+        } catch {
+          return null;
         }
-
-        return res.data?.intentEventByTxHash ?? null;
       },
       validate: (intentEvent) => Boolean(intentEvent?.id),
       interval: 2000,
