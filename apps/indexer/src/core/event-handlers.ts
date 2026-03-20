@@ -1,9 +1,13 @@
 import type { intentFactoryAbi } from "@packages/contract-deployments";
 import { eq } from "@packages/db/helper";
-import type { IntentStatusValue } from "@packages/db/schema";
-import { intent } from "@packages/db/schema";
+import type {
+  IntentEventTypeValue,
+  IntentStatusValue,
+} from "@packages/db/schema";
+import { intent, intentEvent } from "@packages/db/schema";
 import type { ParseEventLogsReturnType } from "viem";
 import { db } from "@/clients/db-client";
+import { ENV } from "@/env";
 import { normalizeAddress } from "@/utils";
 
 type IntentFactoryLog = ParseEventLogsReturnType<
@@ -32,6 +36,47 @@ const IntentStatus = {
   EXECUTED: "EXECUTED",
   CANCELLED: "CANCELLED",
 } as const satisfies Record<string, IntentStatusValue>;
+
+const IntentEventType = {
+  CREATED: "CREATED",
+  UPDATED: "UPDATED",
+  EXECUTED: "EXECUTED",
+  CANCELLED: "CANCELLED",
+} as const satisfies Record<string, IntentEventTypeValue>;
+
+const persistIntentEvent = async ({
+  log,
+  intentId,
+  eventType,
+  actor,
+  payload,
+}: {
+  log: IntentFactoryLog;
+  intentId: bigint;
+  eventType: IntentEventTypeValue;
+  actor?: `0x${string}`;
+  payload?: Record<string, unknown>;
+}) => {
+  if (log.transactionHash === null || log.logIndex === null) {
+    return;
+  }
+
+  await db
+    .insert(intentEvent)
+    .values({
+      chainId: ENV.CHAIN_ID,
+      intentId,
+      eventType,
+      txHash: log.transactionHash.toLowerCase(),
+      blockNumber: log.blockNumber,
+      logIndex: log.logIndex,
+      actor: actor ? normalizeAddress(actor) : null,
+      payload: payload ?? null,
+    })
+    .onConflictDoNothing({
+      target: [intentEvent.chainId, intentEvent.txHash, intentEvent.logIndex],
+    });
+};
 
 export const handleIntentCreated = async (log: IntentCreatedLog) => {
   const {
@@ -65,13 +110,27 @@ export const handleIntentCreated = async (log: IntentCreatedLog) => {
     priceThreshold: priceThreshold.toString(),
     expiration,
     status: IntentStatus.ACTIVE,
-    createdTxHash: log.transactionHash,
+    createdTxHash: log.transactionHash.toLowerCase(),
     createdBlock: log.blockNumber,
+  });
+
+  await persistIntentEvent({
+    log,
+    intentId,
+    eventType: IntentEventType.CREATED,
+    actor: user,
+    payload: {
+      tokenFrom: normalizeAddress(tokenFrom),
+      tokenTo: normalizeAddress(tokenTo),
+      amount: amount.toString(),
+      priceThreshold: priceThreshold.toString(),
+      expiration: expiration.toString(),
+    },
   });
 };
 
 export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
-  const { intentId, newPriceThreshold } = log.args;
+  const { intentId, user, oldPriceThreshold, newPriceThreshold } = log.args;
 
   if (intentId === undefined || newPriceThreshold === undefined) {
     return;
@@ -84,10 +143,21 @@ export const handleIntentUpdated = async (log: IntentUpdatedLog) => {
       updatedBlock: log.blockNumber,
     })
     .where(eq(intent.id, intentId));
+
+  await persistIntentEvent({
+    log,
+    intentId,
+    eventType: IntentEventType.UPDATED,
+    actor: user,
+    payload: {
+      oldPriceThreshold: oldPriceThreshold?.toString(),
+      newPriceThreshold: newPriceThreshold.toString(),
+    },
+  });
 };
 
 export const handleIntentExecuted = async (log: IntentExecutedLog) => {
-  const { intentId } = log.args;
+  const { intentId, user } = log.args;
 
   if (intentId === undefined) {
     return;
@@ -100,10 +170,17 @@ export const handleIntentExecuted = async (log: IntentExecutedLog) => {
       updatedBlock: log.blockNumber,
     })
     .where(eq(intent.id, intentId));
+
+  await persistIntentEvent({
+    log,
+    intentId,
+    eventType: IntentEventType.EXECUTED,
+    actor: user,
+  });
 };
 
 export const handleIntentCancelled = async (log: IntentCancelledLog) => {
-  const { intentId } = log.args;
+  const { intentId, user } = log.args;
 
   if (intentId === undefined) {
     return;
@@ -116,4 +193,11 @@ export const handleIntentCancelled = async (log: IntentCancelledLog) => {
       updatedBlock: log.blockNumber,
     })
     .where(eq(intent.id, intentId));
+
+  await persistIntentEvent({
+    log,
+    intentId,
+    eventType: IntentEventType.CANCELLED,
+    actor: user,
+  });
 };

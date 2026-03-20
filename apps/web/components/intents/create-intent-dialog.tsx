@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useClient } from "urql";
 import { erc20Abi, parseEther } from "viem";
 import { useConfig, useConnection, useWriteContract } from "wagmi";
 import { readContract, waitForTransactionReceipt } from "wagmi/actions";
@@ -19,7 +18,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateIntentForm } from "@/hooks/use-create-intent-form";
 import { useMyWriteContract } from "@/hooks/use-my-write-contract";
-import { PersistedGetIntentByCreatedTxHash_Query } from "@/lib/api/gql";
+import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
 import {
   intentExecutorContract,
   intentFactoryContract,
@@ -29,7 +28,7 @@ import {
   type CreateIntentFormParsedValues,
   createIntentFormSchema,
 } from "@/lib/types";
-import { getTokenByAddress, pollUntil } from "@/lib/utils";
+import { getTokenByAddress } from "@/lib/utils";
 import { CreateIntentForm } from "./form";
 
 interface CreateIntentDialogProps {
@@ -50,32 +49,8 @@ export function CreateIntentDialog({
   const { mutateAsync } = useWriteContract();
   const { address } = useConnection();
   const config = useConfig();
-  const client = useClient();
 
-  const waitForIndexed = async (txHash: `0x${string}`) => {
-    await pollUntil({
-      fn: async () => {
-        const res = await client.query(
-          PersistedGetIntentByCreatedTxHash_Query,
-          {
-            txHash,
-          },
-          {
-            requestPolicy: "network-only",
-          }
-        );
-
-        if (res.error) {
-          throw res.error;
-        }
-
-        return res.data?.intentByCreatedTxHash ?? null;
-      },
-      validate: (intent) => Boolean(intent?.id),
-      interval: 2000,
-      timeout: 45_000,
-    });
-  };
+  const { waitForIndexed } = useWaitForIndexed({ eventType: "CREATED" });
 
   const { execute, isPending } = useMyWriteContract({
     mutateAsyncFn: async () => {

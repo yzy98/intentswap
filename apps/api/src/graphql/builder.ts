@@ -1,6 +1,6 @@
 import type { WorkerDbClient } from "@packages/db/worker";
 import SchemaBuilder from "@pothos/core";
-import { BigIntResolver, DateResolver } from "graphql-scalars";
+import { BigIntResolver, DateResolver, JSONResolver } from "graphql-scalars";
 import type { User } from "@/lib/types";
 import { EthAddressResolver } from "./scalars/eth-address";
 
@@ -15,6 +15,7 @@ export const builder = new SchemaBuilder<{
     Date: { Input: Date; Output: Date };
     BigInt: { Input: bigint; Output: bigint };
     EthAddress: { Input: string; Output: string };
+    JSON: { Input: unknown; Output: unknown };
   };
   Context: Context;
 }>({});
@@ -22,5 +23,6 @@ export const builder = new SchemaBuilder<{
 builder.addScalarType("Date", DateResolver, {});
 builder.addScalarType("BigInt", BigIntResolver, {});
 builder.addScalarType("EthAddress", EthAddressResolver, {});
+builder.addScalarType("JSON", JSONResolver, {});
 
 builder.queryType({});

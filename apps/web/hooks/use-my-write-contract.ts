@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { useConfig } from "wagmi";
+import { useChainId, useConfig } from "wagmi";
 import {
   type WriteContractReturnType,
   waitForTransactionReceipt,
 } from "wagmi/actions";
 
-class IndexingTimeoutError extends Error {
+export class IndexingTimeoutError extends Error {
   constructor(message = "Indexing timeout") {
     super(message);
     this.name = "IndexingTimeoutError";
@@ -17,7 +17,7 @@ class IndexingTimeoutError extends Error {
 
 export interface UseMyWriteContractOptions {
   mutateAsyncFn: () => Promise<WriteContractReturnType>;
-  waitForIndexed?: (txHash: `0x${string}`) => Promise<void>;
+  waitForIndexed?: (txHash: `0x${string}`, chainId?: number) => Promise<void>;
   messages?: {
     sending?: string;
     waiting?: string;
@@ -40,6 +40,7 @@ export function useMyWriteContract({
 }: UseMyWriteContractOptions) {
   const [isPending, setIsPending] = useState(false);
   const config = useConfig();
+  const chainId = useChainId();
 
   const defaultMessages = {
     sending: "Sending transaction...",
@@ -76,7 +77,7 @@ export function useMyWriteContract({
 
     toast.loading(defaultMessages.indexing, { id: toastId });
     try {
-      await waitForIndexed(txHash);
+      await waitForIndexed(txHash, chainId);
     } catch (error) {
       throw new IndexingTimeoutError(
         error instanceof Error ? error.message : "Indexing timeout"

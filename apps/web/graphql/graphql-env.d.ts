@@ -65,10 +65,65 @@ export type introspection_types = {
       };
     };
   };
+  IntentEvent: {
+    kind: "OBJECT";
+    name: "IntentEvent";
+    fields: {
+      actor: {
+        name: "actor";
+        type: { kind: "SCALAR"; name: "String"; ofType: null };
+      };
+      blockNumber: {
+        name: "blockNumber";
+        type: { kind: "SCALAR"; name: "BigInt"; ofType: null };
+      };
+      blockTimestamp: {
+        name: "blockTimestamp";
+        type: { kind: "SCALAR"; name: "BigInt"; ofType: null };
+      };
+      chainId: {
+        name: "chainId";
+        type: { kind: "SCALAR"; name: "Int"; ofType: null };
+      };
+      createdAt: {
+        name: "createdAt";
+        type: { kind: "SCALAR"; name: "Date"; ofType: null };
+      };
+      eventType: {
+        name: "eventType";
+        type: { kind: "ENUM"; name: "IntentEventType"; ofType: null };
+      };
+      id: {
+        name: "id";
+        type: { kind: "SCALAR"; name: "BigInt"; ofType: null };
+      };
+      intentId: {
+        name: "intentId";
+        type: { kind: "SCALAR"; name: "BigInt"; ofType: null };
+      };
+      logIndex: {
+        name: "logIndex";
+        type: { kind: "SCALAR"; name: "Int"; ofType: null };
+      };
+      payload: {
+        name: "payload";
+        type: { kind: "SCALAR"; name: "JSON"; ofType: null };
+      };
+      txHash: {
+        name: "txHash";
+        type: { kind: "SCALAR"; name: "String"; ofType: null };
+      };
+    };
+  };
+  IntentEventType: {
+    name: "IntentEventType";
+    enumValues: "CANCELLED" | "CREATED" | "EXECUTED" | "UPDATED";
+  };
   IntentStatus: {
     name: "IntentStatus";
     enumValues: "ACTIVE" | "CANCELLED" | "EXECUTED";
   };
+  JSON: unknown;
   Query: {
     kind: "OBJECT";
     name: "Query";
@@ -76,6 +131,22 @@ export type introspection_types = {
       intentByCreatedTxHash: {
         name: "intentByCreatedTxHash";
         type: { kind: "OBJECT"; name: "Intent"; ofType: null };
+      };
+      intentEventByTxHash: {
+        name: "intentEventByTxHash";
+        type: { kind: "OBJECT"; name: "IntentEvent"; ofType: null };
+      };
+      intentEventsByIntentId: {
+        name: "intentEventsByIntentId";
+        type: {
+          kind: "LIST";
+          name: never;
+          ofType: {
+            kind: "NON_NULL";
+            name: never;
+            ofType: { kind: "OBJECT"; name: "IntentEvent"; ofType: null };
+          };
+        };
       };
       userIntents: {
         name: "userIntents";
