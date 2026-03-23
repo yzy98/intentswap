@@ -32,7 +32,7 @@
   ],
   "vars": {
     "CORS_ORIGIN": "https://intentswap.zyang.space",
-    "API_BASE_URL": "",
+    "API_BASE_URL": "https://intentswap.api.zyang.space",
     "ENVIRONMENT": "production",
     "CHAIN_ID": "84532"
   }
