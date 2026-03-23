@@ -5,9 +5,7 @@
   "compatibility_date": "2026-01-27",
   "minify": true,
   "triggers": {
-    "crons": [
-      "*/30 * * * *"
-    ]
+    "crons": ["*/30 * * * *"]
   },
   "kv_namespaces": [
     {
@@ -34,36 +32,6 @@
   },
   "vars": {
     "CORS_ORIGIN": "https://intentswap.zyang.space",
-    "CHAIN_ID": "84532",
+    "CHAIN_ID": "84532"
   }
-  // "compatibility_flags": ["nodejs_compat"],
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
-  // "kv_namespaces": [
-  //   {
-  //     "binding": "MY_KV_NAMESPACE",
-  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  //   }
-  // ],
-  // "r2_buckets": [
-  //   {
-  //     "binding": "MY_BUCKET",
-  //     "bucket_name": "my-bucket"
-  //   }
-  // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
-  //   }
-  // ],
-  // "ai": {
-  //   "binding": "AI"
-  // },
-  // "observability": {
-  //   "enabled": true,
-  //   "head_sampling_rate": 1
-  // }
 }

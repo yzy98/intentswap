@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/performance/noBarrelFile: <explanation> */
+/** biome-ignore-all lint/performance/noBarrelFile: false positive */
 import { initGraphQLTada } from "gql.tada";
 import type { introspection } from "./graphql-env.js";
 

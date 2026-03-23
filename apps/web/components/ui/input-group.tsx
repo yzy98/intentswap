@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/a11y/useSemanticElements: ignore */
+/** biome-ignore-all lint/a11y/useKeyWithClickEvents: ignore */
+/** biome-ignore-all lint/a11y/noNoninteractiveElementInteractions: ignore */
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
@@ -148,7 +151,7 @@ export {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupText,
   InputGroupInput,
+  InputGroupText,
   InputGroupTextarea,
 };

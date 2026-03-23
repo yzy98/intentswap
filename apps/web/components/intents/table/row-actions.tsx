@@ -148,7 +148,7 @@ export const RowActions = ({
       await disableBot(toastId);
       await waitForIndexedData(txHash, toastId);
       toast.success("Intent cancelled successfully", { id: toastId });
-      refetch?.();
+      await refetch?.();
     } catch (error) {
       handleExecutionError(error, toastId);
     } finally {
