@@ -1,24 +1,8 @@
-import type { graphql, ResultOf, VariablesOf } from "gql.tada";
-import { useQuery } from "urql";
+import { useQuery } from "@tanstack/react-query";
+import { useClient } from "urql";
 import { useAuth } from "@/components/providers/auth-provider";
-import {
-  type IntentItem_Fragment,
-  PersistedGetUserIntents_Query,
-} from "@/lib/api/gql";
-
-type GetUserIntentsQueryVariables = VariablesOf<
-  typeof PersistedGetUserIntents_Query
->;
-
-export type IntentStatusType = ReturnType<
-  typeof graphql.scalar<"IntentStatus">
->;
-
-export type GetUserIntentsQueryResult = ResultOf<
-  typeof PersistedGetUserIntents_Query
->;
-
-export type IntentItemFragmentResult = ResultOf<typeof IntentItem_Fragment>;
+import type { GetUserIntentsQueryVariables } from "@/lib/api/gql";
+import { fetchUserIntents } from "@/lib/fetchers";
 
 export const useIntentsQuery = ({
   user,
@@ -26,23 +10,19 @@ export const useIntentsQuery = ({
   limit,
   offset,
 }: GetUserIntentsQueryVariables) => {
+  const client = useClient();
   const { isAuthenticated } = useAuth();
 
-  const [{ data, fetching, error }, reExecuteQuery] = useQuery({
-    query: PersistedGetUserIntents_Query,
-    variables: {
-      user: user as string,
-      status,
-      limit,
-      offset,
-    },
-    pause: !(user && isAuthenticated),
+  return useQuery({
+    queryKey: ["user-intents", user, status, limit, offset],
+    queryFn: () =>
+      fetchUserIntents(client, {
+        user,
+        status,
+        limit,
+        offset,
+        fresh: false,
+      }),
+    enabled: !!user && isAuthenticated,
   });
-
-  return {
-    data,
-    fetching,
-    error,
-    reExecuteQuery,
-  };
 };

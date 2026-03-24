@@ -62,6 +62,6 @@ scalar JSON
 type Query {
   intentEventByTxHash(chainId: Int, eventType: IntentEventType!, txHash: String!): IntentEvent
   intentEventsByIntentId(eventType: IntentEventType, intentId: BigInt!, limit: Int = 20, offset: Int = 0): [IntentEvent!]
-  userIntents(limit: Int = 5, offset: Int = 0, status: IntentStatus, user: EthAddress!): [Intent!]
-  userIntentsCount(status: IntentStatus, user: EthAddress!): Int
+  userIntents(fresh: Boolean = false, limit: Int = 5, offset: Int = 0, status: IntentStatus, user: EthAddress!): [Intent!]
+  userIntentsCount(fresh: Boolean = false, status: IntentStatus, user: EthAddress!): Int
 }

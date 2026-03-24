@@ -69,10 +69,7 @@ export const columns: ColumnDef<IntentRow>[] = [
         isActive={row.original.isActive}
         isExpired={row.original.isExpired}
         priceThreshold={BigInt(row.original.intent.priceThreshold ?? "0")}
-        refetch={
-          (table.options.meta as { refetchPage?: () => Promise<unknown> })
-            ?.refetchPage
-        }
+        refetch={table.options.meta?.refetchFresh}
       />
     ),
   },
@@ -108,10 +105,7 @@ export const columns: ColumnDef<IntentRow>[] = [
         intentId={row.original.intentId}
         isActive={row.original.isActive}
         isExpired={row.original.isExpired}
-        refetch={
-          (table.options.meta as { refetchPage?: () => Promise<unknown> })
-            ?.refetchPage
-        }
+        refetch={table.options.meta?.refetch}
       />
     ),
   },
@@ -142,10 +136,7 @@ export const columns: ColumnDef<IntentRow>[] = [
           botSubscribed={row.original.botSubscribed}
           intentId={row.original.intentId}
           isActive={row.original.isActive}
-          refetch={
-            (table.options.meta as { refetchPage?: () => Promise<unknown> })
-              ?.refetchPage
-          }
+          refetch={table.options.meta?.refetchFresh}
         />
       </div>
     ),

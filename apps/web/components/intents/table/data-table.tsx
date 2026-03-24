@@ -1,9 +1,11 @@
+/** biome-ignore-all lint/correctness/noUnusedVariables: this file ignore */
 "use client";
 
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  type RowData,
   useReactTable,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,13 @@ import { useIntentsData } from "../intents-data-provider";
 import { DataTablePagination } from "./data-table-pagination";
 import { StatusFilter } from "./status-filter";
 
+declare module "@tanstack/react-table" {
+  interface TableMeta<TData extends RowData> {
+    refetch?: () => Promise<unknown>;
+    refetchFresh?: () => Promise<unknown>;
+  }
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -35,6 +44,7 @@ export function DataTable<TData, TValue>({
     pagination,
     setPagination,
     refetch,
+    refetchFresh,
     isLoading,
     statusFilter,
     setStatusFilter,
@@ -52,7 +62,8 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     manualFiltering: true,
     meta: {
-      refetchPage: refetch,
+      refetch,
+      refetchFresh,
     },
   });
 

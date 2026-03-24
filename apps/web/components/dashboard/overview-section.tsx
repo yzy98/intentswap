@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const OverviewSection = () => {
-  const { data, fetching: isLoading } = useIntentsCount();
+  const { data, isFetching: isLoading } = useIntentsCount();
 
   return (
     <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">

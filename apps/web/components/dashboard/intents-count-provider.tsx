@@ -3,12 +3,9 @@
 import type React from "react";
 import { createContext, useContext } from "react";
 import type { Address } from "viem";
-import {
-  type UseIntentsCountQueryResult,
-  useIntentsCountQuery,
-} from "@/hooks/use-intents-count-query";
+import { useIntentsCountQuery } from "@/hooks/use-intents-count-query";
 
-interface IntentsCountContextValue extends UseIntentsCountQueryResult {}
+type IntentsCountContextValue = ReturnType<typeof useIntentsCountQuery>;
 
 const IntentsCountContext = createContext<IntentsCountContextValue | null>(
   null
@@ -21,17 +18,14 @@ export const IntentsCountProvider = ({
   children: React.ReactNode;
   address: Address;
 }) => {
-  const { data, fetching, error, reExecuteQuery } = useIntentsCountQuery({
+  const result = useIntentsCountQuery({
     user: address,
   });
 
   return (
     <IntentsCountContext
       value={{
-        data,
-        fetching,
-        error,
-        reExecuteQuery,
+        ...result,
       }}
     >
       {children}

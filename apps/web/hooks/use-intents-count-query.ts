@@ -1,32 +1,23 @@
 "use client";
 
-import { useQuery } from "urql";
-import type { Address } from "viem";
+import { useQuery } from "@tanstack/react-query";
+import { useClient } from "urql";
 import { useAuth } from "@/components/providers/auth-provider";
-import { PersistedGetUserIntentsCount_Query } from "@/lib/api/gql";
+import type { GetUserIntentsCountQueryVariables } from "@/lib/api/gql";
+import { fetchUserIntentsCount } from "@/lib/fetchers";
 
-interface UseIntentsCountQueryArgs {
-  user: Address;
-}
-
-export const useIntentsCountQuery = ({ user }: UseIntentsCountQueryArgs) => {
+export const useIntentsCountQuery = ({
+  user,
+}: GetUserIntentsCountQueryVariables) => {
+  const client = useClient();
   const { isAuthenticated } = useAuth();
-  const [{ data, fetching, error }, reExecuteQuery] = useQuery({
-    query: PersistedGetUserIntentsCount_Query,
-    variables: {
-      user: user as string,
-    },
-    pause: !(user && isAuthenticated),
+
+  return useQuery({
+    queryKey: ["user-intents-count", user],
+    queryFn: () =>
+      fetchUserIntentsCount(client, {
+        user,
+      }),
+    enabled: !!user && isAuthenticated,
   });
-
-  return {
-    data,
-    fetching,
-    error,
-    reExecuteQuery,
-  };
 };
-
-export type UseIntentsCountQueryResult = ReturnType<
-  typeof useIntentsCountQuery
->;

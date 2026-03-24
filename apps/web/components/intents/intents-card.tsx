@@ -14,7 +14,7 @@ import { useIntentsData } from "./intents-data-provider";
 import { IntentsTable } from "./table";
 
 export function IntentsCard() {
-  const { refetch } = useIntentsData();
+  const { refetchFresh } = useIntentsData();
 
   return (
     <Card className="w-full" variant="glass">
@@ -22,7 +22,7 @@ export function IntentsCard() {
         <CardTitle>My Intents</CardTitle>
         <CardAction>
           <CreateIntentDialog
-            onIndexed={refetch}
+            onIndexed={refetchFresh}
             triggerButton={
               <Button>
                 <PlusIcon />

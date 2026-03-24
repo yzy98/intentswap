@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { IntentStatusType } from "@/hooks/user-intents-query";
+import type { IntentStatusType } from "@/lib/api/gql";
 
 interface StatusFilterProps {
   statusFilter: IntentStatusType | undefined;

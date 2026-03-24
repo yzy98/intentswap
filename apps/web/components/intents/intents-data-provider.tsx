@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
 import { readFragment } from "gql.tada";
 import {
@@ -11,16 +11,18 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useClient } from "urql";
 import type { Address } from "viem";
 import { useBlock, useChainId } from "wagmi";
 import { useIntentsCount } from "@/components/dashboard/intents-count-provider";
+import { useIntentsQuery } from "@/hooks/user-intents-query";
+import { fetchBotStatusBatch } from "@/lib/api/bot";
 import {
+  IntentItem_Fragment,
   type IntentItemFragmentResult,
   type IntentStatusType,
-  useIntentsQuery,
-} from "@/hooks/user-intents-query";
-import { fetchBotStatusBatch } from "@/lib/api/bot";
-import { IntentItem_Fragment } from "@/lib/api/gql";
+} from "@/lib/api/gql";
+import { fetchUserIntents, fetchUserIntentsCount } from "@/lib/fetchers";
 
 export interface IntentRow {
   intent: IntentItemFragmentResult;
@@ -39,6 +41,7 @@ export interface IntentsDataContextValue {
   statusFilter?: IntentStatusType;
   setStatusFilter: Dispatch<SetStateAction<IntentStatusType | undefined>>;
   refetch: () => Promise<unknown>;
+  refetchFresh: () => Promise<unknown>;
 }
 
 export const IntentsDataContext = createContext<IntentsDataContextValue | null>(
@@ -52,6 +55,9 @@ export const IntentsDataProvider = ({
   children: React.ReactNode;
   address: Address;
 }) => {
+  const queryClient = useQueryClient();
+  const client = useClient();
+
   const chainId = useChainId();
   const { data: block } = useBlock();
   const chainBlockTimestamp = block?.timestamp;
@@ -68,18 +74,11 @@ export const IntentsDataProvider = ({
   >();
 
   // Intents count
-  const {
-    data: intentsCount,
-    fetching: isFetchingIntentsCount,
-    reExecuteQuery: refetchIntentsCount,
-  } = useIntentsCount();
+  const { data: intentsCount, isFetching: isFetchingIntentsCount } =
+    useIntentsCount();
 
   // Intents (paginated)
-  const {
-    data: intents,
-    fetching: isFetchingIntents,
-    reExecuteQuery: refetchIntents,
-  } = useIntentsQuery({
+  const { data: intents, isFetching: isFetchingIntents } = useIntentsQuery({
     user: address,
     status: statusFilter,
     limit: pagination.pageSize,
@@ -122,10 +121,47 @@ export const IntentsDataProvider = ({
     });
   }, [intents?.userIntents, botStatuses, chainBlockTimestamp]);
 
+  const userIntentsCountQueryKey = ["user-intents-count", address];
+  const userIntentsQueryKey = [
+    "user-intents",
+    address,
+    statusFilter,
+    pagination.pageSize,
+    pagination.pageIndex * pagination.pageSize,
+  ];
+
   const refetch = () =>
     Promise.all([
-      refetchIntentsCount({ requestPolicy: "network-only" }),
-      refetchIntents({ requestPolicy: "network-only" }),
+      queryClient.invalidateQueries({
+        queryKey: userIntentsCountQueryKey,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: userIntentsQueryKey,
+      }),
+      refetchBotStatuses(),
+    ]);
+
+  const refetchFresh = () =>
+    Promise.all([
+      queryClient.fetchQuery({
+        queryKey: userIntentsCountQueryKey,
+        queryFn: () =>
+          fetchUserIntentsCount(client, {
+            user: address,
+            fresh: true,
+          }),
+      }),
+      queryClient.fetchQuery({
+        queryKey: userIntentsQueryKey,
+        queryFn: () =>
+          fetchUserIntents(client, {
+            user: address,
+            status: statusFilter,
+            limit: pagination.pageSize,
+            offset: pagination.pageIndex * pagination.pageSize,
+            fresh: true,
+          }),
+      }),
       refetchBotStatuses(),
     ]);
 
@@ -140,6 +176,7 @@ export const IntentsDataProvider = ({
         statusFilter,
         setStatusFilter,
         refetch,
+        refetchFresh,
       }}
     >
       {children}
