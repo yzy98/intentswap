@@ -1,6 +1,6 @@
-/** biome-ignore-all lint/suspicious/noBitwiseOperators: <explanation> */
-/** biome-ignore-all lint/complexity/noExcessiveCognitiveComplexity: <explanation> */
-/** biome-ignore-all lint/style/noNestedTernary: <explanation> */
+/** biome-ignore-all lint/suspicious/noBitwiseOperators: false positive */
+/** biome-ignore-all lint/complexity/noExcessiveCognitiveComplexity: script logic */
+/** biome-ignore-all lint/style/noNestedTernary: readability in script */
 import { network } from "hardhat";
 import { type Address, parseEther, zeroAddress } from "viem";
 

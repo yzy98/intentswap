@@ -1,0 +1,5 @@
+{
+  "GET_USER_INTENTS_COUNT": "query GetUserIntentsCount($user: EthAddress!, $fresh: Boolean) {\n  total: userIntentsCount(user: $user, fresh: $fresh)\n  active: userIntentsCount(user: $user, status: ACTIVE, fresh: $fresh)\n  executed: userIntentsCount(user: $user, status: EXECUTED, fresh: $fresh)\n  cancelled: userIntentsCount(user: $user, status: CANCELLED, fresh: $fresh)\n}",
+  "GET_USER_INTENTS": "query GetUserIntents($user: EthAddress!, $status: IntentStatus, $limit: Int, $offset: Int, $fresh: Boolean) {\n  userIntents(\n    user: $user\n    status: $status\n    limit: $limit\n    offset: $offset\n    fresh: $fresh\n  ) {\n    id\n    user\n    createdTxHash\n    createdBlock\n    updatedBlock\n    createdAt\n    updatedAt\n    ...IntentItem\n  }\n}\n\nfragment IntentItem on Intent {\n  tokenFrom\n  tokenTo\n  amount\n  priceThreshold\n  status\n  expiration\n}",
+  "GET_INTENT_EVENT_BY_TX_HASH": "query GetIntentEventByTxHash($txHash: String!, $eventType: IntentEventType!, $chainId: Int) {\n  intentEventByTxHash(txHash: $txHash, eventType: $eventType, chainId: $chainId) {\n    id\n  }\n}"
+}

@@ -1,0 +1,5 @@
+{
+  "js/ts.tsdk.path": "apps/web/node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "biome.lsp.bin": "node_modules/@biomejs/biome/bin/biome"
+}

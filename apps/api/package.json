@@ -1,0 +1,29 @@
+{
+  "name": "@apps/api",
+  "version": "1.0.6",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --remote --port 4000 --inspector-port 9230",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+  },
+  "dependencies": {
+    "@graphql-yoga/plugin-disable-introspection": "^2.19.1",
+    "@graphql-yoga/plugin-persisted-operations": "^3.18.1",
+    "@packages/auth": "workspace:^",
+    "@packages/db": "workspace:^",
+    "@packages/graphql-artifacts": "workspace:^",
+    "@pothos/core": "^4.12.0",
+    "graphql": "^16.13.1",
+    "graphql-scalars": "^1.25.0",
+    "graphql-yoga": "^5.18.0",
+    "hono": "catalog:",
+    "hono-rate-limiter": "^0.5.3",
+    "viem": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

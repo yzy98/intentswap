@@ -9,7 +9,7 @@ IntentSwap allows users to:
 - Create swap intents with specific price thresholds
 - Set expiration dates for their intents
 - Have intents executed when conditions are satisfied
-  - **Current implementation**: `packages/bot` (Cloudflare Worker scheduled event handler) runs as the default executor
+  - **Current implementation**: `apps/bot` (Cloudflare Worker scheduled handler) runs as the default executor
   - **Protocol design**: execution is permissionless — any executor can call the on-chain entrypoint
 - Use Chainlink oracles for reliable price feeds
 - Swap tokens via Uniswap V3 with slippage protection
@@ -17,20 +17,29 @@ IntentSwap allows users to:
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            IntentSwap (monorepo)                            │
-├──────────────────┬──────────────────────┬──────────────────┬────────────────┤
-│ packages/hardhat │ packages/            │ packages/web     │ packages/bot   │
-│                  │ contract-deployments │                  │                │
-├──────────────────┼──────────────────────┼──────────────────┼────────────────┤
-│ Smart Contracts  │ Deploy artifacts     │ Next.js App      │ Cloudflare     │
-│ - IntentFactory  │ - ABIs (TS)          │ - Create UI      │  Worker        │
-│ - IntentExecutor │ - Deployed addresses │ - Manage UI      │ - Cron monitor │
-│ - Oracle         │   (per chain)        │ - Admin panel    │ - Execution    │
-│ - Swapper        │                      │                  │ - KV storage   │
-├──────────────────┴──────────────────────┴──────────────────┴────────────────┤
-│ hardhat deploy ──generates──> contract-deployments <──imports── web & bot   │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               IntentSwap (monorepo)                                   │
+├───────────────────────┬──────────────────────────────────────┬─────────────────────────┤
+│ Apps                  │ Shared Packages                      │ Infra / Contracts       │
+├───────────────────────┼──────────────────────────────────────┼─────────────────────────┤
+│ apps/web              │ packages/auth                        │ packages/hardhat        │
+│ - Next.js UI          │ - Better Auth wrappers               │ - Solidity contracts    │
+│ - Wallet + intents    │                                      │ - Deploy/test scripts   │
+│                       │ packages/db                          │                         │
+│ apps/api              │ - Drizzle schema + db clients        │ packages/contract-      │
+│ - Hono + GraphQL      │                                      │ deployments             │
+│ - Auth endpoints      │ packages/graphql-artifacts           │ - Generated ABIs +      │
+│                       │ - Persisted GraphQL manifests        │   deployed addresses    │
+│ apps/bot              │                                      │                         │
+│ - Cron executor       │                                      │                         │
+│ - Subscription KV API │                                      │                         │
+│                       │                                      │                         │
+│ apps/indexer          │                                      │                         │
+│ - On-chain event sync │                                      │                         │
+│ - Writes to Postgres  │                                      │                         │
+├───────────────────────┴──────────────────────────────────────┴─────────────────────────┤
+│ hardhat deploy ──generates──> contract-deployments <──imports── web / bot / indexer   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Smart Contracts
@@ -48,23 +57,27 @@ IntentSwap allows users to:
    - Specifies token pair, amount, price threshold, expiration
    - User approves `IntentExecutor` to spend `tokenFrom` (standard ERC20 allowance model)
 
-2. **Bot monitors intents** via Cloudflare Worker cron job (current executor)
-   - Watches for active intents and checks price conditions against Chainlink oracles
-   - When an intent is fillable, the bot sends a transaction calling `IntentExecutor.executeIntent(intentId)`
-   - Note: this is **permissionless** — the bot is not special; any executor can do the same
+2. **Indexer syncs on-chain events** (`apps/indexer`)
+   - Polls `IntentFactory` events (`IntentCreated`, `IntentUpdated`, `IntentExecuted`, `IntentCancelled`)
+   - Persists intent state + event history into Postgres via `@packages/db`
 
-3. **Execution** when conditions are met
-   - `IntentExecutor` validates: active status, expiry, oracle price threshold, slippage limit
-   - Swaps via Uniswap V3 (single-hop exact input)
-   - Distributes output: protocol fee → owner, executor reward → executor, remainder → user
+3. **API serves app data + auth** (`apps/api`)
+   - GraphQL endpoint for intent/event queries
+   - Better Auth endpoints for SIWE-based sessions
+
+4. **Bot monitors subscriptions and executes fillable intents** (`apps/bot`)
+   - Subscription API stores watched intents in Cloudflare KV
+   - Scheduled job checks conditions and calls `IntentExecutor.executeIntent(intentId)` when fillable
+   - Note: this is **permissionless** — the bot is not special; any executor can do the same
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 8+
-- A wallet with testnet ETH (for Base Sepolia)
+- PostgreSQL database
+- A wallet with Base Sepolia ETH (for testnet deployment/execution)
 
 ### Installation
 
@@ -82,90 +95,103 @@ pnpm install
 This repo uses a monorepo-friendly approach:
 
 - Contract **ABIs + deployed addresses** live in `packages/contract-deployments/` (generated by the Hardhat deploy script).
-- `web` and `bot` import contract ABIs/addresses from `@packages/contract-deployments` instead of duplicating contract addresses in `.env`.
+- Runtime apps import deployments from `@packages/contract-deployments` instead of duplicating contract addresses in each app.
 
-Create local env files for runtime-only values:
+Create local env files for runtime values:
 
-**packages/web/.env**
+**apps/indexer/.env**
 ```env
-# WalletConnect project id
+DATABASE_URL=postgres://...
+RPC_URL=https://...
+CHAIN_ID=84532
+```
+
+**apps/api/.dev.vars** (Wrangler local secrets)
+```env
+BETTER_AUTH_SECRET=your_secret
+RPC_URL=https://...
+```
+
+**apps/bot/.dev.vars** (Wrangler local secrets)
+```env
+RPC_URL=https://...
+PRIVATE_KEY=0x...
+```
+
+**apps/web/.env.local**
+```env
 NEXT_PUBLIC_PROJECT_ID=your_walletconnect_project_id
-
-# Which deployment to use from @packages/contract-deployments
 NEXT_PUBLIC_CHAIN_ID=84532
-
-# Bot API (local dev)
 NEXT_PUBLIC_BOT_API_URL=http://localhost:8787
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 
-# Token + feed addresses (public chain data; keep as env for now)
+# Public chain values used by UI
 NEXT_PUBLIC_WRAPPED_ETH_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_LINK_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_PRICE_FEED_CONTRACT_LINK_TO_ETH_ADDRESS=0x...
 ```
 
-**packages/bot/.env**
-```env
-PRIVATE_KEY=your_bot_private_key
-RPC_URL=your_rpc_url
-CHAIN_ID=84532
-CORS_ORIGIN=http://localhost:3000
-```
-
 Notes:
 
-- Do **NOT** put contract addresses in bot/web env files. They come from `@packages/contract-deployments`.
-- For production, prefer `wrangler secret put` for `PRIVATE_KEY` / `RPC_URL` instead of committing them anywhere.
+- `apps/api/wrangler.jsonc`, `apps/bot/wrangler.jsonc`, and `apps/web/wrangler.jsonc` already include default local/production `vars` for non-secret config.
+- For production, store secrets with `wrangler secret put` (for example: API `BETTER_AUTH_SECRET`, bot `RPC_URL` / `PRIVATE_KEY`).
 
 ### Deploy Contracts
 
 ```bash
-# Deploy to Base Sepolia testnet
-pnpm deploy:baseSepolia
+# Build contracts
+pnpm --filter @packages/hardhat build
+
+# Deploy to Base Sepolia
+pnpm --filter @packages/hardhat deploy:baseSepolia
 
 # Or deploy to localhost
-pnpm node          # Start local node
-pnpm deploy:localhost
+pnpm --filter @packages/hardhat node
+pnpm --filter @packages/hardhat deploy:localhost
 ```
 
 After deployment, the script updates:
 
 - `packages/contract-deployments/src/generated/abis/*.ts`
-- `packages/contract-deployments/src/generated/deployments.ts` (and `deployments.json` if used)
+- `packages/contract-deployments/src/generated/deployments.ts`
+- `packages/contract-deployments/src/generated/deployments.json`
 
 ### Run Development Servers
 
 ```bash
-# Run web app
-pnpm dev:web
+# Run everything together (api + indexer + bot + web)
+pnpm dev:all
 
-# Run bot locally
+# Or run individually
+pnpm dev:api
+pnpm dev:indexer
 pnpm dev:bot
+pnpm dev:web
 ```
 
 ## Project Structure
 
 ```
 intentswap/
+├── apps/
+│   ├── web/                    # Next.js frontend
+│   ├── api/                    # Hono + GraphQL + auth worker
+│   ├── bot/                    # Cloudflare Worker (cron executor + subscriptions)
+│   └── indexer/                # On-chain event indexer -> Postgres
 ├── packages/
-│   ├── hardhat/           # Smart contracts
-│   │   ├── contracts/     # Solidity contracts
-│   │   └── scripts/       # Deploy scripts
-│   ├── contract-deployments/ # Generated ABIs + deployed addresses (TS)
-│   ├── web/               # Next.js frontend
-│   │   ├── app/           # App router pages
-│   │   ├── components/    # React components
-│   │   ├── hooks/         # Custom hooks
-│   │   └── lib/           # Utilities & types
-│   └── bot/               # Cloudflare Worker
-│       └── src/           # Worker source
-├── package.json           # Root package.json
-└── pnpm-workspace.yaml    # Workspace config
+│   ├── hardhat/                # Solidity contracts + deploy/test scripts
+│   ├── contract-deployments/   # Generated ABIs + deployment addresses
+│   ├── db/                     # Drizzle schema + db clients
+│   ├── auth/                   # Shared auth integration
+│   └── graphql-artifacts/      # Persisted GraphQL artifacts
+├── package.json                # Root scripts (dev/check/fix)
+└── pnpm-workspace.yaml         # Workspace config
 ```
 
 ## Tech Stack
 
 **Smart Contracts**
-- Solidity 0.8.20
+- Solidity 0.8.28
 - Hardhat
 - OpenZeppelin Contracts
 - Chainlink Price Feeds
@@ -176,22 +202,24 @@ intentswap/
 - React 19
 - Wagmi / Viem
 - RainbowKit
-- TailwindCSS
+- Tailwind CSS
 - shadcn/ui
 
-**Bot**
-- Cloudflare Workers
+**Backend / Workers**
+- Cloudflare Workers + Wrangler
 - Hono
-- Viem
+- GraphQL Yoga + Pothos
+- Better Auth (SIWE)
+- Drizzle ORM + PostgreSQL
 
 ## Networks
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| baseSepolia | 84532 | Testnet |
-| Base    | 8453     | Mainnet (planned) |
+| baseSepolia | 84532 | Active testnet |
+| Base | 8453 | Supported in code |
 
-## Security notes (assumptions & design choices)
+## Security Notes (assumptions & design choices)
 
 - **Permissionless execution by design**: anyone can call `executeIntent`. Liveness comes from the executor incentive (`executorRewardBps`).
 - **Swapper access control**: `UniswapV3Swapper` only accepts calls from authorized executors (the deployed `IntentExecutor` is authorized post-deploy).
@@ -200,15 +228,26 @@ intentswap/
 ## Scripts
 
 ```bash
-# Linting
-pnpm check        # Check code style
-pnpm fix          # Fix code style
+# Root
+pnpm dev:all
+pnpm dev:api
+pnpm dev:indexer
+pnpm dev:bot
+pnpm dev:web
+pnpm check
+pnpm fix
 
-# Build
-pnpm build        # Build contracts
+# Hardhat package
+pnpm --filter @packages/hardhat build
+pnpm --filter @packages/hardhat test
+pnpm --filter @packages/hardhat deploy:baseSepolia
+pnpm --filter @packages/hardhat deploy:localhost
 
-# Test
-pnpm test         # Run contract tests
+# DB package
+pnpm --filter @packages/db db:push
+pnpm --filter @packages/db db:generate
+pnpm --filter @packages/db db:migrate
+pnpm --filter @packages/db db:studio
 ```
 
 ## License
