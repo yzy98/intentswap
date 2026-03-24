@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createSiweMessage } from "viem/siwe";
 import { useChainId, useConfig, useConnection } from "wagmi";
 import { signMessage } from "wagmi/actions";
@@ -20,8 +27,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { address } = useConnection();
   const chainId = useChainId();
   const config = useConfig();
+  const previousAddressRef = useRef<string | undefined>(address);
 
   const { data, refetch } = useSession();
+
+  useEffect(() => {
+    const previousAddress = previousAddressRef.current?.toLowerCase();
+    const currentAddress = address?.toLowerCase();
+    const hasSession = !!data?.session;
+
+    // If the connected wallet changes (or disconnects) while a session exists,
+    // clear the SIWE session to avoid wallet/session mismatch.
+    const hasWalletChanged =
+      !!previousAddress &&
+      ((!!currentAddress && previousAddress !== currentAddress) ||
+        !currentAddress);
+
+    if (hasSession && hasWalletChanged) {
+      authClient.signOut().finally(() => {
+        refetch();
+      });
+    }
+
+    previousAddressRef.current = address;
+  }, [address, data?.session, refetch]);
 
   const signIn = useCallback(async () => {
     if (!(address && chainId)) {
