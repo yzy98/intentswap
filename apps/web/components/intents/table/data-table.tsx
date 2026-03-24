@@ -8,6 +8,7 @@ import {
   type RowData,
   useReactTable,
 } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -45,7 +46,8 @@ export function DataTable<TData, TValue>({
     setPagination,
     refetch,
     refetchFresh,
-    isLoading,
+    isInitialLoading,
+    isRefreshing,
     statusFilter,
     setStatusFilter,
   } = useIntentsData();
@@ -69,10 +71,18 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <StatusFilter
-        setStatusFilter={setStatusFilter}
-        statusFilter={statusFilter}
-      />
+      <div className="flex items-center justify-between">
+        <StatusFilter
+          setStatusFilter={setStatusFilter}
+          statusFilter={statusFilter}
+        />
+        {isRefreshing && (
+          <Badge variant="outline">
+            <Spinner data-icon="inline-start" />
+            Refreshing
+          </Badge>
+        )}
+      </div>
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
@@ -95,7 +105,7 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {(() => {
-              if (isLoading) {
+              if (isInitialLoading) {
                 return (
                   <TableRow>
                     <TableCell

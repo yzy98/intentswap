@@ -35,7 +35,8 @@ export interface IntentRow {
 export interface IntentsDataContextValue {
   pageIntentRows: IntentRow[];
   totalRowCount: number;
-  isLoading: boolean;
+  isInitialLoading: boolean;
+  isRefreshing: boolean;
   pagination: PaginationState;
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   statusFilter?: IntentStatusType;
@@ -74,11 +75,18 @@ export const IntentsDataProvider = ({
   >();
 
   // Intents count
-  const { data: intentsCount, isFetching: isFetchingIntentsCount } =
-    useIntentsCount();
+  const {
+    data: intentsCount,
+    isFetching: isFetchingIntentsCount,
+    isLoading: isLoadingIntentsCount,
+  } = useIntentsCount();
 
   // Intents (paginated)
-  const { data: intents, isFetching: isFetchingIntents } = useIntentsQuery({
+  const {
+    data: intents,
+    isFetching: isFetchingIntents,
+    isLoading: isLoadingIntents,
+  } = useIntentsQuery({
     user: address,
     status: statusFilter,
     limit: pagination.pageSize,
@@ -88,9 +96,28 @@ export const IntentsDataProvider = ({
   const currentPageIntentIds =
     intents?.userIntents?.map((intent) => intent.id as bigint) ?? [];
 
+  // Query keys
+  const userIntentsCountQueryKey = ["user-intents-count", address];
+  const userIntentsQueryKey = [
+    "user-intents",
+    address,
+    statusFilter,
+    pagination.pageSize,
+    pagination.pageIndex * pagination.pageSize,
+  ];
+  const botStatusBatchQueryKey = [
+    "bot-status-batch",
+    currentPageIntentIds.join(","),
+    chainId,
+  ];
+
   // Bot statuses
-  const { data: botStatuses, refetch: refetchBotStatuses } = useQuery({
-    queryKey: ["bot-status-batch", currentPageIntentIds.join(","), chainId],
+  const {
+    data: botStatuses,
+    isFetching: isFetchingBotStatuses,
+    isLoading: isLoadingBotStatuses,
+  } = useQuery({
+    queryKey: botStatusBatchQueryKey,
     queryFn: () => fetchBotStatusBatch(currentPageIntentIds, chainId),
     enabled: !!currentPageIntentIds.length,
   });
@@ -121,15 +148,6 @@ export const IntentsDataProvider = ({
     });
   }, [intents?.userIntents, botStatuses, chainBlockTimestamp]);
 
-  const userIntentsCountQueryKey = ["user-intents-count", address];
-  const userIntentsQueryKey = [
-    "user-intents",
-    address,
-    statusFilter,
-    pagination.pageSize,
-    pagination.pageIndex * pagination.pageSize,
-  ];
-
   const refetch = () =>
     Promise.all([
       queryClient.invalidateQueries({
@@ -138,7 +156,9 @@ export const IntentsDataProvider = ({
       queryClient.invalidateQueries({
         queryKey: userIntentsQueryKey,
       }),
-      refetchBotStatuses(),
+      queryClient.invalidateQueries({
+        queryKey: botStatusBatchQueryKey,
+      }),
     ]);
 
   const refetchFresh = () =>
@@ -162,15 +182,24 @@ export const IntentsDataProvider = ({
             fresh: true,
           }),
       }),
-      refetchBotStatuses(),
+      queryClient.invalidateQueries({
+        queryKey: botStatusBatchQueryKey,
+      }),
     ]);
+
+  const isInitialLoading =
+    isLoadingIntentsCount || isLoadingIntents || isLoadingBotStatuses;
+  const isRefreshing =
+    (isFetchingIntentsCount || isFetchingIntents || isFetchingBotStatuses) &&
+    !isInitialLoading;
 
   return (
     <IntentsDataContext
       value={{
         pageIntentRows,
         totalRowCount: intentsCount?.total ?? 0,
-        isLoading: isFetchingIntents || isFetchingIntentsCount,
+        isInitialLoading,
+        isRefreshing,
         pagination,
         setPagination,
         statusFilter,

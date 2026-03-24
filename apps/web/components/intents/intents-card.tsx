@@ -17,7 +17,7 @@ export function IntentsCard() {
   const { refetchFresh } = useIntentsData();
 
   return (
-    <Card className="w-full" variant="glass">
+    <Card className="w-full gap-0" variant="glass">
       <CardHeader>
         <CardTitle>My Intents</CardTitle>
         <CardAction>
