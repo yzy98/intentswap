@@ -66,7 +66,7 @@ export const IntentsDataProvider = ({
   // Table pagination state
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 5,
+    pageSize: 10,
   });
 
   // Table status filter state

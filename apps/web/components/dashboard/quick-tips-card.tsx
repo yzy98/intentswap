@@ -25,7 +25,7 @@ const quickTips = [
 
 export const QuickTipsCard = () => {
   return (
-    <Card variant="glass">
+    <Card className="lg:h-full lg:flex-1" variant="glass">
       <CardHeader>
         <CardTitle>Quick tips</CardTitle>
       </CardHeader>
