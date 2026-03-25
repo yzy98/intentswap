@@ -19,14 +19,14 @@ export function DashboardContent({ address }: DashboardContentProps) {
         <OverviewSection />
 
         {/* Main Section */}
-        <section className="grid gap-4 lg:grid-cols-12">
+        <section className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
           <div className="lg:col-span-8">
             <IntentsDataProvider address={address}>
               <IntentsCard />
             </IntentsDataProvider>
           </div>
 
-          <aside className="space-y-4 lg:col-span-4">
+          <aside className="space-y-4 lg:col-span-4 lg:flex lg:h-full lg:flex-col">
             <QuickTipsCard />
             <StatusLegendCard />
           </aside>

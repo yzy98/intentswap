@@ -76,7 +76,7 @@ builder.queryField("userIntents", (t) =>
         type: IntentStatusGql,
         required: false,
       }),
-      limit: t.arg.int({ defaultValue: 5, required: false }),
+      limit: t.arg.int({ defaultValue: 10, required: false }),
       offset: t.arg.int({ defaultValue: 0, required: false }),
       fresh: t.arg.boolean({
         defaultValue: false,
@@ -99,7 +99,7 @@ builder.queryField("userIntents", (t) =>
       const { safeLimit, safeOffset } = getSafeLimitAndOffset({
         limit,
         offset,
-        defaultLimit: 5,
+        defaultLimit: 10,
       });
 
       const runIntentsQuery = (db: WorkerDbClient) =>
