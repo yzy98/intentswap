@@ -21,14 +21,19 @@ export function Header() {
   const isOwner = address && ownerAddress && address === ownerAddress;
 
   return (
-    <header className="flex items-center justify-between border-b px-4 py-2">
+    <header className="sticky top-0 z-20 border-border/70 border-b bg-background/80 px-4 py-2.5 backdrop-blur supports-backdrop-filter:bg-background/55">
       <Link href="/">
-        <h1 className="font-bold text-2xl">IntentSwap</h1>
+        <div className="leading-none">
+          <h1 className="font-semibold text-2xl tracking-tight">IntentSwap</h1>
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] opacity-70">
+            Intent Execution Desk
+          </p>
+        </div>
       </Link>
       <div className="flex items-center gap-2">
         {isOwner && isAuthenticated && (
           <Link
-            className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+            className="border border-border/70 px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/admin"
           >
             Admin
@@ -40,7 +45,7 @@ export function Header() {
           </Button>
         )}
         {address && isAuthenticated && (
-          <Button onClick={signOut}>
+          <Button onClick={signOut} variant="outline">
             <LogOutIcon />
             Sign Out
           </Button>

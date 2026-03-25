@@ -24,8 +24,9 @@ export function IntentsCard() {
           <CreateIntentDialog
             onIndexed={refetchFresh}
             triggerButton={
-              <Button>
+              <Button className="font-medium">
                 <PlusIcon />
+                Create Intent
               </Button>
             }
           />

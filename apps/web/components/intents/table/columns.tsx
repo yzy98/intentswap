@@ -79,13 +79,13 @@ export const columns: ColumnDef<IntentRow>[] = [
     accessorFn: (row) => row.intent.status,
     cell: ({ row }) => {
       const statusText = row.original.intent.status;
-      let variant: "active" | "default" | "secondary" | "destructive";
+      let variant: "active" | "default" | "cancelled" | "destructive";
       if (statusText === "ACTIVE") {
         variant = "default";
       } else if (statusText === "EXECUTED") {
         variant = "active";
       } else {
-        variant = "secondary";
+        variant = "cancelled";
       }
 
       return (

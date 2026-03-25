@@ -14,19 +14,19 @@ interface DashboardContentProps {
 export function DashboardContent({ address }: DashboardContentProps) {
   return (
     <IntentsCountProvider address={address}>
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <TopSection address={address} />
         <OverviewSection />
 
         {/* Main Section */}
-        <section className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
+        <section className="grid gap-4 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-8">
             <IntentsDataProvider address={address}>
               <IntentsCard />
             </IntentsDataProvider>
           </div>
 
-          <aside className="space-y-4 lg:col-span-4 lg:flex lg:h-full lg:flex-col">
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:col-span-4 lg:self-start">
             <QuickTipsCard />
             <StatusLegendCard />
           </aside>
