@@ -25,16 +25,19 @@ const quickTips = [
 
 export const QuickTipsCard = () => {
   return (
-    <Card className="lg:h-full lg:flex-1" variant="glass">
+    <Card className="border-border/70 bg-card/80" variant="glass">
       <CardHeader>
         <CardTitle>Quick tips</CardTitle>
       </CardHeader>
       <CardContent className="text-muted-foreground">
-        <ItemGroup className="gap-0">
+        <ItemGroup className="gap-1">
           {quickTips.map((tip) => {
             const Icon = tip.icon;
             return (
-              <Item key={tip.description}>
+              <Item
+                className="border border-border/60 bg-background/60 px-2 py-1"
+                key={tip.description}
+              >
                 <ItemMedia variant="icon">
                   <Icon />
                 </ItemMedia>
