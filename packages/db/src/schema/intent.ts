@@ -54,14 +54,6 @@ export const intent = pgTable(
   ]
 );
 
-export const indexerState = pgTable("indexer_state", {
-  id: integer().primaryKey().default(1),
-  lastBlock: bigint({ mode: "bigint" }).notNull(),
-  updatedAt: timestamp()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
-
 export const intentEvent = pgTable(
   "intent_event",
   {
@@ -102,8 +94,6 @@ export const intentEvent = pgTable(
 
 export type Intent = typeof intent.$inferSelect;
 export type NewIntent = typeof intent.$inferInsert;
-export type IndexerState = typeof indexerState.$inferSelect;
-export type NewIndexerState = typeof indexerState.$inferInsert;
 export type IntentStatusValue = (typeof intentStatusEnum.enumValues)[number];
 export type IntentEvent = typeof intentEvent.$inferSelect;
 export type NewIntentEvent = typeof intentEvent.$inferInsert;
