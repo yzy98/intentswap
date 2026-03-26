@@ -28,17 +28,26 @@ const generatedDir = path.join(
   "../../contract-deployments/src/generated"
 );
 const abiDir = path.join(generatedDir, "abis");
+const abiJsonDir = path.join(generatedDir, "abis-json");
 const deploymentsJsonPath = path.join(generatedDir, "deployments.json");
 const deploymentsTsPath = path.join(generatedDir, "deployments.ts");
 
 function ensureGeneratedDirs() {
   fs.mkdirSync(abiDir, { recursive: true });
+  fs.mkdirSync(abiJsonDir, { recursive: true });
 }
 
 function writeAbiTs(fileName: string, exportName: string, abi: unknown) {
   fs.writeFileSync(
     path.join(abiDir, fileName),
     `export const ${exportName} = ${JSON.stringify(abi, null, 2)} as const;\n`
+  );
+}
+
+function writeAbiJson(fileName: string, abi: unknown) {
+  fs.writeFileSync(
+    path.join(abiJsonDir, fileName),
+    `${JSON.stringify(abi, null, 2)}\n`
   );
 }
 
@@ -120,6 +129,7 @@ async function main() {
   const oracle = await viem.deployContract("Oracle");
   console.log("Oracle deployed: ", oracle.address);
   writeAbiTs("oracle.ts", "oracleAbi", oracle.abi);
+  writeAbiJson("oracle.json", oracle.abi);
 
   // Deploy UniswapV3Swapper
   console.log("Deploying UniswapV3Swapper contract...");
@@ -128,12 +138,14 @@ async function main() {
   ]);
   console.log("UniswapV3Swapper deployed: ", swapper.address);
   writeAbiTs("swapper.ts", "swapperAbi", swapper.abi);
+  writeAbiJson("swapper.json", swapper.abi);
 
   // Deploy IntentFactory
   console.log("Deploying IntentFactory contract...");
   const intentFactory = await viem.deployContract("IntentFactory");
   console.log("IntentFactory deployed: ", intentFactory.address);
   writeAbiTs("intentFactory.ts", "intentFactoryAbi", intentFactory.abi);
+  writeAbiJson("intentFactory.json", intentFactory.abi);
 
   // Deploy IntentExecutor
   console.log("Deploying IntentExecutor contract...");
@@ -148,6 +160,7 @@ async function main() {
     intentExecutor.address
   );
   writeAbiTs("intentExecutor.ts", "intentExecutorAbi", intentExecutor.abi);
+  writeAbiJson("intentExecutor.json", intentExecutor.abi);
 
   // Post-deploy actions
   // Transfer ownership of IntentFactory to IntentExecutor
