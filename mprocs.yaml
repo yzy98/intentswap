@@ -1,5 +1,5 @@
 procs:
   api: "pnpm dev:api"
-  indexer: "pnpm dev:indexer"
+  pipes: "pnpm dev:pipes"
   bot: "pnpm dev:bot"
   web: "pnpm dev:web"

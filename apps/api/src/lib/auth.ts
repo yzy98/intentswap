@@ -1,12 +1,11 @@
 import { createAuth } from "@packages/auth/server";
 import { createWorkerDbClient } from "@packages/db/worker";
 import { type Chain, createPublicClient, http } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 import type { Env } from "./types";
 
 const chains: Record<number, Chain> = {
-  [baseSepolia.id]: baseSepolia,
-  [base.id]: base,
+  [sepolia.id]: sepolia,
 };
 
 const getChain = (chainId: string): Chain => {

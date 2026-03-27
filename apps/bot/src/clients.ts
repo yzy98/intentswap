@@ -8,11 +8,10 @@ import {
   type WalletClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 const chains: Record<number, Chain> = {
-  [baseSepolia.id]: baseSepolia,
-  [base.id]: base,
+  [sepolia.id]: sepolia,
 };
 
 const publicClientCache = new Map<string, PublicClient>();

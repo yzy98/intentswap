@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { network } from "hardhat";
-import { baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 interface DeploymentRecord {
   chainId: number;
@@ -17,8 +17,8 @@ interface DeploymentRecord {
 
 type DeploymentsJson = Record<string, DeploymentRecord>;
 
-// Base Sepolia (84532)
-const SWAP_ROUTER_ADDRESS = "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4";
+// Sepolia (11155111)
+const SWAP_ROUTER_ADDRESS = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -119,15 +119,18 @@ async function main() {
   const publicClient = await viem.getPublicClient();
   const chainId = publicClient.chain.id;
 
-  const isBaseSepolia = chainId === baseSepolia.id;
+  const isSepolia = chainId === sepolia.id;
 
   // Ensure generated directories exist
   ensureGeneratedDirs();
 
   // Deploy Oracle
   console.log("Deploying Oracle contract...");
-  const oracle = await viem.deployContract("Oracle");
-  console.log("Oracle deployed: ", oracle.address);
+  const oracle = await viem.deployContract("Oracle", [isSepolia]);
+  console.log(
+    `Oracle deployed (skipStaleCheck=${isSepolia}): `,
+    oracle.address
+  );
   writeAbiTs("oracle.ts", "oracleAbi", oracle.abi);
   writeAbiJson("oracle.json", oracle.abi);
 
@@ -153,10 +156,10 @@ async function main() {
     intentFactory.address,
     oracle.address,
     swapper.address,
-    isBaseSepolia,
+    isSepolia,
   ]);
   console.log(
-    `IntentExecutor deployed (skipOraclePrice=${isBaseSepolia}): `,
+    `IntentExecutor deployed (skipOraclePrice=${isSepolia}): `,
     intentExecutor.address
   );
   writeAbiTs("intentExecutor.ts", "intentExecutorAbi", intentExecutor.abi);

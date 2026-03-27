@@ -77,7 +77,7 @@ IntentSwap allows users to:
 - Node.js 20+
 - pnpm 8+
 - PostgreSQL database
-- A wallet with Base Sepolia ETH (for testnet deployment/execution)
+- A wallet with Ethereum Sepolia ETH (for testnet deployment/execution)
 
 ### Installation
 
@@ -103,7 +103,7 @@ Create local env files for runtime values:
 ```env
 DATABASE_URL=postgres://...
 RPC_URL=https://...
-CHAIN_ID=84532
+CHAIN_ID=11155111
 ```
 
 **apps/api/.dev.vars** (Wrangler local secrets)
@@ -121,7 +121,7 @@ PRIVATE_KEY=0x...
 **apps/web/.env.local**
 ```env
 NEXT_PUBLIC_PROJECT_ID=your_walletconnect_project_id
-NEXT_PUBLIC_CHAIN_ID=84532
+NEXT_PUBLIC_CHAIN_ID=11155111
 NEXT_PUBLIC_BOT_API_URL=http://localhost:8787
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 
@@ -142,8 +142,8 @@ Notes:
 # Build contracts
 pnpm --filter @packages/hardhat build
 
-# Deploy to Base Sepolia
-pnpm --filter @packages/hardhat deploy:baseSepolia
+# Deploy to Ethereum Sepolia
+pnpm --filter @packages/hardhat deploy:sepolia
 
 # Or deploy to localhost
 pnpm --filter @packages/hardhat node
@@ -216,8 +216,7 @@ intentswap/
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| baseSepolia | 84532 | Active testnet |
-| Base | 8453 | Supported in code |
+| sepolia | 11155111 | Active testnet |
 
 ## Security Notes (assumptions & design choices)
 
@@ -240,7 +239,7 @@ pnpm fix
 # Hardhat package
 pnpm --filter @packages/hardhat build
 pnpm --filter @packages/hardhat test
-pnpm --filter @packages/hardhat deploy:baseSepolia
+pnpm --filter @packages/hardhat deploy:sepolia
 pnpm --filter @packages/hardhat deploy:localhost
 
 # DB package

@@ -7,6 +7,5 @@ import * as schema from "../schema";
 export const createDrizzleClient = (clientOrPool: Client | Pool) => {
   return drizzle(clientOrPool, {
     schema,
-    casing: "snake_case",
   });
 };
