@@ -25,7 +25,7 @@ const intentFactoryAddress = getDeployment(ENV.CHAIN_ID).contracts
 async function main() {
   await evmPortalSource({
     portal: {
-      url: "https://portal.sqd.dev/datasets/ethereum-sepolia",
+      url: ENV.PORTAL_URL,
     },
   })
     .pipe(
