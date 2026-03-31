@@ -16,10 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IndexingTimeoutError } from "@/hooks/use-my-write-contract";
 import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
+import { subscribeBotOrNot } from "@/lib/api/bot";
 import { intentFactoryContract } from "@/lib/constants";
-
-const BOT_API_URL =
-  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
 interface RowActionsProps {
   intentId: bigint;
@@ -48,25 +46,12 @@ export const RowActions = ({
         throw new Error("Wallet not connected");
       }
 
-      const response = await fetch(`${BOT_API_URL}/unsubscribe`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          intentId: intentId.toString(),
-          chainId,
-          user: address,
-        }),
+      await subscribeBotOrNot({
+        subscribe: false,
+        intentId,
+        chainId,
+        user: address,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to disable bot auto-execution");
-      }
-
-      return data;
     },
   });
 

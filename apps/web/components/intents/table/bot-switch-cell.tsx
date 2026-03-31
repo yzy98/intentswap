@@ -2,9 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useChainId, useConnection } from "wagmi";
 import { Switch } from "@/components/ui/switch";
-
-const BOT_API_URL =
-  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
+import { subscribeBotOrNot } from "@/lib/api/bot";
 
 interface BotSwitchCellProps {
   intentId: bigint;
@@ -30,26 +28,12 @@ export const BotSwitchCell = ({
         throw new Error("Wallet not connected");
       }
 
-      const endpoint = subscribe ? "subscribe" : "unsubscribe";
-      const response = await fetch(`${BOT_API_URL}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          intentId: intentId.toString(),
-          chainId,
-          user: address,
-        }),
+      await subscribeBotOrNot({
+        subscribe,
+        intentId,
+        chainId,
+        user: address,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to toggle bot auto-execution");
-      }
-
-      return data;
     },
     onSuccess: refetch,
   });

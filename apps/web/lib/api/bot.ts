@@ -21,7 +21,10 @@ export const fetchBotStatusBatch = async (
     chainId: chainId.toString(),
   });
 
-  const response = await fetch(`${BOT_API_URL}/status/batch?${params}`);
+  const response = await fetch(`${BOT_API_URL}/status/batch?${params}`, {
+    method: "GET",
+    credentials: "include",
+  });
   const data = await response.json();
 
   if (!response.ok) {
@@ -53,4 +56,35 @@ export const fetchBotSubscriptionCount = async (
   );
 
   return counts.reduce((sum, count) => sum + count, 0);
+};
+
+export const subscribeBotOrNot = async ({
+  subscribe,
+  intentId,
+  chainId,
+  user,
+}: {
+  subscribe: boolean;
+  intentId: bigint;
+  chainId: number;
+  user: `0x${string}`;
+}) => {
+  const endpoint = subscribe ? "subscribe" : "unsubscribe";
+  const response = await fetch(`${BOT_API_URL}/${endpoint}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      intentId: intentId.toString(),
+      chainId,
+      user,
+    }),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error ?? "Failed to toggle bot auto-execution");
+  }
 };

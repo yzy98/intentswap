@@ -3,11 +3,9 @@ import { logger } from "hono/logger";
 import { cron } from "@/cron";
 import type { AppEnv } from "@/lib/types";
 import { jsonError } from "@/lib/utils";
+import { authMiddleware } from "@/middlewares/auth";
+import { clientsMiddleware } from "@/middlewares/clients";
 import { corsMiddleware } from "@/middlewares/cors";
-import {
-  publicClientMiddleware,
-  walletClientMiddleware,
-} from "@/middlewares/global";
 import { rateLimiterMiddleware } from "@/middlewares/rate-limiter";
 import { validateSubscription } from "@/middlewares/validate-subscription";
 
@@ -17,8 +15,8 @@ const app = new Hono<AppEnv>();
 app.use(logger());
 app.use("*", corsMiddleware);
 app.use("*", rateLimiterMiddleware);
-app.use("*", publicClientMiddleware);
-app.use("*", walletClientMiddleware);
+app.use("*", authMiddleware);
+app.use("*", clientsMiddleware);
 
 // Subscribe
 app.post("/subscribe", validateSubscription, async (c) => {

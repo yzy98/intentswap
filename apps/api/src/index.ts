@@ -31,4 +31,15 @@ app.all("/graphql", (c) => {
   });
 });
 
+// Auth route for bot worker
+app.get("/auth/bot", sessionMiddleware, (c) => {
+  const session = c.get("session");
+  const user = c.get("user");
+
+  if (!(session && user)) {
+    return c.json({ ok: false }, 401);
+  }
+  return c.json({ ok: true, user });
+});
+
 export default app;
