@@ -1,10 +1,12 @@
 import type { Context } from "hono";
-import type { Address, Hex, PublicClient, WalletClient } from "viem";
+import type { Address, PublicClient, WalletClient } from "viem";
 
-export type AppContext = Context<{
+export type AppContext = Context<AppEnv>;
+
+export interface AppEnv {
   Bindings: Bindings;
   Variables: Variables;
-}>;
+}
 
 export interface Bindings {
   INTENTS_SUBSCRIPTIONS: KVNamespace;
@@ -12,7 +14,7 @@ export interface Bindings {
   CORS_ORIGIN: string;
   CHAIN_ID: string;
   RPC_URL: string;
-  PRIVATE_KEY: Hex;
+  PRIVATE_KEY: string;
 }
 
 export interface Variables {

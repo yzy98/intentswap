@@ -1,23 +1,22 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import { cron } from "./cron";
-import type { Bindings, Variables } from "./lib/types";
-import { jsonError } from "./lib/utils";
+import { cron } from "@/cron";
+import type { AppEnv } from "@/lib/types";
+import { jsonError } from "@/lib/utils";
+import { corsMiddleware } from "@/middlewares/cors";
 import {
-  corsMiddleware,
   publicClientMiddleware,
   walletClientMiddleware,
-} from "./middlewares/global";
-import { validateSubscription } from "./middlewares/validate-subscription";
+} from "@/middlewares/global";
+import { rateLimiterMiddleware } from "@/middlewares/rate-limiter";
+import { validateSubscription } from "@/middlewares/validate-subscription";
 
-const app = new Hono<{
-  Bindings: Bindings;
-  Variables: Variables;
-}>();
+const app = new Hono<AppEnv>();
 
 // Middlewares
 app.use(logger());
 app.use("*", corsMiddleware);
+app.use("*", rateLimiterMiddleware);
 app.use("*", publicClientMiddleware);
 app.use("*", walletClientMiddleware);
 

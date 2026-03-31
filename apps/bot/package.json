@@ -5,12 +5,15 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "trigger-cron": "curl http://localhost:8787/cdn-cgi/handler/scheduled"
   },
   "dependencies": {
+    "@packages/auth": "workspace:^",
     "@packages/contract-deployments": "workspace:*",
+    "@packages/db": "workspace:^",
     "hono": "catalog:",
+    "hono-rate-limiter": "catalog:",
     "viem": "catalog:"
   },
   "devDependencies": {

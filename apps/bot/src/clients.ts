@@ -2,7 +2,6 @@ import {
   type Chain,
   createPublicClient,
   createWalletClient,
-  type Hex,
   http,
   type PublicClient,
   type WalletClient,
@@ -40,14 +39,14 @@ export const getPublicClient = (rpcUrl: string, chainId: string) => {
 
 export const getWalletClient = (
   rpcUrl: string,
-  privateKey: Hex,
+  privateKey: string,
   chainId: string
 ) => {
   const cached = walletClientCache.get(`${rpcUrl}:${privateKey.toLowerCase()}`);
   if (cached) {
     return cached;
   }
-  const account = privateKeyToAccount(privateKey);
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
   const client = createWalletClient({
     chain: getChain(chainId),
     transport: http(rpcUrl),

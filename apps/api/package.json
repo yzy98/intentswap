@@ -18,7 +18,7 @@
     "graphql-scalars": "^1.25.0",
     "graphql-yoga": "^5.18.0",
     "hono": "catalog:",
-    "hono-rate-limiter": "^0.5.3",
+    "hono-rate-limiter": "catalog:",
     "viem": "catalog:"
   },
   "devDependencies": {
