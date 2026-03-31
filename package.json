@@ -5,7 +5,7 @@
   "scripts": {
     "dev:all": "mprocs",
     "dev:api": "pnpm --filter @apps/api dev",
-    "dev:indexer": "pnpm --filter @apps/indexer dev",
+    "dev:pipes": "pnpm --filter @apps/pipes dev",
     "dev:bot": "pnpm --filter @apps/bot dev",
     "dev:web": "pnpm --filter @apps/web dev",
     "check": "ultracite check",

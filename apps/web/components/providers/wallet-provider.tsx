@@ -12,7 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { WagmiProvider } from "wagmi";
-import { baseSepolia, hardhat } from "wagmi/chains";
+import { hardhat, sepolia } from "wagmi/chains";
 
 const { wallets } = getDefaultWallets();
 
@@ -20,7 +20,7 @@ export const config = getDefaultConfig({
   appName: "IntentSwap",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID ?? "",
   wallets: [...wallets],
-  chains: [hardhat, baseSepolia],
+  chains: [hardhat, sepolia],
   ssr: true,
 });
 

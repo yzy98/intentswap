@@ -1,0 +1,25 @@
+{
+  "name": "@apps/pipes",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "gen:abi": "squid-evm-typegen src/abi ../../packages/contract-deployments/src/generated/abis-json/intentFactory.json",
+    "gen:abi:clean": "rm -rf src/abi && pnpm run gen:abi",
+    "dev": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@subsquid/evm-typegen": "^4.6.0",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@packages/contract-deployments": "workspace:^",
+    "@packages/db": "workspace:^",
+    "@subsquid/evm-abi": "^0.3.1",
+    "@subsquid/evm-codec": "^0.3.0",
+    "@subsquid/pipes": "0.1.0-beta.16",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  }
+}

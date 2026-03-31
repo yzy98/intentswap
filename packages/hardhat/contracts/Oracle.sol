@@ -11,7 +11,11 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  */
 contract Oracle is Ownable {
   uint256 public constant PRICE_STALENESS_THRESHOLD = 1 hours;
-  
+
+  /// @notice Whether to skip stale price checks (testnet only)
+  /// @dev Set at deployment time and cannot be changed. NEVER set to true on mainnet!
+  bool public immutable skipStaleCheck;
+
   mapping (address => mapping (address => address)) public feeds;
 
   error Oracle__InvalidAddress();
@@ -24,7 +28,9 @@ contract Oracle is Ownable {
   event FeedSet(address indexed tokenA, address indexed tokenB, address feed);
   event FeedRemoved(address indexed tokenA, address indexed tokenB);
 
-  constructor() Ownable(msg.sender) {}
+  constructor(bool _skipStaleCheck) Ownable(msg.sender) {
+    skipStaleCheck = _skipStaleCheck;
+  }
 
   /**
    * @dev Validate a token pair addresses are valid
@@ -59,7 +65,7 @@ contract Oracle is Ownable {
     if (_updatedAt == 0) {
       revert Oracle__PriceFeedNotUpdated();
     }
-    if (block.timestamp - _updatedAt > PRICE_STALENESS_THRESHOLD) {
+    if (!skipStaleCheck && block.timestamp - _updatedAt > PRICE_STALENESS_THRESHOLD) {
       revert Oracle__PriceFeedStale();
     }
 

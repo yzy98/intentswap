@@ -20,17 +20,11 @@ export default defineConfig({
     },
   },
   networks: {
-    baseSepolia: {
+    sepolia: {
       type: "http",
-      url: configVariable("BASE_SEPOLIA_RPC_URL"),
-      chainId: 84_532,
-      accounts: [configVariable("BASE_SEPOLIA_PRIVATE_KEY")],
-    },
-    base: {
-      type: "http",
-      url: "https://mainnet.base.org",
-      chainId: 8453,
-      accounts: [configVariable("BASE_PRIVATE_KEY")],
+      url: configVariable("SEPOLIA_RPC_URL"),
+      chainId: 11_155_111,
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
   verify: {

@@ -7,11 +7,11 @@
   "hyperdrive": [
     {
       "binding": "INTENT_SWAP_API_HYPERDRIVE",
-      "id": "e809e11046144cb786f6c8c63dfeceb9"
+      "id": "a712182bf6124d9e93ad2c341e4d8904"
     },
     {
       "binding": "INTENT_SWAP_API_HYPERDRIVE_CACHE_DISABLED",
-      "id": "c67bd7d6fcb547d59ac811adab640f60"
+      "id": "6499ae0c697e4203a49ee4f467645878"
     }
   ],
   "observability": {
@@ -34,6 +34,6 @@
     "CORS_ORIGIN": "https://intentswap.zyang.space",
     "API_BASE_URL": "https://intentswap.api.zyang.space",
     "ENVIRONMENT": "production",
-    "CHAIN_ID": "84532"
+    "CHAIN_ID": "11155111"
   }
 }
