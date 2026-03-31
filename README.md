@@ -34,11 +34,11 @@ IntentSwap allows users to:
 │ - Cron executor       │                                      │                         │
 │ - Subscription KV API │                                      │                         │
 │                       │                                      │                         │
-│ apps/indexer          │                                      │                         │
-│ - On-chain event sync │                                      │                         │
+│ apps/pipes            │                                      │                         │
+│ - SQD Pipes indexer   │                                      │                         │
 │ - Writes to Postgres  │                                      │                         │
 ├───────────────────────┴──────────────────────────────────────┴─────────────────────────┤
-│ hardhat deploy ──generates──> contract-deployments <──imports── web / bot / indexer   │
+│ hardhat deploy ──generates──> contract-deployments <──imports── web / bot / pipes     │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -57,8 +57,8 @@ IntentSwap allows users to:
    - Specifies token pair, amount, price threshold, expiration
    - User approves `IntentExecutor` to spend `tokenFrom` (standard ERC20 allowance model)
 
-2. **Indexer syncs on-chain events** (`apps/indexer`)
-   - Polls `IntentFactory` events (`IntentCreated`, `IntentUpdated`, `IntentExecuted`, `IntentCancelled`)
+2. **SQD Pipes indexes on-chain events** (`apps/pipes`)
+   - Consumes Sepolia logs from the SQD EVM Portal and decodes `IntentFactory` events (`IntentCreated`, `IntentUpdated`, `IntentExecuted`, `IntentCancelled`)
    - Persists intent state + event history into Postgres via `@packages/db`
 
 3. **API serves app data + auth** (`apps/api`)
@@ -99,10 +99,10 @@ This repo uses a monorepo-friendly approach:
 
 Create local env files for runtime values:
 
-**apps/indexer/.env**
+**apps/pipes/.env**
 ```env
 DATABASE_URL=postgres://...
-RPC_URL=https://...
+PORTAL_URL=https://portal.sqd.dev/datasets/ethereum-sepolia
 CHAIN_ID=11155111
 ```
 
@@ -159,12 +159,12 @@ After deployment, the script updates:
 ### Run Development Servers
 
 ```bash
-# Run everything together (api + indexer + bot + web)
+# Run everything together (api + pipes + bot + web)
 pnpm dev:all
 
 # Or run individually
 pnpm dev:api
-pnpm dev:indexer
+pnpm dev:pipes
 pnpm dev:bot
 pnpm dev:web
 ```
@@ -177,7 +177,7 @@ intentswap/
 │   ├── web/                    # Next.js frontend
 │   ├── api/                    # Hono + GraphQL + auth worker
 │   ├── bot/                    # Cloudflare Worker (cron executor + subscriptions)
-│   └── indexer/                # On-chain event indexer -> Postgres
+│   └── pipes/                  # SQD Pipes indexer -> Postgres
 ├── packages/
 │   ├── hardhat/                # Solidity contracts + deploy/test scripts
 │   ├── contract-deployments/   # Generated ABIs + deployment addresses
@@ -211,6 +211,7 @@ intentswap/
 - GraphQL Yoga + Pothos
 - Better Auth (SIWE)
 - Drizzle ORM + PostgreSQL
+- SQD Pipes (Subsquid) + EVM Portal
 
 ## Networks
 
@@ -230,7 +231,7 @@ intentswap/
 # Root
 pnpm dev:all
 pnpm dev:api
-pnpm dev:indexer
+pnpm dev:pipes
 pnpm dev:bot
 pnpm dev:web
 pnpm check
