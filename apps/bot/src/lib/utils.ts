@@ -10,11 +10,6 @@ export const jsonError = (
   return c.json({ ok: false, error: message }, status);
 };
 
-export const hasMissingSubscribeFields = (body: SubscribeBody) => {
-  const required = [body.intentId, body.user];
-  return required.some((value) => !value);
-};
-
 export const formatSubscriptionKV = (body: SubscribeBody) => {
   const key = `sub:${body.chainId}:${body.intentId}`;
   const value = JSON.stringify({

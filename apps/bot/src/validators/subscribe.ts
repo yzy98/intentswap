@@ -1,23 +1,27 @@
+import { zValidator } from "@hono/zod-validator";
 import {
   getDeployment,
   intentFactoryAbi,
 } from "@packages/contract-deployments";
-import type { Next } from "hono";
-import type { AppContext, SubscribeBody } from "../lib/types";
-import {
-  formatSubscriptionKV,
-  hasMissingSubscribeFields,
-  jsonError,
-} from "../lib/utils";
+import { subscribeJsonSchema } from "@/lib/schemas";
+import type { AppContext, SubscribeBody } from "@/lib/types";
+import { formatSubscriptionKV, jsonError } from "@/lib/utils";
 
-export const validateSubscription = async (c: AppContext, next: Next) => {
-  try {
-    const body = await c.req.json<SubscribeBody>();
-
-    if (hasMissingSubscribeFields(body)) {
-      return jsonError(c, "Missing required fields");
+export const subscribeJsonValidator = zValidator(
+  "json",
+  subscribeJsonSchema,
+  (result, c) => {
+    if (!result.success) {
+      return jsonError(c, "Invalid request body");
     }
+  }
+);
 
+export const runSubscriptionValidation = async (
+  c: AppContext,
+  body: SubscribeBody
+) => {
+  try {
     const publicClient = c.get("publicClient");
 
     if (body.chainId !== publicClient.chain?.id) {
@@ -38,7 +42,6 @@ export const validateSubscription = async (c: AppContext, next: Next) => {
     const { key, value } = formatSubscriptionKV(body);
 
     c.set("subscriptionKV", { key, value });
-    await next();
   } catch (error: unknown) {
     if (error instanceof Error) {
       return jsonError(c, error.message);

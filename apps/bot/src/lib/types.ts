@@ -1,5 +1,7 @@
 import type { Context } from "hono";
-import type { Address, PublicClient, WalletClient } from "viem";
+import type { PublicClient, WalletClient } from "viem";
+import type z from "zod";
+import type { subscribeJsonSchema } from "@/lib/schemas";
 
 export type AppContext = Context<AppEnv>;
 
@@ -25,12 +27,6 @@ export interface Variables {
   user: User;
 }
 
-export interface SubscribeBody {
-  intentId: string;
-  chainId: number;
-  user: Address;
-}
-
 export interface SubscriptionKV {
   key: string;
   value: string;
@@ -45,3 +41,5 @@ export interface User {
   name: string;
   image?: string | null | undefined;
 }
+
+export type SubscribeBody = z.infer<typeof subscribeJsonSchema>;

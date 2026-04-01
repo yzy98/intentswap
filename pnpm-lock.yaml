@@ -108,15 +108,12 @@ importers:
 
   apps/bot:
     dependencies:
-      '@packages/auth':
-        specifier: workspace:^
-        version: link:../../packages/auth
+      '@hono/zod-validator':
+        specifier: ^0.7.6
+        version: 0.7.6(hono@4.11.6)(zod@4.3.6)
       '@packages/contract-deployments':
         specifier: workspace:*
         version: link:../../packages/contract-deployments
-      '@packages/db':
-        specifier: workspace:^
-        version: link:../../packages/db
       hono:
         specifier: 'catalog:'
         version: 4.11.6
@@ -126,6 +123,9 @@ importers:
       viem:
         specifier: 'catalog:'
         version: 2.43.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6)
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
     devDependencies:
       '@cloudflare/workers-types':
         specifier: 'catalog:'
@@ -173,6 +173,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@apps/bot':
+        specifier: workspace:^
+        version: link:../bot
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -221,6 +224,9 @@ importers:
       graphql:
         specifier: 16.11.0
         version: 16.11.0
+      hono:
+        specifier: 'catalog:'
+        version: 4.11.6
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
@@ -2032,6 +2038,12 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hono/zod-validator@0.7.6':
+    resolution: {integrity: sha512-Io1B6d011Gj1KknV4rXYz4le5+5EubcWEU/speUjuw9XMMIaP3n78yXLhjd2A3PXaXaUwEAluOiAyLqhBEJgsw==}
+    peerDependencies:
+      hono: '>=3.9.0'
+      zod: ^3.25.0 || ^4.0.0
 
   '@img/colour@1.0.0':
     resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
@@ -9746,6 +9758,11 @@ snapshots:
   '@hono/node-server@1.19.7(hono@4.11.6)':
     dependencies:
       hono: 4.11.6
+
+  '@hono/zod-validator@0.7.6(hono@4.11.6)(zod@4.3.6)':
+    dependencies:
+      hono: 4.11.6
+      zod: 4.3.6
 
   '@img/colour@1.0.0': {}
 

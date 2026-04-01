@@ -12,8 +12,8 @@ import {
   type PublicClient,
   type WalletClient,
 } from "viem";
-import { getPublicClient, getWalletClient } from "./clients";
-import type { Bindings, SubscribeBody } from "./lib/types";
+import { getPublicClient, getWalletClient } from "@/clients";
+import type { Bindings, SubscribeBody } from "@/lib/types";
 
 // Maximum number of intents to process in a single batch
 // Adjust based on RPC provider limits (some have limits on multicall size)

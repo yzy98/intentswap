@@ -1,20 +1,26 @@
 {
   "name": "@apps/bot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
+  "exports": {
+    "./rpc": {
+      "types": "./dist-types/types.d.ts"
+    }
+  },
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
+    "build:types": "tsc -p tsconfig.types.json",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "trigger-cron": "curl http://localhost:8787/cdn-cgi/handler/scheduled"
   },
   "dependencies": {
-    "@packages/auth": "workspace:^",
+    "@hono/zod-validator": "^0.7.6",
     "@packages/contract-deployments": "workspace:*",
-    "@packages/db": "workspace:^",
     "hono": "catalog:",
     "hono-rate-limiter": "catalog:",
-    "viem": "catalog:"
+    "viem": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
