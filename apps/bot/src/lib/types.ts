@@ -24,22 +24,12 @@ export interface Variables {
   publicClient: PublicClient;
   walletClient: WalletClient;
   subscriptionKV: SubscriptionKV;
-  user: User;
+  walletAddress: string;
 }
 
 export interface SubscriptionKV {
   key: string;
   value: string;
-}
-
-export interface User {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  email: string;
-  emailVerified: boolean;
-  name: string;
-  image?: string | null | undefined;
 }
 
 export type SubscribeBody = z.infer<typeof subscribeJsonSchema>;

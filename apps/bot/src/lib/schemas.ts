@@ -11,7 +11,6 @@ const numericString = z
 export const subscribeJsonSchema = z.object({
   intentId: numericString,
   chainId: z.number().int().positive(),
-  user: z.string().refine(isAddress, "Invalid address"),
 });
 
 export const statusQuerySchema = z.object({
@@ -36,4 +35,9 @@ export const statusBatchQuerySchema = z.object({
       "All intentIds must be numeric"
     ),
   chainId: numericString,
+});
+
+export const authBotResponseSchema = z.object({
+  ok: z.literal(true),
+  walletAddress: z.string().refine(isAddress, "Invalid wallet address"),
 });

@@ -1,7 +1,6 @@
-import { and, eq } from "@packages/db/helper";
-import { walletAddress } from "@packages/db/schema";
 import { GraphQLError } from "graphql";
 import type { Context } from "@/graphql/builder";
+import { getPrimaryWalletAddressByUserId } from "@/lib/utils";
 
 const MAX_LIMIT = 50;
 
@@ -26,21 +25,13 @@ export const getAuthenticatedWalletAddress = async (ctx: Context) => {
     });
   }
 
-  const [result] = await ctx.db
-    .select({ address: walletAddress.address })
-    .from(walletAddress)
-    .where(
-      and(
-        eq(walletAddress.userId, ctx.user.id),
-        eq(walletAddress.isPrimary, true)
-      )
-    );
+  const address = await getPrimaryWalletAddressByUserId(ctx.db, ctx.user.id);
 
-  if (!result) {
+  if (!address) {
     throw new GraphQLError("No wallet address found", {
       extensions: { code: "NOT_FOUND" },
     });
   }
 
-  return result.address.toLowerCase();
+  return address;
 };

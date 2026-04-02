@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { MoreVerticalIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useChainId, useConfig, useConnection, useWriteContract } from "wagmi";
+import { useChainId, useConfig, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,21 +36,15 @@ export const RowActions = ({
   const [isPending, setIsPending] = useState(false);
 
   const { mutateAsync } = useWriteContract();
-  const { address } = useConnection();
   const chainId = useChainId();
   const config = useConfig();
 
   const { mutateAsync: unsubscribe } = useMutation({
     mutationFn: async () => {
-      if (!address) {
-        throw new Error("Wallet not connected");
-      }
-
       await subscribeBotOrNot({
         subscribe: false,
         intentId,
         chainId,
-        user: address,
       });
     },
   });

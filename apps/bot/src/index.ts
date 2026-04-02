@@ -23,7 +23,6 @@ app.use("*", rateLimiterMiddleware);
 app.use("*", authMiddleware);
 app.use("*", clientsMiddleware);
 
-// Subscribe
 const routes = app
   .post("/subscribe", subscribeJsonValidator, async (c) => {
     try {

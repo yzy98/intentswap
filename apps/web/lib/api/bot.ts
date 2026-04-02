@@ -90,26 +90,22 @@ export const subscribeBotOrNot = async ({
   subscribe,
   intentId,
   chainId,
-  user,
 }: {
   subscribe: boolean;
   intentId: bigint;
   chainId: number;
-  user: `0x${string}`;
 }): Promise<SubscribeOK | UnsubscribeOK> => {
   const res = subscribe
     ? await botClient.subscribe.$post({
         json: {
           intentId: intentId.toString(),
           chainId,
-          user,
         },
       })
     : await botClient.unsubscribe.$post({
         json: {
           intentId: intentId.toString(),
           chainId,
-          user,
         },
       });
 

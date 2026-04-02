@@ -23,6 +23,7 @@ export const runSubscriptionValidation = async (
 ) => {
   try {
     const publicClient = c.get("publicClient");
+    const walletAddress = c.get("walletAddress");
 
     if (body.chainId !== publicClient.chain?.id) {
       return jsonError(c, "Unsupported chainId");
@@ -35,11 +36,15 @@ export const runSubscriptionValidation = async (
       args: [BigInt(body.intentId)],
     });
 
-    if (intent.user.toLowerCase() !== body.user.toLowerCase()) {
+    if (intent.user.toLowerCase() !== walletAddress.toLowerCase()) {
       return jsonError(c, "Intent owner mismatch", 403);
     }
 
-    const { key, value } = formatSubscriptionKV(body);
+    const { key, value } = formatSubscriptionKV(
+      body.chainId,
+      body.intentId,
+      walletAddress.toLowerCase()
+    );
 
     c.set("subscriptionKV", { key, value });
   } catch (error: unknown) {

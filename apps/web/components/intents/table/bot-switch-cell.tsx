@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useChainId, useConnection } from "wagmi";
+import { useChainId } from "wagmi";
 import { Switch } from "@/components/ui/switch";
 import { subscribeBotOrNot } from "@/lib/api/bot";
 
@@ -19,20 +19,14 @@ export const BotSwitchCell = ({
   botSubscribed,
   refetch,
 }: BotSwitchCellProps) => {
-  const { address } = useConnection();
   const chainId = useChainId();
 
   const { mutateAsync: toggleBot, isPending } = useMutation({
     mutationFn: async (subscribe: boolean) => {
-      if (!address) {
-        throw new Error("Wallet not connected");
-      }
-
       await subscribeBotOrNot({
         subscribe,
         intentId,
         chainId,
-        user: address,
       });
     },
     onSuccess: refetch,

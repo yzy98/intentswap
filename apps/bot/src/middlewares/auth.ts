@@ -1,5 +1,6 @@
 import type { MiddlewareHandler, Next } from "hono";
-import type { AppContext, AppEnv, User } from "@/lib/types";
+import { authBotResponseSchema } from "@/lib/schemas";
+import type { AppContext, AppEnv } from "@/lib/types";
 import { jsonError } from "@/lib/utils";
 
 export const authMiddleware: MiddlewareHandler<AppEnv> = async (
@@ -16,16 +17,21 @@ export const authMiddleware: MiddlewareHandler<AppEnv> = async (
       },
     });
 
-    const data: {
-      ok: boolean;
-      user: User;
-    } = await response.json();
-
     if (!response.ok) {
-      return jsonError(c, "Unauthorized", 401);
+      if (response.status === 401) {
+        return jsonError(c, "Unauthorized", 401);
+      }
+
+      return jsonError(c, "Failed to authenticate", 503);
     }
 
-    c.set("user", data.user);
+    const payload = await response.json().catch(() => null);
+    const parsed = authBotResponseSchema.safeParse(payload);
+    if (!parsed.success) {
+      return jsonError(c, "Invalid auth response", 503);
+    }
+
+    c.set("walletAddress", parsed.data.walletAddress.toLowerCase());
   } catch {
     return jsonError(c, "Failed to authenticate", 503);
   }
