@@ -9,6 +9,8 @@ interface AuthOptions {
   baseURL: string;
   trustedOrigins: string[];
   domain: string;
+  crossCookieDomain: string;
+  isProd: boolean;
   verifyMessage: (
     args: Pick<
       Parameters<SIWEPluginOptions["verifyMessage"]>[0],
@@ -23,6 +25,8 @@ export const createAuth = ({
   baseURL,
   trustedOrigins,
   domain,
+  crossCookieDomain,
+  isProd,
   verifyMessage,
 }: AuthOptions) =>
   betterAuth({
@@ -32,6 +36,16 @@ export const createAuth = ({
     secret,
     baseURL,
     trustedOrigins,
+    advanced: {
+      crossSubDomainCookies: isProd
+        ? {
+            enabled: true,
+            domain: crossCookieDomain,
+          }
+        : {
+            enabled: false,
+          },
+    },
     plugins: [
       siwe({
         domain,

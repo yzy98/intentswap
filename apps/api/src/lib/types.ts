@@ -16,6 +16,7 @@ export interface Env {
   CORS_ORIGIN: string;
   ENVIRONMENT: string;
   API_BASE_URL: string;
+  ROOT_DOMAIN: string;
   CHAIN_ID: string;
   RPC_URL: string;
 }
