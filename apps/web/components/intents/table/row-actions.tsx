@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { MoreVerticalIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useChainId, useConfig, useConnection, useWriteContract } from "wagmi";
+import { useChainId, useConfig, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,10 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IndexingTimeoutError } from "@/hooks/use-my-write-contract";
 import { useWaitForIndexed } from "@/hooks/use-wait-for-indexed";
+import { subscribeBotOrNot } from "@/lib/api/bot";
 import { intentFactoryContract } from "@/lib/constants";
-
-const BOT_API_URL =
-  process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
 interface RowActionsProps {
   intentId: bigint;
@@ -38,35 +36,16 @@ export const RowActions = ({
   const [isPending, setIsPending] = useState(false);
 
   const { mutateAsync } = useWriteContract();
-  const { address } = useConnection();
   const chainId = useChainId();
   const config = useConfig();
 
   const { mutateAsync: unsubscribe } = useMutation({
     mutationFn: async () => {
-      if (!address) {
-        throw new Error("Wallet not connected");
-      }
-
-      const response = await fetch(`${BOT_API_URL}/unsubscribe`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          intentId: intentId.toString(),
-          chainId,
-          user: address,
-        }),
+      await subscribeBotOrNot({
+        subscribe: false,
+        intentId,
+        chainId,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to disable bot auto-execution");
-      }
-
-      return data;
     },
   });
 

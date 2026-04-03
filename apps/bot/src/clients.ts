@@ -2,7 +2,6 @@ import {
   type Chain,
   createPublicClient,
   createWalletClient,
-  type Hex,
   http,
   type PublicClient,
   type WalletClient,
@@ -17,6 +16,17 @@ const chains: Record<number, Chain> = {
 const publicClientCache = new Map<string, PublicClient>();
 const walletClientCache = new Map<string, WalletClient>();
 
+const normalizeRpcUrl = (rpcUrl: string) => rpcUrl.trim();
+
+const getPublicClientCacheKey = (rpcUrl: string, chainId: string) =>
+  `${chainId}:${normalizeRpcUrl(rpcUrl)}`;
+
+const getWalletClientCacheKey = (
+  rpcUrl: string,
+  chainId: string,
+  accountAddress: string
+) => `${chainId}:${normalizeRpcUrl(rpcUrl)}:${accountAddress.toLowerCase()}`;
+
 const getChain = (chainId: string): Chain => {
   const chain = chains[Number(chainId)];
   if (!chain) {
@@ -26,7 +36,8 @@ const getChain = (chainId: string): Chain => {
 };
 
 export const getPublicClient = (rpcUrl: string, chainId: string) => {
-  const cached = publicClientCache.get(rpcUrl);
+  const cacheKey = getPublicClientCacheKey(rpcUrl, chainId);
+  const cached = publicClientCache.get(cacheKey);
   if (cached) {
     return cached;
   }
@@ -34,25 +45,26 @@ export const getPublicClient = (rpcUrl: string, chainId: string) => {
     chain: getChain(chainId),
     transport: http(rpcUrl),
   });
-  publicClientCache.set(rpcUrl, client);
+  publicClientCache.set(cacheKey, client);
   return client;
 };
 
 export const getWalletClient = (
   rpcUrl: string,
-  privateKey: Hex,
+  privateKey: string,
   chainId: string
 ) => {
-  const cached = walletClientCache.get(`${rpcUrl}:${privateKey.toLowerCase()}`);
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
+  const cacheKey = getWalletClientCacheKey(rpcUrl, chainId, account.address);
+  const cached = walletClientCache.get(cacheKey);
   if (cached) {
     return cached;
   }
-  const account = privateKeyToAccount(privateKey);
   const client = createWalletClient({
     chain: getChain(chainId),
     transport: http(rpcUrl),
     account,
   });
-  walletClientCache.set(`${rpcUrl}:${privateKey.toLowerCase()}`, client);
+  walletClientCache.set(cacheKey, client);
   return client;
 };

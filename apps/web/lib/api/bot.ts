@@ -1,30 +1,61 @@
+import type { AppType } from "@apps/bot/rpc";
+import { hc, type InferResponseType } from "hono/client";
+
 const BATCH_SIZE = 50;
 
 const BOT_API_URL =
   process.env.NEXT_PUBLIC_BOT_API_URL ?? "http://localhost:8787";
 
-export interface BotStatusBatchResponse {
-  ok: boolean;
-  statuses: Record<string, boolean>; // { intentId: subscribed }
-}
+const botClient = hc<AppType>(BOT_API_URL, {
+  init: {
+    credentials: "include",
+  },
+});
+
+type StatusBatchResponse = InferResponseType<
+  typeof botClient.status.batch.$get
+>;
+type SubscribeResponse = InferResponseType<typeof botClient.subscribe.$post>;
+type UnsubscribeResponse = InferResponseType<
+  typeof botClient.unsubscribe.$post
+>;
+
+type StatusBatchOK = Extract<
+  StatusBatchResponse,
+  {
+    ok: true;
+  }
+>;
+type SubscribeOK = Extract<
+  SubscribeResponse,
+  {
+    ok: true;
+  }
+>;
+type UnsubscribeOK = Extract<
+  UnsubscribeResponse,
+  {
+    ok: true;
+  }
+>;
 
 export const fetchBotStatusBatch = async (
   intentIds: readonly bigint[],
   chainId: number
-): Promise<BotStatusBatchResponse> => {
+): Promise<StatusBatchOK> => {
   if (intentIds.length === 0) {
     return { ok: true, statuses: {} };
   }
 
-  const params = new URLSearchParams({
-    intentIds: intentIds.join(","),
-    chainId: chainId.toString(),
+  const res = await botClient.status.batch.$get({
+    query: {
+      intentIds: intentIds.join(","),
+      chainId: chainId.toString(),
+    },
   });
+  const data = await res.json();
 
-  const response = await fetch(`${BOT_API_URL}/status/batch?${params}`);
-  const data = await response.json();
-
-  if (!response.ok) {
+  if (!data.ok) {
     throw new Error(data.error ?? "Failed to get bot statuses");
   }
 
@@ -53,4 +84,36 @@ export const fetchBotSubscriptionCount = async (
   );
 
   return counts.reduce((sum, count) => sum + count, 0);
+};
+
+export const subscribeBotOrNot = async ({
+  subscribe,
+  intentId,
+  chainId,
+}: {
+  subscribe: boolean;
+  intentId: bigint;
+  chainId: number;
+}): Promise<SubscribeOK | UnsubscribeOK> => {
+  const res = subscribe
+    ? await botClient.subscribe.$post({
+        json: {
+          intentId: intentId.toString(),
+          chainId,
+        },
+      })
+    : await botClient.unsubscribe.$post({
+        json: {
+          intentId: intentId.toString(),
+          chainId,
+        },
+      });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    throw new Error(data.error ?? "Failed to toggle bot auto-execution");
+  }
+
+  return data;
 };

@@ -12,8 +12,8 @@ import {
   type PublicClient,
   type WalletClient,
 } from "viem";
-import { getPublicClient, getWalletClient } from "./clients";
-import type { Bindings, SubscribeBody } from "./lib/types";
+import { getPublicClient, getWalletClient } from "@/clients";
+import type { Bindings, SubscribeBody } from "@/lib/types";
 
 // Maximum number of intents to process in a single batch
 // Adjust based on RPC provider limits (some have limits on multicall size)
@@ -24,6 +24,8 @@ const INTENT_STATUS_MAP = {
   Executed: 1,
   Cancelled: 2,
 } as const;
+
+const KV_LIST_LIMIT = 1000;
 
 interface SubscriptionData {
   key: string;
@@ -416,51 +418,66 @@ const runCronJob = async (env: Bindings) => {
     return;
   }
 
-  // Get all intents subscriptions from KV
-  const { keys } = await env.INTENTS_SUBSCRIPTIONS.list();
-  console.log(`Found ${keys.length} intents subscriptions`);
-
-  if (keys.length === 0) {
-    return;
-  }
-
   // Get current block timestamp
   const block = await publicClient.getBlock();
   const blockTimestamp = block.timestamp;
 
-  // Parse all subscriptions from KV
-  const subscriptions = await parseSubscriptions(keys, env);
-  console.log(`Parsed ${subscriptions.length} valid subscriptions`);
-
-  // Split into batches to avoid RPC limits
-  const batches = chunk(subscriptions, BATCH_SIZE);
-  console.log(`Processing ${batches.length} batch(es)...`);
-
+  let totalScanned = 0;
+  let totalParsed = 0;
   let totalExecuted = 0;
   let totalRemoved = 0;
   let totalFailed = 0;
 
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    console.log(
-      `\n--- Processing batch ${i + 1}/${batches.length} (${batch.length} intents) ---`
-    );
+  let cursor: string | undefined;
+  let page = 0;
 
-    const { executed, removed, failed } = await processBatch({
-      subscriptions: batch,
-      env,
-      publicClient,
-      walletClient,
-      account,
-      blockTimestamp,
+  while (true) {
+    // Get all intents subscriptions from KV with pagination
+    const listed = await env.INTENTS_SUBSCRIPTIONS.list({
+      limit: KV_LIST_LIMIT,
+      cursor,
     });
 
-    totalExecuted += executed;
-    totalRemoved += removed;
-    totalFailed += failed;
+    page += 1;
+    totalScanned += listed.keys.length;
+    console.log(
+      `[cron] page=${page} keys=${listed.keys.length} list_complete=${listed.list_complete}`
+    );
+
+    if (listed.keys.length > 0) {
+      // Parse subscriptions from KV
+      const subscriptions = await parseSubscriptions(listed.keys, env);
+      totalParsed += subscriptions.length;
+
+      // Split into batches to avoid RPC limits
+      const batches = chunk(subscriptions, BATCH_SIZE);
+      for (const batch of batches) {
+        const { executed, removed, failed } = await processBatch({
+          subscriptions: batch,
+          env,
+          publicClient,
+          walletClient,
+          account,
+          blockTimestamp,
+        });
+
+        totalExecuted += executed;
+        totalRemoved += removed;
+        totalFailed += failed;
+      }
+    }
+
+    // Break the loop when list_complete is true
+    if (listed.list_complete) {
+      break;
+    }
+
+    cursor = listed.cursor;
   }
 
   console.log("\n=== Cron job completed ===");
+  console.log(`Scanned keys: ${totalScanned}`);
+  console.log(`Parsed subscriptions: ${totalParsed}`);
   console.log(`Executed: ${totalExecuted}`);
   console.log(`Removed (invalid): ${totalRemoved}`);
   console.log(`Failed: ${totalFailed}`);

@@ -34,6 +34,8 @@ export const getAuth = async (env: Env) => {
     baseURL: env.API_BASE_URL,
     trustedOrigins: [env.CORS_ORIGIN],
     domain: new URL(env.CORS_ORIGIN).host,
+    crossCookieDomain: env.ROOT_DOMAIN,
+    isProd: env.ENVIRONMENT === "production",
     verifyMessage: async ({ address, message, signature }) => {
       return await publicClient.verifySiweMessage({
         address: address as `0x${string}`,

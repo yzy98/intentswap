@@ -1,6 +1,5 @@
 import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import type { SubscribeBody } from "./types";
 
 export const jsonError = (
   c: Context,
@@ -10,17 +9,16 @@ export const jsonError = (
   return c.json({ ok: false, error: message }, status);
 };
 
-export const hasMissingSubscribeFields = (body: SubscribeBody) => {
-  const required = [body.intentId, body.user];
-  return required.some((value) => !value);
-};
-
-export const formatSubscriptionKV = (body: SubscribeBody) => {
-  const key = `sub:${body.chainId}:${body.intentId}`;
+export const formatSubscriptionKV = (
+  chainId: number,
+  intentId: string,
+  walletAddress: string
+) => {
+  const key = `sub:${chainId}:${intentId}`;
   const value = JSON.stringify({
-    intentId: body.intentId,
-    user: body.user,
-    chainId: body.chainId,
+    intentId,
+    walletAddress,
+    chainId,
   });
 
   return { key, value };

@@ -32,6 +32,7 @@
   },
   "vars": {
     "CORS_ORIGIN": "https://intentswap.zyang.space",
+    "API_BASE_URL": "https://intentswap.api.zyang.space",
     "CHAIN_ID": "11155111"
   }
 }
