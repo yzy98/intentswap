@@ -14,6 +14,7 @@ export const authMiddleware: MiddlewareHandler<AppEnv> = async (
       method: "GET",
       headers: {
         cookie: c.req.header("Cookie") ?? "",
+        "cf-connecting-ip": c.req.header("cf-connecting-ip") ?? "",
       },
     });
 
