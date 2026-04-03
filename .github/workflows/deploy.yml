@@ -78,6 +78,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Bot types
+        run: pnpm --filter @apps/bot run build:types
+
       - name: Deploy Web
         run: pnpm run deploy
         working-directory: apps/web
