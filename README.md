@@ -200,10 +200,12 @@ intentswap/
 **Frontend**
 - Next.js 16
 - React 19
-- Wagmi / Viem
-- RainbowKit
 - Tailwind CSS
 - shadcn/ui
+- Wagmi / Viem
+- RainbowKit
+- TanStack Query
+- Urql + gql.tada
 
 **Backend / Workers**
 - Cloudflare Workers + Wrangler
