@@ -1,83 +1,132 @@
 # IntentSwap
 
-An **on-chain conditional intent swap** project: users create swap intents with a price threshold + expiry, and a **permissionless executor** can execute them when conditions are met (with an on-chain reward).
+An **on-chain conditional intent swap protocol**.
 
-## Overview
+Users create swap intents with a price threshold and expiry, and a **permissionless executor** can execute them when conditions are met — earning an on-chain reward.
+
+## 🧠 Overview
 
 IntentSwap allows users to:
 
-- Create swap intents with specific price thresholds
-- Set expiration dates for their intents
-- Have intents executed when conditions are satisfied
-  - **Current implementation**: `apps/bot` (Cloudflare Worker scheduled handler) runs as the default executor
-  - **Protocol design**: execution is permissionless — any executor can call the on-chain entrypoint
-- Use Chainlink oracles for reliable price feeds
-- Swap tokens via Uniswap V3 with slippage protection
+- Create swap intents with custom **price thresholds**
+- Set **expiration times** for intents
+- Enable **permissionless execution**
+  - Anyone can execute intents and earn rewards
+  - A default bot (`apps/bot`) is provided for liveness
+- Use **Chainlink oracles** for reliable pricing
+- Execute swaps via **Uniswap V3** with slippage protection
 
-## Architecture
+## 🏗 Architecture
 
+![IntentSwap Architecture](./public/architecture.png)
+
+> High-level system architecture showing on-chain contracts, indexing pipeline, and off-chain execution.
+
+## 🔄 Execution Flow
+
+### 1. User creates an intent
+
+- Via frontend (`apps/web`)
+- Calls `IntentFactory.createIntent()`
+- Specifies:
+  - token pair
+  - amount
+  - price threshold
+  - expiration
+- User grants ERC20 allowance to `IntentExecutor`.
+
+### 2. Events are indexed
+
+- `apps/pipes` (SQD Pipes indexer)
+- Consumes on-chain events:
+  - `IntentCreated`
+  - `IntentUpdated`
+  - `IntentExecuted`
+  - `IntentCancelled`
+- Stores state in **Postgres**
+
+### 3. API serves data
+
+- `apps/api` (Hono + GraphQL)
+- Provides:
+  - intent queries
+  - event history
+  - SIWE authentication
+
+### 4. Executors monitor and execute
+
+- `apps/bot` runs a scheduled job
+- Checks whether intents are **fillable**
+- Calls `IntentExecutor.executeIntent(intentId)`
+
+### 5. Swap is executed on-chain
+- `IntentExecutor` validates:
+  - price condition
+  - expiration
+- Calls `UniswapV3Swapper`
+- Executes swap on **Uniswap V3**
+- Distributes:
+  - protocol fee
+  - executor reward
+
+## 🧱 Monorepo Structure
+
+```text
+intentswap/
+├── apps/
+│   ├── web/        # Next.js frontend (UI + wallet)
+│   ├── api/        # GraphQL + auth (Cloudflare Worker)
+│   ├── bot/        # Executor bot (cron + KV)
+│   └── pipes/      # SQD Pipes indexer → Postgres
+├── packages/
+│   ├── hardhat/                # Smart contracts + deploy scripts
+│   ├── contract-deployments/   # Generated ABIs + addresses
+│   ├── db/                     # Drizzle schema + DB client
+│   ├── auth/                   # Shared auth utilities
+│   └── graphql-artifacts/      # Persisted GraphQL queries
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                               IntentSwap (monorepo)                                   │
-├───────────────────────┬──────────────────────────────────────┬─────────────────────────┤
-│ Apps                  │ Shared Packages                      │ Infra / Contracts       │
-├───────────────────────┼──────────────────────────────────────┼─────────────────────────┤
-│ apps/web              │ packages/auth                        │ packages/hardhat        │
-│ - Next.js UI          │ - Better Auth wrappers               │ - Solidity contracts    │
-│ - Wallet + intents    │                                      │ - Deploy/test scripts   │
-│                       │ packages/db                          │                         │
-│ apps/api              │ - Drizzle schema + db clients        │ packages/contract-      │
-│ - Hono + GraphQL      │                                      │ deployments             │
-│ - Auth endpoints      │ packages/graphql-artifacts           │ - Generated ABIs +      │
-│                       │ - Persisted GraphQL manifests        │   deployed addresses    │
-│ apps/bot              │                                      │                         │
-│ - Cron executor       │                                      │                         │
-│ - Subscription KV API │                                      │                         │
-│                       │                                      │                         │
-│ apps/pipes            │                                      │                         │
-│ - SQD Pipes indexer   │                                      │                         │
-│ - Writes to Postgres  │                                      │                         │
-├───────────────────────┴──────────────────────────────────────┴─────────────────────────┤
-│ hardhat deploy ──generates──> contract-deployments <──imports── web / bot / pipes     │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
 
-## Smart Contracts
+## 📦 Smart Contracts
 
 | Contract | Description |
 |----------|-------------|
-| `IntentFactory` | Creates and manages swap intents |
-| `IntentExecutor` | Validates conditions and executes swaps; pays protocol fee + executor reward |
-| `Oracle` | Manages Chainlink price feed mappings |
-| `UniswapV3Swapper` | Handles Uniswap V3 swap execution |
+| `IntentFactory` | Creates and manages intents |
+| `IntentExecutor` | Validates + executes intents |
+| `Oracle` | Chainlink price feed registry |
+| `UniswapV3Swapper` | Swap execution layer |
 
-### How It Works
+## ⚙️ Tech Stack
 
-1. **User creates intent** via `IntentFactory.createIntent()`
-   - Specifies token pair, amount, price threshold, expiration
-   - User approves `IntentExecutor` to spend `tokenFrom` (standard ERC20 allowance model)
+**Smart Contracts**
+- Solidity
+- Hardhat
+- OpenZeppelin
+- Chainlink Price Feeds
+- Uniswap V3
 
-2. **SQD Pipes indexes on-chain events** (`apps/pipes`)
-   - Consumes Sepolia logs from the SQD EVM Portal and decodes `IntentFactory` events (`IntentCreated`, `IntentUpdated`, `IntentExecuted`, `IntentCancelled`)
-   - Persists intent state + event history into Postgres via `@packages/db`
+**Frontend**
+- Next.js 16 + React 19
+- Tailwind CSS + shadcn/ui
+- Wagmi / Viem
+- RainbowKit
+- TanStack Query
+- Urql + gql.tada
 
-3. **API serves app data + auth** (`apps/api`)
-   - GraphQL endpoint for intent/event queries
-   - Better Auth endpoints for SIWE-based sessions
+**Backend / Infra**
+- Cloudflare Workers
+- Hono + GraphQL Yoga + Pothos
+- Better Auth (SIWE)
+- Drizzle ORM + PostgreSQL
+- SQD Pipes (Subsquid)
 
-4. **Bot monitors subscriptions and executes fillable intents** (`apps/bot`)
-   - Subscription API stores watched intents in Cloudflare KV
-   - Scheduled job checks conditions and calls `IntentExecutor.executeIntent(intentId)` when fillable
-   - Note: this is **permissionless** — the bot is not special; any executor can do the same
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 20+
 - pnpm 8+
-- PostgreSQL database
-- A wallet with Ethereum Sepolia ETH (for testnet deployment/execution)
+- PostgreSQL
+- Sepolia ETH (for testing)
 
 ### Installation
 
@@ -92,13 +141,6 @@ pnpm install
 
 ### Environment Setup
 
-This repo uses a monorepo-friendly approach:
-
-- Contract **ABIs + deployed addresses** live in `packages/contract-deployments/` (generated by the Hardhat deploy script).
-- Runtime apps import deployments from `@packages/contract-deployments` instead of duplicating contract addresses in each app.
-
-Create local env files for runtime values:
-
 **apps/pipes/.env**
 ```env
 DATABASE_URL=postgres://...
@@ -106,13 +148,13 @@ PORTAL_URL=https://portal.sqd.dev/datasets/ethereum-sepolia
 CHAIN_ID=11155111
 ```
 
-**apps/api/.dev.vars** (Wrangler local secrets)
+**apps/api/.dev.vars**
 ```env
 BETTER_AUTH_SECRET=your_secret
 RPC_URL=https://...
 ```
 
-**apps/bot/.dev.vars** (Wrangler local secrets)
+**apps/bot/.dev.vars**
 ```env
 RPC_URL=https://...
 PRIVATE_KEY=0x...
@@ -130,11 +172,6 @@ NEXT_PUBLIC_WRAPPED_ETH_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_LINK_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_PRICE_FEED_CONTRACT_LINK_TO_ETH_ADDRESS=0x...
 ```
-
-Notes:
-
-- `apps/api/wrangler.jsonc`, `apps/bot/wrangler.jsonc`, and `apps/web/wrangler.jsonc` already include default local/production `vars` for non-secret config.
-- For production, store secrets with `wrangler secret put` (for example: API `BETTER_AUTH_SECRET`, bot `RPC_URL` / `PRIVATE_KEY`).
 
 ### Deploy Contracts
 
@@ -156,7 +193,7 @@ After deployment, the script updates:
 - `packages/contract-deployments/src/generated/deployments.ts`
 - `packages/contract-deployments/src/generated/deployments.json`
 
-### Run Development Servers
+### Run Dev
 
 ```bash
 # Run everything together (api + pipes + bot + web)
@@ -169,89 +206,23 @@ pnpm dev:bot
 pnpm dev:web
 ```
 
-## Project Structure
+## 🔐 Security Notes
 
-```
-intentswap/
-├── apps/
-│   ├── web/                    # Next.js frontend
-│   ├── api/                    # Hono + GraphQL + auth worker
-│   ├── bot/                    # Cloudflare Worker (cron executor + subscriptions)
-│   └── pipes/                  # SQD Pipes indexer -> Postgres
-├── packages/
-│   ├── hardhat/                # Solidity contracts + deploy/test scripts
-│   ├── contract-deployments/   # Generated ABIs + deployment addresses
-│   ├── db/                     # Drizzle schema + db clients
-│   ├── auth/                   # Shared auth integration
-│   └── graphql-artifacts/      # Persisted GraphQL artifacts
-├── package.json                # Root scripts (dev/check/fix)
-└── pnpm-workspace.yaml         # Workspace config
-```
+- **Permissionless execution**
+  - anyone can execute intents
+  - incentivized via `executorRewardBps`
+- **Access control**
+  - `UniswapV3Swapper` only callable by authorized executor
+- **Safety**
+  - `Pausable`
+  - `ReentrancyGuard`
 
-## Tech Stack
-
-**Smart Contracts**
-- Solidity 0.8.28
-- Hardhat
-- OpenZeppelin Contracts
-- Chainlink Price Feeds
-- Uniswap V3
-
-**Frontend**
-- Next.js 16
-- React 19
-- Tailwind CSS
-- shadcn/ui
-- Wagmi / Viem
-- RainbowKit
-- TanStack Query
-- Urql + gql.tada
-
-**Backend / Workers**
-- Cloudflare Workers + Wrangler
-- Hono
-- GraphQL Yoga + Pothos
-- Better Auth (SIWE)
-- Drizzle ORM + PostgreSQL
-- SQD Pipes (Subsquid) + EVM Portal
-
-## Networks
+## 🌐 Network
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| sepolia | 11155111 | Active testnet |
+| Sepolia | 11155111 | Active |
 
-## Security Notes (assumptions & design choices)
-
-- **Permissionless execution by design**: anyone can call `executeIntent`. Liveness comes from the executor incentive (`executorRewardBps`).
-- **Swapper access control**: `UniswapV3Swapper` only accepts calls from authorized executors (the deployed `IntentExecutor` is authorized post-deploy).
-- **Emergency controls**: `IntentExecutor` is `Pausable` and uses `ReentrancyGuard`.
-
-## Scripts
-
-```bash
-# Root
-pnpm dev:all
-pnpm dev:api
-pnpm dev:pipes
-pnpm dev:bot
-pnpm dev:web
-pnpm check
-pnpm fix
-
-# Hardhat package
-pnpm --filter @packages/hardhat build
-pnpm --filter @packages/hardhat test
-pnpm --filter @packages/hardhat deploy:sepolia
-pnpm --filter @packages/hardhat deploy:localhost
-
-# DB package
-pnpm --filter @packages/db db:push
-pnpm --filter @packages/db db:generate
-pnpm --filter @packages/db db:migrate
-pnpm --filter @packages/db db:studio
-```
-
-## License
+## 📜 License
 
 MIT
