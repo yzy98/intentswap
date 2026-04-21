@@ -7,10 +7,10 @@ export const deployments = {
     chainId: 11155111,
     networkName: "sepolia",
     contracts: {
-      oracle: "0xb8ba56bcccdf3636afbb0cd59009e58a079f2daf" as Address,
-      swapper: "0x681e2f193ed4d58fcb79c2e39f7e018137485591" as Address,
-      intentFactory: "0x14e050cac3dfebc5dbe456115dc7cd3d69731971" as Address,
-      intentExecutor: "0x524f5793de2075f3dfd282161a29738d0f953718" as Address,
+      oracle: "0xc520df059b8cd6b00982683ae897906842d3c50b" as Address,
+      swapper: "0x7affc4e65752892afc92d43ff881fe2df44cd193" as Address,
+      intentFactory: "0x3311084920adb5ed685fc89afbfb27279dc05642" as Address,
+      intentExecutor: "0x358eb6207dbef61bbb59a3c78677634ee15c4afe" as Address,
     },
   }
 } as const;

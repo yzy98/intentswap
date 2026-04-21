@@ -3,7 +3,7 @@
   "version": "1.0.8",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "generate-schema": "gql-tada generate schema 'http://localhost:4000/graphql'",

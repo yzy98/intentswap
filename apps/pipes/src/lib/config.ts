@@ -1,3 +1,3 @@
 export const CONFIG = {
-  startBlock: "10524659", // IntentFactory contract deployment block in Ethereum Sepolia
+  startBlock: "10702064", // IntentFactory contract deployment block in Ethereum Sepolia
 } as const;
