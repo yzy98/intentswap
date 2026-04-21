@@ -127,9 +127,10 @@ export const IntentsDataProvider = ({
       return [];
     }
     return intents.userIntents.map((intent) => {
-      const botSubscribed = intent.id
-        ? (botStatuses?.statuses?.[intent.id.toString()] ?? false)
-        : false;
+      const botSubscribed =
+        intent.id === null
+          ? false
+          : (botStatuses?.statuses?.[intent.id.toString()] ?? false);
       const intentItemData = readFragment(IntentItem_Fragment, intent);
       const isActive = intentItemData.status === "ACTIVE";
       const isExpired =
